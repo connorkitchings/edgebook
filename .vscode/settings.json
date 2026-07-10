@@ -1,0 +1,24 @@
+{
+    "python.pythonPath": ".venv/bin/python",
+    "python.linting.enabled": true,
+    "python.linting.ruffEnabled": true,
+    "python.formatting.provider": "ruff",
+    "editor.formatOnSave": true,
+    "editor.rulers": [
+        88
+    ],
+    "files.trimTrailingWhitespace": true,
+    "cSpell.words": [
+        "edium",
+        "mypy",
+        "nbstripout",
+        "openlineage",
+        "Runbooks",
+        "dataframe",
+        "dataset",
+        "mlflow",
+        "scikit",
+        "sklearn",
+        "prefect"
+    ]
+}

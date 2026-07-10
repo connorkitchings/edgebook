@@ -1,0 +1,6 @@
+{
+  "level": "DEBUG",
+  "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+  "log_file": null,
+  "handlers": ["console"]
+}

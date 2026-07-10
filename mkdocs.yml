@@ -1,0 +1,53 @@
+site_name: Vibe Coding Template
+site_description: A template for Vibe Coding data science projects.
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - toc.integrate
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+    - content.code.annotation
+    - content.code.copy
+
+nav:
+  - 'Home': 'index.md'
+  - 'Getting Started': 'getting_started.md'
+  - 'Project Overview':
+    - 'Project Brief': 'project_brief.md'
+    - 'Project Charter': 'project_charter.md'
+    - 'Implementation Schedule': 'implementation_schedule.md'
+  - 'Development':
+    - 'Development Standards': 'development_standards.md'
+    - 'Checklists': 'checklists.md'
+    - 'Troubleshooting': 'troubleshooting.md'
+  - 'Architecture':
+    - 'System Overview': 'architecture/system_overview.md'
+    - 'ADR': 'architecture/adr/adr-0001-template.md'
+  - 'Operations':
+    - 'Runbook': 'runbook.md'
+    - 'Security & Privacy': 'security.md'
+    - 'Knowledge Base': 'knowledge_base.md'
+    - 'Glossary': 'glossary.md'
+  - 'Tools & Guides':
+    - 'CLI Tool Template': 'tools/cli_tool_template.md'
+    - 'CLI Agent Coding Guide': 'tools/cli_agent_coding_guide.md'
+    - 'MCP Tooling': 'tools/mcp_tooling.md'
+    - 'Pre-commit Hooks': 'tools/pre_commit_hooks.md'
+  - 'Reference':
+    - 'AI Guide': 'ai_guide.md'
+    - 'AI Session Templates': 'ai_session_templates.md'
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            show_root_heading: true
+            show_source: true

@@ -1,0 +1,13 @@
+{
+  "python.pythonPath": "venv/bin/python",
+  "editor.formatOnSave": true,
+  "editor.tabSize": 4,
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.DS_Store": true
+  },
+  // Restrict AI toolkit flows to .windsurf directory only
+  "windsurf.flowsDirectory": ".windsurf"
+}

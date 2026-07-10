@@ -1,0 +1,65 @@
+{
+  "Config Import": {
+    "prefix": "config",
+    "body": [
+      "from vibe_coding.config import get_config",
+      "",
+      "config = get_config()",
+      "${0}"
+    ],
+    "description": "Import and initialize config"
+  },
+  "Logging Setup": {
+    "prefix": "log",
+    "body": [
+      "from vibe_coding.utils.logging import get_logger, setup_logging",
+      "",
+      "setup_logging(level=\"INFO\")",
+      "logger = get_logger(__name__)",
+      "logger.info(\"${1:message}\")",
+      "${0}"
+    ],
+    "description": "Setup logging and get logger"
+  },
+  "Pytest Fixture": {
+    "prefix": "fixture",
+    "body": [
+      "@pytest.fixture",
+      "def ${1:fixture_name}(tmp_path):",
+      "    \"\"\"${2:Description}\"\"\"",
+      "    ${0}",
+      ""
+    ],
+    "description": "Create pytest fixture"
+  },
+  "Session Log Section": {
+    "prefix": "session",
+    "body": [
+      "## ${1:Section Title}",
+      "",
+      "- ${2:First item}",
+      "- ${3:Second item}",
+      "${0}"
+    ],
+    "description": "Quick session log section"
+  },
+  "Python Docstring": {
+    "prefix": "doc",
+    "body": [
+      "\"\"\"",
+      "${1:Short description.}",
+      "",
+      "Args:",
+      "    ${2:param}: ${3:Description}",
+      "",
+      "Returns:",
+      "    ${4:Description}",
+      "",
+      "Example:",
+      "    >>> ${5:example_code}",
+      "\"\"\"",
+      "${0}"
+    ],
+    "description": "Google-style docstring"
+  }
+}

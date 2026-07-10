@@ -1,0 +1,22 @@
+name: Validate Documentation Links
+
+on:
+  pull_request:
+    paths:
+      - 'documents/**'
+      - 'README.md'
+      - '.github/workflows/validate-links.yml'
+
+jobs:
+  validate-links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Validate cross-document links
+        run: |
+          pip install markdown
+          python scripts/validate_links.py

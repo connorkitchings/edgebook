@@ -1,0 +1,22 @@
+# prefect.yaml
+
+# This file is the heart of your Prefect project. It defines your project's
+# configuration, including deployments, work pools, and other settings.
+# For more information, see the Prefect documentation: https://docs.prefect.io/latest/concepts/projects/
+
+# The name of your project
+name: vibe-coding-template
+
+# A list of Prefect deployments for this project
+deployments:
+  - name: example-data-deployment
+    # A description for this deployment
+    description: A deployment for the example data processing flow.
+    # The entrypoint to your flow, in the format `path/to/file.py:flow_function_name`
+    entrypoint: src/flows/example_flow.py:example_data_flow
+    # The work pool specifies where this flow will run. The 'default-agent-pool'
+    # is a default local pool that works out of the box.
+    work_pool:
+      name: default-agent-pool
+      work_queue_name: default
+      job_variables: {}
