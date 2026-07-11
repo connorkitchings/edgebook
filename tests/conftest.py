@@ -1,12 +1,19 @@
-"""Test fixtures and utilities for the project.
-
-This module provides pytest fixtures and utilities for testing.
-"""
+"""Test fixtures and utilities for the project."""
 
 import tempfile
 from pathlib import Path
 
 import pytest
+from alembic.config import Config
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, sessionmaker
+
+from alembic import command
+from edgebook.core.database import get_db
+from edgebook.main import app
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.fixture
@@ -17,38 +24,52 @@ def temp_dir():
 
 
 @pytest.fixture
-def sample_env_file(temp_dir):
-    """Create a sample .env file for testing."""
-    env_path = temp_dir / ".env"
-    env_path.write_text("""
-# Test configuration
-DATABASE_URL=postgresql://localhost/test
-API_KEY=test-api-key-12345
-DEBUG=true
-PORT=8080
-""")
-    return env_path
+def db_engine(tmp_path: Path):
+    """Create an isolated SQLite database by applying the real migrations."""
+    database_path = tmp_path / "edgebook-test.db"
+    alembic_config = Config(str(PROJECT_ROOT / "alembic.ini"))
+    alembic_config.set_main_option("sqlalchemy.url", f"sqlite:///{database_path}")
+    command.upgrade(alembic_config, "head")
+
+    engine = create_engine(
+        f"sqlite:///{database_path}", connect_args={"check_same_thread": False}
+    )
+    try:
+        yield engine
+    finally:
+        engine.dispose()
 
 
 @pytest.fixture
-def empty_env_file(temp_dir):
-    """Create an empty .env file for testing."""
-    env_path = temp_dir / ".env"
-    env_path.write_text("")
-    return env_path
+def session_factory(db_engine):
+    """Return a session factory bound to one isolated migrated database."""
+    return sessionmaker(
+        bind=db_engine, autocommit=False, autoflush=False, expire_on_commit=False
+    )
 
 
 @pytest.fixture
-def clean_config():
-    """Provide a fresh Config instance for testing.
+def db_session(session_factory) -> Session:
+    """Provide a direct database session for service and assertion tests."""
+    session = session_factory()
+    try:
+        yield session
+    finally:
+        session.close()
 
-    This fixture clears any cached configuration to ensure
-    tests don't interfere with each other.
-    """
-    # Clear any cached config
-    import vibe_coding.config
 
-    vibe_coding.config._config_instance = None
-    yield
-    # Clean up after test
-    vibe_coding.config._config_instance = None
+@pytest.fixture
+def client(session_factory):
+    """Provide an API client whose database dependency uses an isolated database."""
+
+    def override_get_db():
+        session = session_factory()
+        try:
+            yield session
+        finally:
+            session.close()
+
+    app.dependency_overrides[get_db] = override_get_db
+    with TestClient(app) as test_client:
+        yield test_client
+    app.dependency_overrides.clear()

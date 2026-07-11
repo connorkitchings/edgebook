@@ -62,6 +62,10 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 
+# Edgebook local development database
+edgebook.db
+edgebook.db-journal
+
 # Flask stuff:
 instance/
 .webassets-cache

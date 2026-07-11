@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 import pytest
 import requests
 
-from vibe_coding.utils.markdown_fetcher import (
+from edgebook.utils.markdown_fetcher import (
     MarkdownFetcherConfig,
     MarkdownFetchError,
     MarkdownMetadata,
@@ -165,7 +165,7 @@ class TestExtractTokenCount:
 class TestFetchWithAcceptHeader:
     """Tests for _fetch_with_accept_header function."""
 
-    @patch("vibe_coding.utils.markdown_fetcher.time.time")
+    @patch("edgebook.utils.markdown_fetcher.time.time")
     def test_successful_native_fetch(self, mock_time):
         mock_time.side_effect = [0.0, 0.1]
 
@@ -197,7 +197,7 @@ class TestFetchWithAcceptHeader:
             timeout=30,
         )
 
-    @patch("vibe_coding.utils.markdown_fetcher.time.time")
+    @patch("edgebook.utils.markdown_fetcher.time.time")
     def test_returns_none_when_not_markdown(self, mock_time):
         mock_time.side_effect = [0.0, 0.1]
 
@@ -233,7 +233,7 @@ class TestFetchWithAcceptHeader:
         with pytest.raises(MarkdownFetchError, match="Native fetch failed"):
             _fetch_with_accept_header("https://example.com", config, mock_session)
 
-    @patch("vibe_coding.utils.markdown_fetcher.time.time")
+    @patch("edgebook.utils.markdown_fetcher.time.time")
     def test_rate_limit_error(self, mock_time):
         mock_time.side_effect = [0.0, 0.1]
 
@@ -251,7 +251,7 @@ class TestFetchWithAcceptHeader:
 class TestFetchWithWorkersAI:
     """Tests for _fetch_with_workers_ai function."""
 
-    @patch("vibe_coding.utils.markdown_fetcher.time.time")
+    @patch("edgebook.utils.markdown_fetcher.time.time")
     def test_successful_workers_ai_fetch(self, mock_time):
         mock_time.side_effect = [0.0, 0.2]
 
@@ -287,7 +287,7 @@ class TestFetchWithWorkersAI:
             timeout=30,
         )
 
-    @patch("vibe_coding.utils.markdown_fetcher.time.time")
+    @patch("edgebook.utils.markdown_fetcher.time.time")
     def test_workers_ai_with_retain_images(self, mock_time):
         mock_time.side_effect = [0.0, 0.2]
 
@@ -318,7 +318,7 @@ class TestFetchWithWorkersAI:
         with pytest.raises(MarkdownTimeoutError, match="Workers AI timeout"):
             _fetch_with_workers_ai("https://example.com", config, mock_session)
 
-    @patch("vibe_coding.utils.markdown_fetcher.time.time")
+    @patch("edgebook.utils.markdown_fetcher.time.time")
     def test_workers_ai_rate_limit_error(self, mock_time):
         mock_time.side_effect = [0.0, 0.2]
 
@@ -336,7 +336,7 @@ class TestFetchWithWorkersAI:
 class TestFetchWithBrowserRendering:
     """Tests for _fetch_with_browser_rendering function."""
 
-    @patch("vibe_coding.utils.markdown_fetcher.time.time")
+    @patch("edgebook.utils.markdown_fetcher.time.time")
     def test_successful_browser_rendering_fetch(self, mock_time):
         mock_time.side_effect = [0.0, 1.5]
 
@@ -410,7 +410,7 @@ class TestFetchWithBrowserRendering:
 class TestRetryWithBackoff:
     """Tests for _retry_with_backoff function."""
 
-    @patch("vibe_coding.utils.markdown_fetcher.time.sleep")
+    @patch("edgebook.utils.markdown_fetcher.time.sleep")
     def test_successful_on_first_attempt(self, mock_sleep):
         mock_func = Mock()
         mock_result = Mock()
@@ -423,7 +423,7 @@ class TestRetryWithBackoff:
         mock_sleep.assert_not_called()
         assert mock_func.call_count == 1
 
-    @patch("vibe_coding.utils.markdown_fetcher.time.sleep")
+    @patch("edgebook.utils.markdown_fetcher.time.sleep")
     def test_retry_on_rate_limit(self, mock_sleep):
         mock_func = Mock()
         mock_result = Mock()
@@ -441,7 +441,7 @@ class TestRetryWithBackoff:
         assert mock_func.call_count == 3
         assert mock_sleep.call_count == 2
 
-    @patch("vibe_coding.utils.markdown_fetcher.time.sleep")
+    @patch("edgebook.utils.markdown_fetcher.time.sleep")
     def test_exhausted_retries_raises_error(self, mock_sleep):
         mock_func = Mock()
         mock_func.side_effect = MarkdownRateLimitError("Always rate limited")
@@ -454,7 +454,7 @@ class TestRetryWithBackoff:
         assert mock_func.call_count == 2
         assert mock_sleep.call_count == 2
 
-    @patch("vibe_coding.utils.markdown_fetcher.time.sleep")
+    @patch("edgebook.utils.markdown_fetcher.time.sleep")
     def test_retry_on_timeout(self, mock_sleep):
         mock_func = Mock()
         mock_result = Mock()
@@ -475,8 +475,8 @@ class TestRetryWithBackoff:
 class TestFetchMarkdown:
     """Tests for fetch_markdown function (integration tests)."""
 
-    @patch("vibe_coding.utils.markdown_fetcher._fetch_with_accept_header")
-    @patch("vibe_coding.utils.markdown_fetcher._fetch_with_workers_ai")
+    @patch("edgebook.utils.markdown_fetcher._fetch_with_accept_header")
+    @patch("edgebook.utils.markdown_fetcher._fetch_with_workers_ai")
     def test_auto_method_successful_native(self, mock_workers_ai, mock_native):
         mock_result = MarkdownResult(
             content="# Native",
@@ -495,8 +495,8 @@ class TestFetchMarkdown:
         mock_native.assert_called_once()
         mock_workers_ai.assert_not_called()
 
-    @patch("vibe_coding.utils.markdown_fetcher._fetch_with_accept_header")
-    @patch("vibe_coding.utils.markdown_fetcher._fetch_with_workers_ai")
+    @patch("edgebook.utils.markdown_fetcher._fetch_with_accept_header")
+    @patch("edgebook.utils.markdown_fetcher._fetch_with_workers_ai")
     def test_auto_method_fallback_to_workers_ai(self, mock_workers_ai, mock_native):
         mock_native.return_value = None
 
@@ -513,7 +513,7 @@ class TestFetchMarkdown:
         assert result.content == "# AI"
         assert result.metadata.method_used == "ai"
 
-    @patch("vibe_coding.utils.markdown_fetcher._fetch_with_workers_ai")
+    @patch("edgebook.utils.markdown_fetcher._fetch_with_workers_ai")
     def test_ai_method(self, mock_workers_ai):
         mock_result = MarkdownResult(
             content="# AI",
@@ -529,7 +529,7 @@ class TestFetchMarkdown:
         assert result.content == "# AI"
         assert result.metadata.method_used == "ai"
 
-    @patch("vibe_coding.utils.markdown_fetcher._fetch_with_browser_rendering")
+    @patch("edgebook.utils.markdown_fetcher._fetch_with_browser_rendering")
     def test_browser_method(self, mock_browser):
         mock_result = MarkdownResult(
             content="# Browser",
@@ -558,7 +558,7 @@ class TestFetchMarkdown:
         with pytest.raises(MarkdownValidationError, match="must be a non-empty string"):
             fetch_markdown("")
 
-    @patch("vibe_coding.utils.markdown_fetcher._fetch_with_workers_ai")
+    @patch("edgebook.utils.markdown_fetcher._fetch_with_workers_ai")
     def test_custom_config(self, mock_workers_ai):
         mock_result = MarkdownResult(
             content="# Custom",
@@ -577,8 +577,8 @@ class TestFetchMarkdown:
         assert call_args[1].retain_images is True
         assert call_args[1].timeout == 60
 
-    @patch("vibe_coding.utils.markdown_fetcher._fetch_with_accept_header")
-    @patch("vibe_coding.utils.markdown_fetcher._fetch_with_workers_ai")
+    @patch("edgebook.utils.markdown_fetcher._fetch_with_accept_header")
+    @patch("edgebook.utils.markdown_fetcher._fetch_with_workers_ai")
     def test_session_cleanup(self, mock_workers_ai, mock_accept):
         mock_result = MarkdownResult(
             content="# Test",
@@ -594,8 +594,8 @@ class TestFetchMarkdown:
         assert result is not None
         assert result.content == "# Test"
 
-    @patch("vibe_coding.utils.markdown_fetcher._fetch_with_accept_header")
-    @patch("vibe_coding.utils.markdown_fetcher._fetch_with_workers_ai")
+    @patch("edgebook.utils.markdown_fetcher._fetch_with_accept_header")
+    @patch("edgebook.utils.markdown_fetcher._fetch_with_workers_ai")
     def test_session_closed_on_error(self, mock_workers_ai, mock_accept):
         mock_session = Mock()
         mock_session.close = Mock()

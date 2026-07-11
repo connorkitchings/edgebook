@@ -1,0 +1,291 @@
+"""FastAPI routes for manual college-football game and odds intake."""
+
+from datetime import datetime
+from decimal import Decimal, InvalidOperation
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, Field, field_validator
+from sqlalchemy.orm import Session
+
+from edgebook.cfb.models import (
+    Game,
+    Market,
+    MarketQuote,
+    MarketSelection,
+    MarketStatus,
+    MarketType,
+    Team,
+)
+from edgebook.cfb.services import (
+    CfbConflictError,
+    CfbNotFoundError,
+    CfbValidationError,
+    create_game,
+    create_market,
+    create_quote,
+    create_team,
+    get_game,
+)
+from edgebook.core.database import get_db
+
+router = APIRouter(prefix="/cfb", tags=["college-football"])
+
+MILLIPOINT = Decimal("0.001")
+
+
+def line_to_millipoints(value: Decimal) -> int:
+    """Convert an exact three-decimal point line to integer millipoints."""
+    try:
+        line = Decimal(value)
+    except (InvalidOperation, ValueError, TypeError) as error:
+        raise ValueError("Line must be a decimal value") from error
+    if not line.is_finite() or line != line.quantize(MILLIPOINT):
+        raise ValueError("Line cannot have more than three decimal places")
+    return int(line * 1000)
+
+
+def millipoints_to_string(value: int | None) -> str | None:
+    """Render an integer millipoint line as an exact decimal string."""
+    if value is None:
+        return None
+    return f"{Decimal(value) / 1000:.3f}"
+
+
+class TeamCreate(BaseModel):
+    """Payload for a reusable college-football team."""
+
+    name: str = Field(min_length=1, max_length=200)
+
+    @field_validator("name")
+    @classmethod
+    def reject_blank_name(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("Team name cannot be blank")
+        return value
+
+
+class TeamResponse(BaseModel):
+    """Public representation of a team catalog record."""
+
+    id: str
+    name: str
+    created_at: str
+    updated_at: str
+
+
+class GameCreate(BaseModel):
+    """Payload for manually creating a scheduled game."""
+
+    home_team_id: str
+    away_team_id: str
+    scheduled_at: datetime
+
+    @field_validator("scheduled_at")
+    @classmethod
+    def require_timezone(cls, value: datetime) -> datetime:
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError("Scheduled time must include a timezone")
+        return value
+
+
+class MarketCreate(BaseModel):
+    """Payload for a game market; quotes are created as a separate resource."""
+
+    market_type: MarketType
+    line: Decimal | None = None
+
+    @field_validator("line")
+    @classmethod
+    def validate_line_precision(cls, value: Decimal | None) -> Decimal | None:
+        if value is not None:
+            line_to_millipoints(value)
+        return value
+
+
+class QuoteCreate(BaseModel):
+    """Payload for a manual American-odds quote."""
+
+    selection: MarketSelection
+    american_odds: int
+
+
+class QuoteResponse(BaseModel):
+    """Public representation of a market quote."""
+
+    id: str
+    selection: MarketSelection
+    american_odds: int
+    created_at: str
+
+
+class MarketResponse(BaseModel):
+    """Public representation of a market and any entered quotes."""
+
+    id: str
+    market_type: MarketType
+    line: str | None
+    status: MarketStatus
+    quotes: list[QuoteResponse]
+    created_at: str
+    updated_at: str
+
+
+class GameResponse(BaseModel):
+    """Public representation of a game including its manual market intake."""
+
+    id: str
+    home_team: TeamResponse
+    away_team: TeamResponse
+    scheduled_at: str
+    status: str
+    markets: list[MarketResponse]
+    created_at: str
+    updated_at: str
+
+
+def team_response(team: Team) -> TeamResponse:
+    """Translate a team ORM model to its API response."""
+    return TeamResponse(
+        id=team.id,
+        name=team.name,
+        created_at=team.created_at.isoformat(),
+        updated_at=team.updated_at.isoformat(),
+    )
+
+
+def quote_response(quote: MarketQuote) -> QuoteResponse:
+    """Translate an odds quote ORM model to its API response."""
+    return QuoteResponse(
+        id=quote.id,
+        selection=MarketSelection(quote.selection),
+        american_odds=quote.american_odds,
+        created_at=quote.created_at.isoformat(),
+    )
+
+
+def market_response(market: Market) -> MarketResponse:
+    """Translate a market ORM model and its quotes to its API response."""
+    return MarketResponse(
+        id=market.id,
+        market_type=MarketType(market.market_type),
+        line=millipoints_to_string(market.line_millipoints),
+        status=MarketStatus(market.status),
+        quotes=[quote_response(quote) for quote in market.quotes],
+        created_at=market.created_at.isoformat(),
+        updated_at=market.updated_at.isoformat(),
+    )
+
+
+def game_response(game: Game) -> GameResponse:
+    """Translate a fully-loaded game ORM model to its API response."""
+    return GameResponse(
+        id=game.id,
+        home_team=team_response(game.home_team),
+        away_team=team_response(game.away_team),
+        scheduled_at=game.scheduled_at.isoformat(),
+        status=game.status,
+        markets=[market_response(market) for market in game.markets],
+        created_at=game.created_at.isoformat(),
+        updated_at=game.updated_at.isoformat(),
+    )
+
+
+def raise_cfb_http_error(error: Exception) -> None:
+    """Map expected CFB service errors to the documented HTTP contract."""
+    if isinstance(error, CfbNotFoundError):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(error)
+        ) from error
+    if isinstance(error, CfbConflictError):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=str(error)
+        ) from error
+    if isinstance(error, CfbValidationError):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(error)
+        ) from error
+    raise error
+
+
+@router.post("/teams", response_model=TeamResponse, status_code=status.HTTP_201_CREATED)
+def create_team_endpoint(
+    payload: TeamCreate, db: Session = Depends(get_db)
+) -> TeamResponse:
+    """Create a reusable manually-entered college-football team."""
+    try:
+        team = create_team(db, name=payload.name)
+    except Exception as error:
+        raise_cfb_http_error(error)
+    return team_response(team)
+
+
+@router.post("/games", response_model=GameResponse, status_code=status.HTTP_201_CREATED)
+def create_game_endpoint(
+    payload: GameCreate, db: Session = Depends(get_db)
+) -> GameResponse:
+    """Create a scheduled game between two existing teams."""
+    try:
+        game = create_game(
+            db,
+            home_team_id=payload.home_team_id,
+            away_team_id=payload.away_team_id,
+            scheduled_at=payload.scheduled_at,
+        )
+        game = get_game(db, game.id)
+    except Exception as error:
+        raise_cfb_http_error(error)
+    return game_response(game)
+
+
+@router.get("/games/{game_id}", response_model=GameResponse)
+def get_game_endpoint(game_id: str, db: Session = Depends(get_db)) -> GameResponse:
+    """Retrieve a game with its manual markets and quotes."""
+    try:
+        game = get_game(db, game_id)
+    except Exception as error:
+        raise_cfb_http_error(error)
+    return game_response(game)
+
+
+@router.post(
+    "/games/{game_id}/markets",
+    response_model=MarketResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_market_endpoint(
+    game_id: str, payload: MarketCreate, db: Session = Depends(get_db)
+) -> MarketResponse:
+    """Create a draft spread, moneyline, or total market for a game."""
+    try:
+        market = create_market(
+            db,
+            game_id=game_id,
+            market_type=payload.market_type,
+            line_millipoints=(
+                line_to_millipoints(payload.line) if payload.line is not None else None
+            ),
+        )
+    except Exception as error:
+        raise_cfb_http_error(error)
+    return market_response(market)
+
+
+@router.post(
+    "/markets/{market_id}/quotes",
+    response_model=QuoteResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_quote_endpoint(
+    market_id: str, payload: QuoteCreate, db: Session = Depends(get_db)
+) -> QuoteResponse:
+    """Add a manual quote to a draft market."""
+    try:
+        quote = create_quote(
+            db,
+            market_id=market_id,
+            selection=payload.selection,
+            american_odds=payload.american_odds,
+        )
+    except Exception as error:
+        raise_cfb_http_error(error)
+    return quote_response(quote)

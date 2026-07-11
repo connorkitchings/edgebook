@@ -1,37 +1,32 @@
-# Project Brief
+# Project Brief: Edgebook
 
-## Project Name:
-Vibe Coding Data Science Template
+## Project Name
+Edgebook
 
-## Overview:
-The Vibe Coding Data Science Template delivers a production-ready starting point for analytics and machine-learning teams, bundling opinionated tooling, documentation, and automation so projects launch with consistent quality, observability, and reproducibility from day one.
+## Overview
+Edgebook is a simulation-only college football paper-betting platform. It enables users to manage a fictional bankroll, record simulated wagers (spread, total, and moneyline) on college football games, input final scores, settle bets, and track performance. It acts as an analytics sandbox to evaluate betting strategies and allocations without financial risk.
 
-## Key Objectives:
-- Provide a fully configured repository skeleton aligned with the Vibe Coding System.
-- Enable automated quality gates (linting, testing, security scans) that run locally and in CI.
-- Document workflows, checklists, and decision logs that keep AI + human collaborators aligned.
+## Key Objectives
+- **Simulated Ledger**: Establish a reliable, double-entry fictional bankroll ledger to record stakes, payouts, and balances.
+- **CFB Betting Simulation**: Implement college football specific betting models (Spread, Total, Moneyline) and settlement rules.
+- **Analytics Sandbox**: Provide users with feedback on ROI, win rates, unit statistics, and confidence-level calibration.
+- **Modular Foundation**: Design the codebase as a modular monolith, keeping core ledger logic reusable for future paper-investing or asset-allocation extensions.
 
-## Target Audience:
-Data science leads and platform teams who need a reusable, automated foundation for new analytics or ML initiatives.
+## Success Metrics
+- A developer or user can initialize a fictional account with a target starting bankroll.
+- Simulated bets can be placed, logged, and correctly settled matching manual scores.
+- Ledger reports current balances and statement histories with zero balance corruption.
+- All code passes linting, formatting, and tests with >80% test coverage.
 
-## Key Features/Deliverables:
-- Ready-to-use repo with Prefect flows, data/model stubs, tests, and CI pipeline.
-- Comprehensive documentation site covering standards, playbooks, and templates.
-- Session logging and governance framework to coordinate human and AI contributors.
+## Timeline
+- **Kickoff (Phase 0)**: July 2026 (Project setup and configuration confirmed)
+- **Phase 1 (Manual Workflow)**: August 2026 (Complete manual end-to-end flow)
+- **Phase 2 (Hardening)**: September 2026 (Audit controls, multiple market support)
+- **Phase 3 (Analytics)**: October 2026 (ROI and allocation calibration charts)
 
-## Success Metrics:
-- New projects can adopt the template and run all checks within one working day.
-- CI pipeline remains green across template updates and downstream forks.
-- Documentation stays current (≤1 week lag) with changes recorded in changelog and session logs.
+## Stakeholders
+- **Connor Kitchings** — Project Owner & Lead Maintainer
+- **AI Specialist Agent** — Automated development co-pilot
 
-## Timeline (High-Level):
-- **Start Date:** 2025-11-04
-- **Target Completion:** 2026-01-31
-
-## Stakeholders:
-- Connor Kitchings — Project Lead & Maintainer
-- DataOps Working Group — Validates ingestion, schemas, and data quality patterns
-- DevEx Guild — Owns CI automation and tooling upgrades
-
-## Contact:
-Connor Kitchings (GitHub: `connorkitchings`)
+## Responsible Use Statement
+Edgebook is strictly a simulation and education platform. It does not place, facilitate, or interface with real-money betting markets or sportsbook accounts.

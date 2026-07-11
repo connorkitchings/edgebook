@@ -1,70 +1,95 @@
-# Runbook
+# Runbook: Edgebook
 
-This runbook documents how to operate and troubleshoot the **Vibe Coding Data Science Template** in its default state. When the template becomes a named project, extend each section with environment-specific details per the [Template Kickoff Guide](./template_starting_guide.md).
+This runbook documents how to run, test, and troubleshoot the Edgebook college football paper-betting platform local environment.
 
-## Table of Contents
+## Getting Started
 
-- [Monitoring](#monitoring)
-- [Common Issues & Troubleshooting](#common-issues--troubleshooting)
-- [Deployment & Rollback](#deployment--rollback)
-- [Contact & Escalation](#contact--escalation)
+### 1. Prerequisites
+- **Python 3.11**: Ensure you have Python 3.11 installed.
+- **uv**: Project package manager. Install via `pip install uv`.
 
-## Monitoring
+### 2. Development Setup
+To prepare your environment, follow these steps:
 
-- **CI Pipeline:** GitHub Actions workflow `.github/workflows/ci.yml` runs linting, security scans, and tests on every push/PR. Treat red builds as the primary health signal while the template is being tailored.
-- **Prefect Flows (local):** When running `prefect server start`, use Prefect Orion UI (default `http://127.0.0.1:4200`) to inspect flow runs from `src/vibe_coding/flows/`.
-- **Structured Logs:** Application scripts use `vibe_coding.utils.logging` which logs to stdout with timestamps and module names. Redirect output to files during longer runs for later analysis.
+```bash
+# Clone the repository
+git clone <repository-url>
+cd edgebook
 
-## Common Issues & Troubleshooting
+# Force Python version pinning (created automatically)
+uv python pin 3.11
 
-### Issue: `uv sync` fails or dependencies missing
+# Install dependencies (including dev)
+uv sync
 
+# Run tests to verify setup
+uv run pytest
+```
+
+### 3. Apply Database Migrations
+
+Edgebook manages its schema through Alembic; application startup never creates
+tables automatically. Apply the current revision before using account or CFB
+intake endpoints:
+
+```bash
+uv run alembic upgrade head
+```
+
+### 3. Running the Server
+To start the FastAPI development server:
+
+```bash
+uv run uvicorn edgebook.main:app --reload
+```
+
+The application will be running at `http://127.0.0.1:8000`.
+You can access the interactive API docs at `http://127.0.0.1:8000/docs`.
+
+---
+
+## Service Verification & Health Checks
+
+### Check API Status
+Run the following curl command:
+
+```bash
+curl http://127.0.0.1:8000/health
+```
+
+**Expected Response (SQLAlchemy connected to database):**
+```json
+{
+  "status": "ok",
+  "services": {
+    "api": "ok",
+    "database": "ok"
+  }
+}
+```
+
+---
+
+## Troubleshooting
+
+### Issue: PyO3 Compilation Error on Python 3.14+
 **Symptoms:**
-- `uv sync` exits with resolution errors or missing interpreter messages.
-
-**Troubleshooting Steps:**
-1. Verify Python 3.10+ is installed: `python3 --version`.
-2. Clear the `.venv` (if created) and rerun `uv sync`.
-3. On macOS/Linux, ensure `uv` binary is on the PATH (`which uv`).
+Installing dependencies via `uv sync` crashes during `pydantic-core` build with the message:
+`error: the configured Python interpreter version (3.14) is newer than PyO3's maximum supported version (3.13)`
 
 **Resolution:**
-Re-run `uv sync` after environment correction. Consult `pyproject.toml` to confirm dependency pins remain intact.
+Edgebook requires Python 3.11/3.12. Ensure you run:
+```bash
+uv python pin 3.11
+rm -rf .venv
+uv sync
+```
+This forces `uv` to use Python 3.11.
 
-### Issue: Prefect example flow fails to start
-
+### Issue: Database connectivity down
 **Symptoms:**
-- CLI prints connection errors (e.g., `Failed to connect to Orion API`).
-
-**Troubleshooting Steps:**
-1. Ensure `prefect server start` is running in a separate terminal.
-2. Export `PREFECT_API_URL=http://127.0.0.1:4200/api`.
-3. Rerun `python src/vibe_coding/flows/example_flow.py`.
+`/health` response returns database as "down" or "unhealthy".
 
 **Resolution:**
-Restart the Prefect server and flow once configuration variables are set. Document any persistent errors in `docs/knowledge_base.md`.
-
-### Issue: CI pipeline red due to lint/test failure
-
-**Symptoms:**
-- GitHub Actions job fails on `ruff` or `pytest`.
-
-**Troubleshooting Steps:**
-1. Reproduce locally with `uv run ruff format . && uv run ruff check .` and `uv run pytest -vv`.
-2. Apply fixes or update tests to meet expectations.
-3. Push changes; confirm pipeline passes.
-
-**Resolution:**
-Keep local checks green before pushing to avoid repeated CI failures.
-
-## Deployment & Rollback
-
-The template does not ship production deployments. When converting to a real project:
-
-- Document deployment targets (staging/prod) and release commands here.
-- Record rollback steps (e.g., revert tags, redeploy previous container).
-- Link to automation scripts or external runbooks once created.
-
-## Contact & Escalation
-
-- **Primary Maintainer:** Connor Kitchings (`connorkitchings` on GitHub).
-- **Escalation Path:** If adoption teams encounter issues beyond the template scope, open an issue in the repository and notify the DevEx Guild for triage.
+1. Check that the file `edgebook.db` is present in the root directory (for SQLite).
+2. If `DATABASE_URL` is customized in `.env` to target a PostgreSQL database, verify that the database server is running and the credentials are correct.

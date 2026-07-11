@@ -1,22 +1,26 @@
-"""
-Test cases for the API endpoints.
-"""
+"""Test cases for Edgebook API endpoints."""
 
 from fastapi.testclient import TestClient
 
-from vibe_coding.api.main import app
+from edgebook.main import app
 
 client = TestClient(app)
 
 
-def test_read_main():
+def test_read_root():
+    """Test the main root message endpoint."""
     response = client.get("/")
     assert response.status_code == 200
-    assert "message" in response.json()
+    data = response.json()
+    assert "message" in data
+    assert "Edgebook" in data["message"]
 
 
-def test_predict_endpoint():
-    response = client.post("/predict/", json={"data": [1.0, 2.0, 3.0]})
+def test_health_check():
+    """Test the health check status and service connectivity."""
+    response = client.get("/health")
     assert response.status_code == 200
-    assert "prediction" in response.json()
-    assert response.json()["prediction"] == 6.0  # Based on the placeholder sum logic
+    data = response.json()
+    assert data["status"] == "ok"
+    assert data["services"]["api"] == "ok"
+    assert data["services"]["database"] == "ok"

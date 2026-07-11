@@ -1,14 +1,20 @@
 [project]
-name = "vibe-coding-template"
+name = "edgebook"
 version = "0.1.0"
-description = "A template for Vibe Coding data science projects."
+description = "A simulation-only college football paper-betting platform."
 authors = [{ name = "Connor Kitchings", email = "connor.kitchings@gmail.com" }]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
     "typer>=0.9.0",
     "rich>=13.0.0",
     "pyperclip>=1.8.2",
     "requests>=2.31.0",
+    "fastapi>=0.116.1",
+    "pydantic>=2.11.7",
+    "pydantic-settings>=2.10.1",
+    "sqlalchemy>=2.0.42",
+    "psycopg2-binary>=2.9.12",
+    "uvicorn>=0.35.0",
 ]
 
 [project.optional-dependencies]
@@ -47,7 +53,7 @@ select = ["E", "F", "I", "N", "W"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = [
-    "--cov=vibe_coding",
+    "--cov=edgebook",
     "--cov-report=term-missing",
     "--cov-report=html:htmlcov",
     "--cov-fail-under=55",
@@ -55,7 +61,7 @@ addopts = [
 ]
 
 [tool.coverage.run]
-source = ["src/vibe_coding"]
+source = ["src/edgebook"]
 branch = true
 omit = [
     "*/tests/*",
@@ -80,6 +86,9 @@ build-backend = "setuptools.build_meta"
 
 [dependency-groups]
 dev = [
+    "alembic>=1.16.4",
+    "httpx>=0.28.1",
+    "pytest>=8.4.2",
     "pytest-cov>=7.0.0",
     "ruff>=0.14.3",
 ]

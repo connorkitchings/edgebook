@@ -13,7 +13,7 @@ setup:	## Interactive project setup
 	uv run python scripts/setup_project.py
 
 test:	## Run tests with coverage
-	uv run pytest tests/test_config.py tests/integration/ --cov=vibe_coding --cov-report=html --cov-report=term-missing
+	uv run pytest tests/ --cov=edgebook --cov-report=html --cov-report=term-missing
 
 lint:	## Run linter
 	uv run ruff check .

@@ -1,35 +1,28 @@
-# Security & Privacy Notes
+# Security & Responsible Use Policy: Edgebook
 
-This document outlines security and privacy considerations for the project, including best practices, checklists, and potential risks.
+This document outlines key security guidelines and responsible-use rules for Edgebook.
 
-## Table of Contents
+## Responsible Use: Strictly Simulation-Only
+Edgebook is built as a **paper-betting and simulation platform** to test sports analytics, banking ledgers, and allocation strategies.
 
-- [Security Checklist](#security-checklist)
-- [Privacy Checklist](#privacy-checklist)
-- [Threat Modeling](#threat-modeling)
-- [Incident Response](#incident-response)
+> [!IMPORTANT]
+> **NO REAL MONEY SYSTEM WAGERS:** Edgebook does not handle real currency, does not deposit real money, and must not interface with real sportsbook APIs to place real-money wagers. Any development work that facilitates real-money gambling is strictly out of scope and prohibited.
 
-## Security Checklist
+---
 
-- [ ] All dependencies are regularly scanned for vulnerabilities (e.g., using `safety`).
-- [ ] Input validation is performed on all user-provided data.
-- [ ] Sensitive data is encrypted at rest and in transit.
-- [ ] Access to production systems is restricted and logged.
-- [ ] Secrets are managed securely (e.g., using environment variables, a secret manager).
-- [ ] Regular security audits or penetration tests are conducted.
+## Security Guidelines
 
-## Privacy Checklist
+### 1. Secret Management
+- **Zero Credentials in Code:** Never commit api keys, database passwords, or environment credentials.
+- **Environment Configuration:** Load configurations using environment variables or a `.env` file (which must remain in `.gitignore`).
+- **Pydantic Settings:** Let Pydantic Settings handle type conversions and defaults.
 
-- [ ] All data collection and usage complies with relevant privacy regulations (e.g., GDPR, CCPA).
-- [ ] User consent is obtained where necessary.
-- [ ] Data minimization principles are applied (only collect necessary data).
-- [ ] Data retention policies are defined and enforced.
-- [ ] Users have the right to access, rectify, and erase their personal data.
+### 2. Double-Entry Accounting Validation
+To ensure simulation bankroll integrity and protect against data corruption:
+- Ledger records are append-only.
+- Balance modifications must only occur via ledger transaction entries.
+- Validation checks must verify that total assets match total stakes + winnings across the database prior to balance adjustments.
 
-## Threat Modeling
-
-[Describe any threat modeling exercises conducted and their outcomes. What are the main threats to the system and how are they mitigated?]
-
-## Incident Response
-
-[Outline the process for responding to security or privacy incidents.]
+### 3. Database Sanitization
+- SQL injection is mitigated by using SQLAlchemy parameters and parameterized queries for all inputs.
+- Cross-Site Scripting (XSS) is mitigated by sanitizing game final scores and text reason fields.
