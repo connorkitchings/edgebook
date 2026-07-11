@@ -149,7 +149,7 @@ Edgebook is developed in phases. See [`docs/implementation_schedule.md`](docs/im
 - **Phase 0 — Foundation** ✅ Complete
 - **Phase 1 — Manual End-to-End Betting Flow** ▶ In Progress
 - **Phase 2 — Product Hardening** — ledger controls, parlays/teasers
-- **Phase 3 — Analytics** — ROI, unit stats, confidence calibration
+- **Phase 3 — Analytics** — ROI, unit stats, and stake-allocation calibration
 - **Phase 4 — External Ingestion** — CFB API integration
 - **Phase 5 — AI-Assisted Review** — rationale and bias detection
 - **Phase 6 — Investment Adaptability Review**

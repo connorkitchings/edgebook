@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from edgebook.api.accounts import router as accounts_router
 from edgebook.api.cfb import router as cfb_router
+from edgebook.api.wagering import router as wagering_router
 from edgebook.core.config import settings
 from edgebook.core.database import check_db_health, get_db
 
@@ -16,6 +17,7 @@ app = FastAPI(
 
 app.include_router(accounts_router)
 app.include_router(cfb_router)
+app.include_router(wagering_router)
 
 
 @app.get("/")

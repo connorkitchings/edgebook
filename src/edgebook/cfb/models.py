@@ -28,6 +28,7 @@ class GameStatus(str, Enum):
     """Lifecycle state supported for manual game intake."""
 
     SCHEDULED = "SCHEDULED"
+    FINAL = "FINAL"
 
 
 class MarketType(str, Enum):
@@ -97,6 +98,8 @@ class Game(Base):
     status: Mapped[GameStatus] = mapped_column(
         String(32), nullable=False, default=GameStatus.SCHEDULED.value
     )
+    home_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    away_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utc_now
     )

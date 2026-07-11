@@ -16,6 +16,20 @@
 
 > Lessons from user corrections. Each entry captures the mistake, the rule to prevent it, and the date.
 
+### [Date: 2026-07-11]
+
+**Mistake:**
+> Treated the schedule's explicit confidence field as a settled requirement for simulated bets.
+
+**Root Cause:**
+> Followed stale roadmap wording without checking whether the proposed field duplicated a stronger domain signal.
+
+**Rule Added:**
+> Before implementing subjective scoring metadata, check whether an objective behavioral measure already captures the same concept; for Edgebook, derive conviction from stake divided by pre-bet bankroll.
+
+**Example:**
+> Snapshot `bankroll_before_cents` and analyze stake allocation instead of asking for a separate confidence rating.
+
 ### [Date: YYYY-MM-DD]
 
 **Mistake:**

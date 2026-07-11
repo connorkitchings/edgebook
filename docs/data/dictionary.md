@@ -31,7 +31,7 @@ simulation-capital counterparty used to balance every posting.
 **Source:** `src/edgebook/ledger/models.py` (`TransactionType`)
 
 **Usage:** The manual transaction API accepts only `DEPOSIT` and `WITHDRAWAL`.
-`WAGER_STAKE`, `WAGER_PAYOUT`, and `ADJUSTMENT` are reserved for settlement and later phases.
+`WAGER_STAKE` and `WAGER_PAYOUT` are emitted by wagering placement and settlement.
 
 ---
 
@@ -60,7 +60,19 @@ two-decimal floats which are converted to cents internally.
 
 **Source:** `cfb_market_quotes.american_odds`
 
-**Usage:** Captured during manual CFB intake; consumed later by settlement logic.
+**Usage:** Captured during manual CFB intake and locked onto each bet for settlement.
+
+---
+
+### Bet Status
+
+**Definition:** Lifecycle result of a durable simulated bet.
+
+**Allowed values:** `PENDING`, `WON`, `LOST`, `PUSH`
+
+**Source:** `src/edgebook/wagering/models.py` (`BetStatus`)
+
+**Usage:** Pending after placement and finalized atomically when the game score is recorded.
 
 ---
 

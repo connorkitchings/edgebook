@@ -30,8 +30,8 @@ real-money payment, wagering, or sportsbook integration.
 
 Ledger statements are append-only, and every balance change is represented by
 balanced signed postings to the fictional account and the internal simulation-capital
-counterparty. `WAGER_STAKE`, `WAGER_PAYOUT`, and `ADJUSTMENT` are reserved for
-later phases and cannot be submitted to the manual transaction API.
+counterparty. `WAGER_STAKE` and `WAGER_PAYOUT` are created only by the wagering lifecycle;
+they cannot be submitted to the manual transaction API.
 
 ### Manual College Football Intake
 
@@ -42,9 +42,21 @@ later phases and cannot be submitted to the manual transaction API.
   or `TOTAL` market.
 - **POST /cfb/markets/{market_id}/quotes:** Add a selection and signed American
   odds quote. A market opens after it has its required pair of quotes.
+- **PUT /cfb/games/{game_id}/result:** Finalize a score and atomically settle pending bets.
 
 CFB intake is separate from the ledger: creating teams, games, markets, and odds
 does not change any balance.
+
+### Simulated Wagers
+
+- **POST /accounts/{account_id}/bets:** Place a straight simulated bet against an open
+  quote. Optional `Idempotency-Key` retries return the original bet without another debit.
+- **GET /accounts/{account_id}/bets:** Read newest-first paginated bet history.
+- **GET /accounts/{account_id}/bets/{bet_id}:** Read one owned bet and its settlement.
+
+Placement locks the odds and line, snapshots the pre-bet bankroll, debits the stake, and
+closes automatically 30 minutes before kickoff. Rationale is optional; conviction is later
+derived from stake divided by the placement bankroll rather than a subjective score.
 
 ## Error Handling
 

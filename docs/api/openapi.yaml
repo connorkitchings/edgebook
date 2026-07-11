@@ -94,6 +94,67 @@ paths:
           description: Transaction posted; balance updated.
         '404':
           description: Account not found.
+  /accounts/{account_id}/bets:
+    post:
+      summary: Place a straight simulated bet
+      description: Locks the quote and line and debits a fictional WAGER_STAKE posting.
+      parameters:
+        - in: path
+          name: account_id
+          required: true
+          schema: {type: string}
+        - in: header
+          name: Idempotency-Key
+          required: false
+          schema: {type: string, maxLength: 100}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [market_id, selection, stake]
+              properties:
+                market_id: {type: string}
+                selection: {type: string, enum: [HOME, AWAY, OVER, UNDER]}
+                stake: {type: number, format: decimal, minimum: 0.01}
+                reason: {type: string, maxLength: 500, nullable: true}
+      responses:
+        '201': {description: Bet placed or idempotent retry returned.}
+        '404': {description: Account or market not found.}
+        '409': {description: Inactive account, insufficient balance, closed market, or cutoff reached.}
+        '422': {description: Invalid stake or selection.}
+    get:
+      summary: Read newest-first simulated bet history
+      parameters:
+        - in: path
+          name: account_id
+          required: true
+          schema: {type: string}
+        - in: query
+          name: limit
+          schema: {type: integer, minimum: 1, maximum: 100, default: 50}
+        - in: query
+          name: offset
+          schema: {type: integer, minimum: 0, default: 0}
+      responses:
+        '200': {description: Paginated bet history with locked placement terms and results.}
+        '404': {description: Account not found.}
+  /accounts/{account_id}/bets/{bet_id}:
+    get:
+      summary: Retrieve one simulated bet owned by the account
+      parameters:
+        - in: path
+          name: account_id
+          required: true
+          schema: {type: string}
+        - in: path
+          name: bet_id
+          required: true
+          schema: {type: string}
+      responses:
+        '200': {description: Bet placement snapshot and settlement result.}
+        '404': {description: Account or bet not found.}
         '409':
           description: Operation conflicts with current state (e.g., overdraft).
         '422':
@@ -162,6 +223,29 @@ paths:
           description: Draft market created.
         '409':
           description: Duplicate market for this game and type.
+  /cfb/games/{game_id}/result:
+    put:
+      summary: Finalize a score and settle all pending bets
+      parameters:
+        - in: path
+          name: game_id
+          required: true
+          schema: {type: string}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [home_score, away_score]
+              properties:
+                home_score: {type: integer, minimum: 0}
+                away_score: {type: integer, minimum: 0}
+      responses:
+        '200': {description: Final game; an identical retry is idempotent.}
+        '404': {description: Game not found.}
+        '409': {description: A different score was already finalized.}
+        '422': {description: Invalid score.}
   /cfb/markets/{market_id}/quotes:
     post:
       summary: Add a selection and signed American odds quote

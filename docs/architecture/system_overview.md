@@ -40,13 +40,15 @@ college-football domain module (`src/edgebook/cfb/`). The two never import from 
 directly. This keeps the double-entry ledger reusable for future paper-investing use cases
 beyond sports betting, and confines CFB-specific rules to their own boundary.
 
-The API layer (`src/edgebook/api/`) is the only place that orchestrates across both modules.
+The wagering application boundary (`src/edgebook/wagering/`) coordinates CFB state and
+generic ledger postings in one database transaction.
 
 ## Components
 
 ### API Layer (`src/edgebook/api/`)
 - **`accounts.py`** — Fictional account creation, deposits/withdrawals, and statement history.
 - **`cfb.py`** — Manual intake of teams, games, markets, and American-odds quotes.
+- **`wagering.py`** — Simulated bet placement and account bet history.
 - FastAPI provides automatic request validation and OpenAPI docs at `/docs`.
 
 ### CFB Domain (`src/edgebook/cfb/`)
@@ -54,6 +56,12 @@ The API layer (`src/edgebook/api/`) is the only place that orchestrates across b
 - **Markets:** Spread, Moneyline, and Total with `HOME`/`AWAY`/`OVER`/`UNDER` selections.
 - **Intake:** Manual entry only in Phase 1; external ingestion is a later phase.
 - CFB intake never touches ledger balances.
+
+### Wagering Boundary (`src/edgebook/wagering/`)
+- **Models:** Durable bets with locked line, odds, stake, and pre-bet bankroll snapshots.
+- **Placement:** Rejects bets from 30 minutes before kickoff and records `WAGER_STAKE`.
+- **Settlement:** Applies moneyline, spread, and total rules and records `WAGER_PAYOUT`.
+- **Atomicity:** Bet, score, and ledger changes commit or roll back together.
 
 ### Ledger Domain (`src/edgebook/ledger/`)
 - **Models:** `Account`, `JournalEntry`, `Transaction`.
@@ -74,10 +82,10 @@ The API layer (`src/edgebook/api/`) is the only place that orchestrates across b
 ## Money Representation
 
 All monetary amounts are stored as **integer cents** (`_cents` columns) to avoid
-floating-point rounding. The API accepts two-decimal floats and converts internally.
+floating-point rounding. The API accepts exact two-decimal decimal values and converts internally.
 
 ## Roadmap Context
 
-This overview reflects Phase 1 (manual end-to-end betting flow). Future phases add automated
-settlement, analytics, external CFB ingestion, and AI-assisted review. See the
+This overview includes the completed Phase 1 manual end-to-end betting flow. Future phases add
+hardening, analytics, external CFB ingestion, and AI-assisted review. See the
 [Implementation Schedule](../implementation_schedule.md) for the full roadmap.

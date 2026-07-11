@@ -191,6 +191,46 @@ def record_manual_transaction(
         raise
 
 
+def post_wager_transaction(
+    db: Session,
+    *,
+    account_id: str,
+    transaction_type: TransactionType,
+    amount_cents: int,
+    description: str,
+) -> tuple[Transaction, Account]:
+    """Stage one balanced wager posting without owning the database transaction."""
+    if transaction_type not in {
+        TransactionType.WAGER_STAKE,
+        TransactionType.WAGER_PAYOUT,
+    }:
+        raise LedgerValidationError(
+            "Only wager stake and payout postings are supported"
+        )
+    if amount_cents <= 0:
+        raise LedgerValidationError("Wager posting amount must be positive")
+
+    account = _get_user_account(db, account_id)
+    if not account.is_active and transaction_type == TransactionType.WAGER_STAKE:
+        raise AccountConflictError("Inactive accounts cannot place wagers")
+    signed_amount = (
+        -amount_cents
+        if transaction_type == TransactionType.WAGER_STAKE
+        else amount_cents
+    )
+    if signed_amount < 0 and account.current_balance_cents < amount_cents:
+        raise AccountConflictError("Insufficient simulation-credit balance")
+
+    capital_account = _get_or_create_capital_account(db)
+    _, transactions = _post_balanced_entry(
+        db,
+        transaction_type=transaction_type,
+        description=description,
+        postings=[(account, signed_amount), (capital_account, -signed_amount)],
+    )
+    return transactions[0], account
+
+
 def list_transactions(
     db: Session, *, account_id: str, limit: int, offset: int
 ) -> tuple[list[Transaction], int]:

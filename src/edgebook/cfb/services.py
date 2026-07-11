@@ -194,7 +194,7 @@ def create_quote(
         if EXPECTED_SELECTIONS[market_type].issubset(
             {MarketSelection(selection_value) for selection_value in selections}
         ):
-            market.status = MarketStatus.OPEN.value
+            market.status = MarketStatus.OPEN
         db.commit()
         db.refresh(quote)
         return quote

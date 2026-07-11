@@ -25,16 +25,16 @@ Initialize the python environment, database configurations, and testing foundati
 
 ## Upcoming Phases
 
-### Phase 1: Manual End-to-End Betting Flow ☐ NOT STARTED
+### Phase 1: Manual End-to-End Betting Flow ✅ COMPLETE
 Implement manual creation of fictional accounts, game data entry, bet placement, score recording, and automated ledger adjustments.
 
 | Phase | Task | Deliverable | Status | Notes |
 |-------|------|-------------|--------|-------|
 | 1.1 | Fictional Account Creation | Generic double-entry ledger, account API, and statement history | ✅ Done | Includes Alembic schema and append-only ledger records. |
 | 1.2 | Manual Game & Odds Input | Team catalog plus manual game, market, and American-odds intake APIs | ✅ Done | CFB module remains isolated from the ledger. |
-| 1.3 | Place Simulated Bet | Record stake, odds, confidence, reason | ☐ Not Started | |
-| 1.4 | Settlement Engine | Evaluate final scores and credit ledger | ☐ Not Started | |
-| 1.5 | Bet History View | Display statements and past bets | ☐ Not Started | |
+| 1.3 | Place Simulated Bet | Record stake, locked odds, bankroll snapshot, and optional reason | ✅ Done | Conviction is derived from stake relative to pre-bet bankroll. |
+| 1.4 | Settlement Engine | Evaluate final scores and credit ledger | ✅ Done | Atomic win/loss/push settlement with immutable payout postings. |
+| 1.5 | Bet History View | Display statements and past bets | ✅ Done | Paginated account history and bet detail APIs. |
 
 ---
 
@@ -45,7 +45,7 @@ Implement manual creation of fictional accounts, game data entry, bet placement,
 
 ### Phase 3: Analytics ☐ NOT STARTED
 - Calculate ROI, win-loss units, and bankroll drawdowns.
-- Confidence-level calibration chart logic.
+- Stake-allocation calibration chart logic.
 
 ### Phase 4: External Ingestion ☐ NOT STARTED
 - CFB API integration to ingest games, schedules, and scores.
@@ -55,4 +55,4 @@ Implement manual creation of fictional accounts, game data entry, bet placement,
 - Automated review of betting rationale and cognitive bias detection.
 
 ### Phase 6: Investment Adaptability Review ☐ NOT STARTED
-- Architecture audit of separation between ledger and sportsbook.
+- Architecture audit of separation between ledger, CFB, and wagering boundaries.

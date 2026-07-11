@@ -80,7 +80,7 @@ jobs:
       run: uv sync
     
     - name: Run type checker
-      run: uv run mypy src/ --ignore-missing-imports || true
+      run: uv run mypy src/ --ignore-missing-imports
 
   security:
     name: Security Scan

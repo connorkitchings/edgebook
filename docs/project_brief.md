@@ -9,7 +9,7 @@ Edgebook is a simulation-only college football paper-betting platform. It enable
 ## Key Objectives
 - **Simulated Ledger**: Establish a reliable, double-entry fictional bankroll ledger to record stakes, payouts, and balances.
 - **CFB Betting Simulation**: Implement college football specific betting models (Spread, Total, Moneyline) and settlement rules.
-- **Analytics Sandbox**: Provide users with feedback on ROI, win rates, unit statistics, and confidence-level calibration.
+- **Analytics Sandbox**: Provide users with feedback on ROI, win rates, unit statistics, and stake-allocation calibration.
 - **Modular Foundation**: Design the codebase as a modular monolith, keeping core ledger logic reusable for future paper-investing or asset-allocation extensions.
 
 ## Success Metrics

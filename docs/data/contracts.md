@@ -10,6 +10,7 @@ fictional simulation credits.
 - [Ledger Transaction](#ledger-transaction)
 - [CFB Game](#cfb-game)
 - [CFB Market Quote](#cfb-market-quote)
+- [Simulated Bet](#simulated-bet)
 
 ---
 
@@ -97,7 +98,9 @@ A scheduled college-football contest between two distinct teams.
     "home_team_id": {"type": "string", "description": "FK to cfb_teams"},
     "away_team_id": {"type": "string", "description": "FK to cfb_teams"},
     "scheduled_at": {"type": "string", "format": "date-time"},
-    "status": {"type": "string", "enum": ["SCHEDULED"]},
+    "status": {"type": "string", "enum": ["SCHEDULED", "FINAL"]},
+    "home_score": {"type": ["integer", "null"], "minimum": 0},
+    "away_score": {"type": ["integer", "null"], "minimum": 0},
     "created_at": {"type": "string", "format": "date-time"},
     "updated_at": {"type": "string", "format": "date-time"}
   },
@@ -107,9 +110,50 @@ A scheduled college-football contest between two distinct teams.
 
 ### Quality Expectations
 - **Integrity:** `home_team_id != away_team_id` (enforced by check constraint).
+- **Finality:** A `FINAL` game has both scores; finalized scores cannot be corrected in Phase 1.
 
 ### Ownership
 - **Owner:** Edgebook CFB module (`src/edgebook/cfb/`)
+
+---
+
+## Simulated Bet
+
+### Description
+A straight paper bet that links a fictional account to a CFB quote while preserving the
+exact placement terms and ledger audit references.
+
+### Schema
+```json
+{
+  "type": "object",
+  "properties": {
+    "id": {"type": "string", "format": "uuid"},
+    "account_id": {"type": "string"},
+    "game_id": {"type": "string"},
+    "market_id": {"type": "string"},
+    "quote_id": {"type": "string"},
+    "selection": {"type": "string", "enum": ["HOME", "AWAY", "OVER", "UNDER"]},
+    "market_type": {"type": "string", "enum": ["SPREAD", "MONEYLINE", "TOTAL"]},
+    "line_millipoints": {"type": ["integer", "null"]},
+    "american_odds": {"type": "integer"},
+    "stake_cents": {"type": "integer", "minimum": 1},
+    "bankroll_before_cents": {"type": "integer", "minimum": 1},
+    "payout_cents": {"type": ["integer", "null"], "minimum": 0},
+    "reason": {"type": ["string", "null"], "maxLength": 500},
+    "status": {"type": "string", "enum": ["PENDING", "WON", "LOST", "PUSH"]}
+  },
+  "required": ["id", "account_id", "game_id", "market_id", "selection", "american_odds", "stake_cents", "bankroll_before_cents", "status"]
+}
+```
+
+### Quality Expectations
+- **Atomicity:** Creation and stake posting succeed or fail together; settlement and payout do likewise.
+- **Snapshot integrity:** Odds, line, stake, and placement bankroll never follow later market/account changes.
+- **Allocation:** Conviction is derived as `stake_cents / bankroll_before_cents`.
+
+### Ownership
+- **Owner:** Edgebook wagering module (`src/edgebook/wagering/`)
 
 ---
 

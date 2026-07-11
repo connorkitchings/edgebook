@@ -23,6 +23,7 @@ def test_initial_migration_upgrades_downgrades_and_reupgrades(tmp_path: Path):
             "ledger_transactions",
             "cfb_games",
             "cfb_market_quotes",
+            "wagering_bets",
         }.issubset(inspect(engine).get_table_names())
     finally:
         engine.dispose()

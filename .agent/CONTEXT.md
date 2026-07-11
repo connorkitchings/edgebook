@@ -7,9 +7,9 @@
 ## 🗺️ Project Snapshot
 
 - **Product:** Edgebook (Simulated college football bankroll allocator)
-- **Current Phase:** Phase 1 (Manual End-to-End Betting Flow)
+- **Current Phase:** Phase 2 planning (Phase 1 manual flow complete)
 - **Architecture:** FastAPI backend, SQLAlchemy database layers, modular monolithic boundary separation.
-- **Active Branch:** `feat/project-initialization`
+- **Active Branch:** `feat/manual-betting-flow`
 
 ---
 
@@ -45,5 +45,4 @@ uv run uvicorn edgebook.main:app --reload
 
 ## 🎯 Next Prioritized Task
 
-- **Task 1.3:** Implement **Place Simulated Bet**, connecting an open CFB market to
-  generic `WAGER_STAKE` ledger postings without introducing real-money behavior.
+- Review and plan **Phase 2 Product Hardening** after the Phase 1 manual workflow is merged.

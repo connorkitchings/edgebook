@@ -27,6 +27,12 @@ from edgebook.cfb.services import (
     get_game,
 )
 from edgebook.core.database import get_db
+from edgebook.wagering.services import (
+    WagerConflictError,
+    WagerNotFoundError,
+    WagerValidationError,
+    record_game_result,
+)
 
 router = APIRouter(prefix="/cfb", tags=["college-football"])
 
@@ -138,6 +144,8 @@ class GameResponse(BaseModel):
     away_team: TeamResponse
     scheduled_at: str
     status: str
+    home_score: int | None
+    away_score: int | None
     markets: list[MarketResponse]
     created_at: str
     updated_at: str
@@ -184,6 +192,8 @@ def game_response(game: Game) -> GameResponse:
         away_team=team_response(game.away_team),
         scheduled_at=game.scheduled_at.isoformat(),
         status=game.status,
+        home_score=game.home_score,
+        away_score=game.away_score,
         markets=[market_response(market) for market in game.markets],
         created_at=game.created_at.isoformat(),
         updated_at=game.updated_at.isoformat(),
@@ -204,6 +214,12 @@ def raise_cfb_http_error(error: Exception) -> None:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(error)
         ) from error
+    if isinstance(error, WagerNotFoundError):
+        raise HTTPException(status_code=404, detail=str(error)) from error
+    if isinstance(error, WagerConflictError):
+        raise HTTPException(status_code=409, detail=str(error)) from error
+    if isinstance(error, WagerValidationError):
+        raise HTTPException(status_code=422, detail=str(error)) from error
     raise error
 
 
@@ -289,3 +305,28 @@ def create_quote_endpoint(
     except Exception as error:
         raise_cfb_http_error(error)
     return quote_response(quote)
+
+
+class GameResultCreate(BaseModel):
+    """A manually entered final score."""
+
+    home_score: int = Field(ge=0)
+    away_score: int = Field(ge=0)
+
+
+@router.put("/games/{game_id}/result", response_model=GameResponse)
+def record_game_result_endpoint(
+    game_id: str, payload: GameResultCreate, db: Session = Depends(get_db)
+) -> GameResponse:
+    """Finalize a game and settle its pending simulated bets atomically."""
+    try:
+        record_game_result(
+            db,
+            game_id=game_id,
+            home_score=payload.home_score,
+            away_score=payload.away_score,
+        )
+        game = get_game(db, game_id)
+    except Exception as error:
+        raise_cfb_http_error(error)
+    return game_response(game)
