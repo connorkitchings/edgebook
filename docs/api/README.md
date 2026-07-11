@@ -27,6 +27,8 @@ real-money payment, wagering, or sportsbook integration.
   `WITHDRAWAL` in positive two-decimal simulation credits.
 - **GET /accounts/{account_id}/transactions:** Read a newest-first statement;
   supports `limit` (1–100) and `offset` pagination.
+- **POST /accounts/{account_id}/reconcile:** Verify that the stored balance equals the
+  sum of its append-only postings.
 
 Ledger statements are append-only, and every balance change is represented by
 balanced signed postings to the fictional account and the internal simulation-capital
@@ -57,6 +59,25 @@ does not change any balance.
 Placement locks the odds and line, snapshots the pre-bet bankroll, debits the stake, and
 closes automatically 30 minutes before kickoff. Rationale is optional; conviction is later
 derived from stake divided by the placement bankroll rather than a subjective score.
+
+### Analytics and Score Corrections
+
+- **GET /accounts/{account_id}/analytics:** Returns lifetime or date-range performance
+  metrics, breakdowns, allocation calibration, and ledger-replayed balance/drawdown series.
+  `from` and `to` must include timezone offsets, `from` cannot be after `to`, and `buckets`
+  must be positive, strictly increasing comma-separated percentage boundaries.
+- **PUT /cfb/games/{game_id}/correction:** Records an audit trail, offsets prior payouts, and
+  re-settles a finalized game. It is intentionally unauthenticated only for the current local,
+  simulation-only workflow; authorization is required before external exposure.
+
+### Multi-Source Ingestion and Reviews
+
+- **GET /cfb/games/{game_id}/quote-comparison:** Returns best and worst provider quote IDs for each market selection without creating a canonical line. Place bets with a specific `quote_id` whenever multiple source quotes exist.
+- **PUT /cfb/games/{game_id}/resolve-score-conflict:** Locally resolves a held provider-score conflict, records an audit decision, and settles the game atomically.
+- **GET /accounts/{account_id}/bets/{bet_id}/review:** Returns the asynchronous human-review task for a bet.
+- **PUT /accounts/{account_id}/bets/{bet_id}/review:** Completes a local human review with summary and cognitive-bias flags.
+
+The scheduler-neutral command surface is `python -m edgebook.ingestion.cli`: use `sync` with a normalized provider feed, `settle-confirmed`, `claim-reviews`, and `report`. Production scheduling must invoke these idempotent commands outside the API process.
 
 ## Error Handling
 

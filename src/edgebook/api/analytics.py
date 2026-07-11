@@ -78,6 +78,19 @@ class BalancePoint(BaseModel):
     balance: str
 
 
+class BiasFlagCount(BaseModel):
+    flag: str
+    count: int
+
+
+class ReviewSummary(BaseModel):
+    eligible: int
+    completed: int
+    coverage: float
+    status_counts: dict[str, int]
+    bias_flags: list[BiasFlagCount]
+
+
 class AnalyticsResponse(BaseModel):
     account_id: str
     period: dict
@@ -88,6 +101,7 @@ class AnalyticsResponse(BaseModel):
     allocation_calibration: list[CalibrationBucket]
     drawdown_series: list[DrawdownPoint]
     balance_series: list[BalancePoint]
+    review_summary: ReviewSummary
 
 
 def _format_summary(raw: dict) -> AnalyticsSummary:
@@ -172,6 +186,49 @@ def _format_balance(rows: list[dict]) -> list[BalancePoint]:
     ]
 
 
+def _format_review_summary(raw: dict) -> ReviewSummary:
+    return ReviewSummary(
+        eligible=raw["eligible"],
+        completed=raw["completed"],
+        coverage=raw["coverage"],
+        status_counts=raw["status_counts"],
+        bias_flags=[BiasFlagCount(**flag) for flag in raw["bias_flags"]],
+    )
+
+
+def _require_timezone(value: datetime | None, parameter: str) -> None:
+    """Require explicit offsets so reporting windows are unambiguous."""
+    if value is not None and (value.tzinfo is None or value.utcoffset() is None):
+        raise HTTPException(
+            status_code=422,
+            detail=f"{parameter} must include a timezone offset",
+        )
+
+
+def _parse_buckets(value: str | None) -> list[int] | None:
+    """Parse strictly increasing, positive analytics bucket boundaries."""
+    if value is None:
+        return None
+    try:
+        buckets = [int(boundary.strip()) for boundary in value.split(",")]
+    except ValueError as error:
+        raise HTTPException(
+            status_code=422,
+            detail="buckets must be a comma-separated list of integers",
+        ) from error
+    if not buckets or any(boundary <= 0 for boundary in buckets):
+        raise HTTPException(
+            status_code=422,
+            detail="buckets must contain positive integers",
+        )
+    if any(current >= following for current, following in zip(buckets, buckets[1:])):
+        raise HTTPException(
+            status_code=422,
+            detail="buckets must be strictly increasing",
+        )
+    return buckets
+
+
 @router.get("/{account_id}/analytics", response_model=AnalyticsResponse)
 def get_analytics_endpoint(
     account_id: str,
@@ -181,15 +238,11 @@ def get_analytics_endpoint(
     db: Session = Depends(get_db),
 ) -> AnalyticsResponse:
     """Retrieve comprehensive performance analytics for a fictional account."""
-    parsed_buckets: list[int] | None = None
-    if buckets is not None:
-        try:
-            parsed_buckets = [int(b.strip()) for b in buckets.split(",")]
-        except ValueError:
-            raise HTTPException(
-                status_code=422,
-                detail="buckets must be a comma-separated list of integers",
-            )
+    _require_timezone(from_date, "from")
+    _require_timezone(to_date, "to")
+    if from_date is not None and to_date is not None and from_date > to_date:
+        raise HTTPException(status_code=422, detail="from must not be later than to")
+    parsed_buckets = _parse_buckets(buckets)
 
     try:
         raw = compute_analytics(
@@ -212,4 +265,5 @@ def get_analytics_endpoint(
         allocation_calibration=_format_calibration(raw["allocation_calibration"]),
         drawdown_series=_format_drawdown(raw["drawdown_series"]),
         balance_series=_format_balance(raw["balance_series"]),
+        review_summary=_format_review_summary(raw["review_summary"]),
     )

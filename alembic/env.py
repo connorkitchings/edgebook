@@ -7,6 +7,7 @@ from sqlalchemy import engine_from_config, pool
 from alembic import context
 from edgebook.cfb import models as cfb_models  # noqa: F401
 from edgebook.core.database import Base
+from edgebook.ingestion import models as ingestion_models  # noqa: F401
 from edgebook.ledger import models as ledger_models  # noqa: F401
 from edgebook.wagering import models as wagering_models  # noqa: F401
 

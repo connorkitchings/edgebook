@@ -49,18 +49,27 @@ generic ledger postings in one database transaction.
 - **`accounts.py`** — Fictional account creation, deposits/withdrawals, and statement history.
 - **`cfb.py`** — Manual intake of teams, games, markets, and American-odds quotes.
 - **`wagering.py`** — Simulated bet placement and account bet history.
+- **`analytics.py`** — Read-only account performance summaries, breakdowns, and chart series.
+- **`ingestion/`** — Provider-neutral normalized feeds, immutable observations, and scheduler-safe sync commands.
 - FastAPI provides automatic request validation and OpenAPI docs at `/docs`.
 
 ### CFB Domain (`src/edgebook/cfb/`)
-- **Models:** `Team`, `Game`, `Market`, `MarketQuote`.
+- **Models:** `Team`, `Game`, `Market`, `MarketQuote`, score observations, and score resolutions.
 - **Markets:** Spread, Moneyline, and Total with `HOME`/`AWAY`/`OVER`/`UNDER` selections.
-- **Intake:** Manual entry only in Phase 1; external ingestion is a later phase.
+- **Intake:** Manual entry remains available alongside multi-provider normalized-feed ingestion.
+- **Odds:** Provider observations are retained without a canonical line; a bet snapshots an explicitly selected quote.
+- **Corrections:** Final-score corrections append an audit record, reverse payout postings with
+  `ADJUSTMENT` entries, and re-settle affected bets atomically.
 - CFB intake never touches ledger balances.
 
 ### Wagering Boundary (`src/edgebook/wagering/`)
 - **Models:** Durable bets with locked line, odds, stake, and pre-bet bankroll snapshots.
 - **Placement:** Rejects bets from 30 minutes before kickoff and records `WAGER_STAKE`.
 - **Settlement:** Applies moneyline, spread, and total rules and records `WAGER_PAYOUT`.
+- **Analytics:** Computes ROI, return dispersion, allocation calibration, and ledger-replayed
+  balance and drawdown series without mutating source data.
+- **Review:** Creates asynchronous human-review tasks for rationale-bearing bets; review outcomes
+  remain separate from settlement and financial metrics.
 - **Atomicity:** Bet, score, and ledger changes commit or roll back together.
 
 ### Ledger Domain (`src/edgebook/ledger/`)
@@ -86,6 +95,9 @@ floating-point rounding. The API accepts exact two-decimal decimal values and co
 
 ## Roadmap Context
 
-This overview includes the completed Phase 1 manual end-to-end betting flow. Future phases add
-hardening, analytics, external CFB ingestion, and AI-assisted review. See the
+This overview includes the completed Phase 1 manual flow, Phase 2 hardening, and Phase 3
+analytics. Phase 4 now provides the source-agnostic ingestion boundary and conflict-safe
+settlement workflow; production providers remain configuration work. Phase 5 provides the
+human-review boundary; model execution is deferred. Authentication and authorization remain a
+prerequisite before local operator APIs are exposed. See the
 [Implementation Schedule](../implementation_schedule.md) for the full roadmap.

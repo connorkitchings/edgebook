@@ -13,6 +13,8 @@ fictional simulation credits.
 - [CFB Market Quote](#cfb-market-quote)
 - [Simulated Bet](#simulated-bet)
 - [Score Correction](#score-correction)
+- [Provider Observation](#provider-observation)
+- [Bet Review](#bet-review)
 
 ---
 
@@ -117,6 +119,37 @@ A scheduled college-football contest between two distinct teams.
 
 ### Ownership
 - **Owner:** Edgebook CFB module (`src/edgebook/cfb/`)
+
+---
+
+## Provider Observation
+
+### Description
+An immutable normalized record from one external provider. Observations retain raw provenance and
+are never collapsed into a canonical odds line.
+
+### Quality Expectations
+- **Idempotency:** Provider, scope, external ID, and payload hash uniquely identify a replay.
+- **Provenance:** Every imported game, quote, and score links to a provider observation.
+- **Scores:** Disagreeing final-score observations hold the game in `CONFLICTED` state.
+
+### Ownership
+- **Owner:** Edgebook ingestion module (`src/edgebook/ingestion/`)
+
+---
+
+## Bet Review
+
+### Description
+An asynchronous, human-operated review task linked one-to-one with a simulated bet rationale.
+
+### Quality Expectations
+- **Lifecycle:** `PENDING`, `IN_REVIEW`, `COMPLETED`, `FAILED`, or `NOT_APPLICABLE`.
+- **Isolation:** Review outcomes never modify odds, settlements, balances, or financial analytics.
+- **Future compatibility:** The review version identifies the human or future model workflow.
+
+### Ownership
+- **Owner:** Edgebook wagering module (`src/edgebook/wagering/`)
 
 ---
 

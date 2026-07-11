@@ -14,6 +14,7 @@ from edgebook.cfb.models import (
     MarketSelection,
     MarketStatus,
     MarketType,
+    ScoreSyncState,
     SportType,
     Team,
 )
@@ -26,8 +27,14 @@ from edgebook.cfb.services import (
     create_quote,
     create_team,
     get_game,
+    quote_comparison,
 )
 from edgebook.core.database import get_db
+from edgebook.ingestion.services import (
+    IngestionConflictError,
+    IngestionNotFoundError,
+    resolve_score_conflict,
+)
 from edgebook.wagering.services import (
     WagerConflictError,
     WagerNotFoundError,
@@ -124,6 +131,9 @@ class QuoteResponse(BaseModel):
     id: str
     selection: MarketSelection
     american_odds: int
+    source: str | None
+    source_quote_id: str | None
+    observed_at: str | None
     created_at: str
 
 
@@ -150,6 +160,7 @@ class GameResponse(BaseModel):
     status: str
     home_score: int | None
     away_score: int | None
+    score_sync_state: ScoreSyncState
     markets: list[MarketResponse]
     created_at: str
     updated_at: str
@@ -171,6 +182,9 @@ def quote_response(quote: MarketQuote) -> QuoteResponse:
         id=quote.id,
         selection=MarketSelection(quote.selection),
         american_odds=quote.american_odds,
+        source=quote.source,
+        source_quote_id=quote.source_quote_id,
+        observed_at=quote.observed_at.isoformat() if quote.observed_at else None,
         created_at=quote.created_at.isoformat(),
     )
 
@@ -199,6 +213,7 @@ def game_response(game: Game) -> GameResponse:
         status=game.status,
         home_score=game.home_score,
         away_score=game.away_score,
+        score_sync_state=ScoreSyncState(game.score_sync_state),
         markets=[market_response(market) for market in game.markets],
         created_at=game.created_at.isoformat(),
         updated_at=game.updated_at.isoformat(),
@@ -225,6 +240,10 @@ def raise_cfb_http_error(error: Exception) -> None:
         raise HTTPException(status_code=409, detail=str(error)) from error
     if isinstance(error, WagerValidationError):
         raise HTTPException(status_code=422, detail=str(error)) from error
+    if isinstance(error, IngestionNotFoundError):
+        raise HTTPException(status_code=404, detail=str(error)) from error
+    if isinstance(error, (IngestionConflictError,)):
+        raise HTTPException(status_code=409, detail=str(error)) from error
     raise error
 
 
@@ -313,6 +332,27 @@ def create_quote_endpoint(
     return quote_response(quote)
 
 
+class QuoteComparisonResponse(BaseModel):
+    market_id: str
+    selection: MarketSelection
+    best_quote_id: str
+    worst_quote_id: str
+
+
+@router.get(
+    "/games/{game_id}/quote-comparison", response_model=list[QuoteComparisonResponse]
+)
+def quote_comparison_endpoint(
+    game_id: str, db: Session = Depends(get_db)
+) -> list[QuoteComparisonResponse]:
+    """Compare provider observations without selecting a canonical line."""
+    try:
+        rows = quote_comparison(db, game_id)
+    except Exception as error:
+        raise_cfb_http_error(error)
+    return [QuoteComparisonResponse(**row) for row in rows]
+
+
 class GameResultCreate(BaseModel):
     """A manually entered final score."""
 
@@ -346,8 +386,14 @@ class ScoreCorrectionCreate(BaseModel):
     reason: str = Field(min_length=1, max_length=1000)
 
 
-# TODO: When authentication is added (Phase 3+), this endpoint must require
-# admin-level access. For now it is open but documented as restricted.
+class ScoreResolutionCreate(ScoreCorrectionCreate):
+    """Local operator decision for a held provider-score conflict."""
+
+    resolved_by: str = Field(min_length=1, max_length=200)
+
+
+# TODO: Require admin-level authorization before exposing this local simulation
+# endpoint outside a controlled environment.
 @router.put("/games/{game_id}/correction", response_model=GameResponse)
 def correct_game_result_endpoint(
     game_id: str, payload: ScoreCorrectionCreate, db: Session = Depends(get_db)
@@ -364,6 +410,26 @@ def correct_game_result_endpoint(
             home_score=payload.home_score,
             away_score=payload.away_score,
             reason=payload.reason,
+        )
+        game = get_game(db, game_id)
+    except Exception as error:
+        raise_cfb_http_error(error)
+    return game_response(game)
+
+
+@router.put("/games/{game_id}/resolve-score-conflict", response_model=GameResponse)
+def resolve_score_conflict_endpoint(
+    game_id: str, payload: ScoreResolutionCreate, db: Session = Depends(get_db)
+) -> GameResponse:
+    """Locally resolve held provider-score disagreement and settle atomically."""
+    try:
+        resolve_score_conflict(
+            db,
+            game_id=game_id,
+            home_score=payload.home_score,
+            away_score=payload.away_score,
+            reason=payload.reason,
+            resolved_by=payload.resolved_by,
         )
         game = get_game(db, game_id)
     except Exception as error:

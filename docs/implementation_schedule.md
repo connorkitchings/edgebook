@@ -65,7 +65,7 @@ Strengthen ledger integrity, add structured reasoning for analytics, support alt
 |------|-------------|--------|-------|
 | Add `ScoreCorrection` model | Track original/corrected scores with reason | ✅ Done | Table: `cfb_score_corrections` |
 | Implement score correction service | `correct_game_result()` with full audit trail | ✅ Done | Offsetting ADJUSTMENT entries reverse payouts; re-settlement creates new WAGER_PAYOUT entries |
-| Add correction API endpoint | `PUT /cfb/games/{id}/correction` | ✅ Done | Admin-auth placeholder via TODO comment |
+| Add correction API endpoint | `PUT /cfb/games/{id}/correction` | ✅ Done | Local simulation endpoint; authorization required before external exposure |
 | Preserve append-only invariant | All corrections via offsetting entries | ✅ Done | No deletions; original payouts and reversals remain in ledger |
 
 #### Deferred to Later Phases
@@ -74,7 +74,7 @@ Strengthen ledger integrity, add structured reasoning for analytics, support alt
 |---------|--------|--------------|
 | Parlays | Requires real market odds data | After Phase 4 (External Ingestion) |
 | Teasers | Complex line adjustment logic; needs real odds | After Phase 4 (External Ingestion) |
-| Authentication | Not critical for simulation | Phase 3+ |
+| Authentication | Not required for the local simulation workflow; required before external exposure | Before public deployment |
 
 ### Phase 3: Analytics ✅ COMPLETE
 Calculate ROI, win-loss units, bankroll drawdowns, stake-allocation calibration, Sharpe ratio, and analytics by rationale category, sport, and market type.
@@ -89,15 +89,16 @@ Calculate ROI, win-loss units, bankroll drawdowns, stake-allocation calibration,
 | Allocation calibration | Bucket by conviction %, configurable boundaries | ✅ Done | Default buckets: <1%, 1-2%, 2-5%, 5-10%, 10-25%, 25%+ |
 | Drawdown series | Per-transaction drawdown from chronological replay | ✅ Done | Chart-ready: timestamp, balance, peak, drawdown_pct, event |
 | Balance series | Daily balance from transaction replay | ✅ Done | Chart-ready: date, balance |
-| API endpoint + schemas | `GET /accounts/{id}/analytics` with date range and bucket params | ✅ Done | All params optional; no params = lifetime |
+| API endpoint + schemas | `GET /accounts/{id}/analytics` with date range and bucket params | ✅ Done | All params optional; ranges require timezone-aware bounds and valid bucket boundaries |
 | Tests | 11 tests covering settled bets, losses, no bets, missing account, custom buckets | ✅ Done | 47 total tests, 90.80% coverage |
 
-### Phase 4: External Ingestion ☐ NOT STARTED
-- CFB API integration to ingest games, schedules, and scores.
-- Automated bet settlement tasks.
+### Phase 4: Multi-Source External Ingestion ▶ IN PROGRESS
+- Provider-neutral normalized-feed adapters, provenance records, source-specific odds, score-conflict holds, and scheduler-safe commands are implemented.
+- Production provider adapters, credentials, and source terms must be configured for at least three independent providers before external ingestion is considered complete.
 
-### Phase 5: AI-Assisted Review ☐ NOT STARTED
-- Automated review of betting rationale and cognitive bias detection.
+### Phase 5: Rationale Review Workflow ▶ IN PROGRESS
+- Asynchronous human-review tasks, local completion APIs, review coverage, and bias-tag analytics are implemented.
+- Model execution remains deliberately deferred behind the review workflow boundary.
 
 ### Phase 6: Investment Adaptability Review ☐ NOT STARTED
 - Architecture audit of separation between ledger, CFB, and wagering boundaries.

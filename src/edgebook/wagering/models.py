@@ -35,6 +35,16 @@ class RationaleCategory(str, Enum):
     OTHER = "OTHER"
 
 
+class ReviewStatus(str, Enum):
+    """Lifecycle for asynchronous human rationale review."""
+
+    PENDING = "PENDING"
+    IN_REVIEW = "IN_REVIEW"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+    NOT_APPLICABLE = "NOT_APPLICABLE"
+
+
 class Bet(Base):
     """A straight simulated bet with immutable placement snapshots."""
 
@@ -77,6 +87,9 @@ class Bet(Base):
     market_type: Mapped[str] = mapped_column(String(32), nullable=False)
     line_millipoints: Mapped[int | None] = mapped_column(Integer, nullable=True)
     american_odds: Mapped[int] = mapped_column(Integer, nullable=False)
+    quote_source: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    quote_source_id: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    quote_observed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     stake_cents: Mapped[int] = mapped_column(Integer, nullable=False)
     bankroll_before_cents: Mapped[int] = mapped_column(Integer, nullable=False)
     payout_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -92,3 +105,34 @@ class Bet(Base):
     settled_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+
+
+class BetReview(Base):
+    """Human-review task and result for a placed simulated bet rationale."""
+
+    __tablename__ = "wagering_bet_reviews"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid4())
+    )
+    bet_id: Mapped[str] = mapped_column(
+        ForeignKey("wagering_bets.id", ondelete="RESTRICT"),
+        nullable=False,
+        unique=True,
+        index=True,
+    )
+    status: Mapped[str] = mapped_column(
+        String(32), nullable=False, default=ReviewStatus.PENDING.value
+    )
+    reviewer_label: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    summary: Mapped[str | None] = mapped_column(Text, nullable=True)
+    bias_flags: Mapped[str | None] = mapped_column(Text, nullable=True)
+    assessment_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    review_version: Mapped[str] = mapped_column(
+        String(64), nullable=False, default="human-v1"
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utc_now
+    )
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

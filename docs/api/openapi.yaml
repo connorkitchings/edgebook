@@ -169,6 +169,18 @@ paths:
       responses:
         '200': {description: Bet placement snapshot and settlement result.}
         '404': {description: Account or bet not found.}
+  /accounts/{account_id}/bets/{bet_id}/review:
+    get:
+      summary: Read the asynchronous human rationale review
+      responses:
+        '200': {description: Review lifecycle state and completed findings.}
+        '404': {description: Account, bet, or review not found.}
+    put:
+      summary: Complete a local human rationale review
+      description: Authentication is required before this local-only endpoint is externally exposed.
+      responses:
+        '200': {description: Completed review with bias flags.}
+        '409': {description: Review is already terminal.}
   /accounts/{account_id}/transactions:
     get:
       summary: Read a newest-first statement
@@ -208,18 +220,19 @@ paths:
         - in: query
           name: from
           schema: {type: string, format: date-time}
-          description: Optional start of date range.
+          description: Optional timezone-aware start of date range. Chart series begin at the balance immediately before this instant.
         - in: query
           name: to
           schema: {type: string, format: date-time}
-          description: Optional end of date range.
+          description: Optional timezone-aware end of date range; must not precede `from`.
         - in: query
           name: buckets
           schema: {type: string}
-          description: Comma-separated conviction bucket boundaries (e.g., "1,2,5,10,25").
+          description: Comma-separated positive, strictly increasing conviction bucket boundaries (e.g., "1,2,5,10,25").
       responses:
         '200': {description: Comprehensive analytics with summary, breakdowns, and chart series.}
         '404': {description: Account not found.}
+        '422': {description: Invalid date range, timezone, or bucket boundaries.}
   /cfb/teams:
     post:
       summary: Add a reusable team catalog entry
@@ -283,13 +296,19 @@ paths:
         '404': {description: Game not found.}
         '409': {description: A different score was already finalized.}
         '422': {description: Invalid score.}
+  /cfb/games/{game_id}/quote-comparison:
+    get:
+      summary: Compare provider quote observations without a canonical line
+      responses:
+        '200': {description: Best and worst quote IDs by market and selection.}
+        '404': {description: Game not found.}
   /cfb/games/{game_id}/correction:
     put:
       summary: Correct a finalized score and re-settle bets
       description: >-
         Reverses prior payouts via offsetting ADJUSTMENT entries, re-settles
         all bets with corrected scores, and records an audit-trail entry.
-        Admin access required (placeholder for future auth).
+        Authentication and authorization are required before this local simulation endpoint is externally exposed.
       parameters:
         - in: path
           name: game_id
@@ -311,11 +330,18 @@ paths:
         '404': {description: Game not found.}
         '409': {description: Game is not finalized.}
         '422': {description: Scores unchanged or reason missing.}
+  /cfb/games/{game_id}/resolve-score-conflict:
+    put:
+      summary: Resolve a held provider-score conflict and settle the game
+      description: Local operator workflow; authentication is required before external exposure.
+      responses:
+        '200': {description: Resolved final game with settlement applied.}
+        '409': {description: Game is not in a conflicted scheduled state.}
   /cfb/markets/{market_id}/quotes:
     post:
       summary: Add a selection and signed American odds quote
       description: >-
-        A market opens once it has its required pair of quotes.
+        A market opens once it has its required pair of quotes. Provider observations are retained separately by source.
       responses:
         '201':
           description: Quote added.

@@ -147,11 +147,11 @@ Branch types: `feat/`, `fix/`, `chore/`, `refactor/`, `docs/`.
 Edgebook is developed in phases. See [`docs/implementation_schedule.md`](docs/implementation_schedule.md) for full detail.
 
 - **Phase 0 — Foundation** ✅ Complete
-- **Phase 1 — Manual End-to-End Betting Flow** ▶ In Progress
-- **Phase 2 — Product Hardening** — ledger controls, parlays/teasers
-- **Phase 3 — Analytics** — ROI, unit stats, and stake-allocation calibration
-- **Phase 4 — External Ingestion** — CFB API integration
-- **Phase 5 — AI-Assisted Review** — rationale and bias detection
+- **Phase 1 — Manual End-to-End Betting Flow** ✅ Complete
+- **Phase 2 — Product Hardening** ✅ Complete — ledger controls, alternative lines, and score corrections
+- **Phase 3 — Analytics** ✅ Complete — ROI, unit stats, and stake-allocation calibration
+- **Phase 4 — Multi-Source External Ingestion** ▶ In Progress — provenance, quote comparison, and conflict-safe settlement
+- **Phase 5 — Rationale Review Workflow** ▶ In Progress — asynchronous human review and bias-tag analytics
 - **Phase 6 — Investment Adaptability Review**
 
 ---

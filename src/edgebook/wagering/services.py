@@ -27,7 +27,13 @@ from edgebook.ledger.services import (
     post_adjustment,
     post_wager_transaction,
 )
-from edgebook.wagering.models import Bet, BetStatus, RationaleCategory
+from edgebook.wagering.models import (
+    Bet,
+    BetReview,
+    BetStatus,
+    RationaleCategory,
+    ReviewStatus,
+)
 
 
 class WageringError(Exception):
@@ -62,6 +68,7 @@ def place_bet(
     reason: str | None,
     rationale_category: str | None = None,
     notes: str | None = None,
+    quote_id: str | None = None,
     idempotency_key: str | None = None,
     now: datetime | None = None,
 ) -> tuple[Bet, int, bool]:
@@ -109,14 +116,20 @@ def place_bet(
     cutoff = _as_utc(game.scheduled_at) - timedelta(minutes=30)
     if _as_utc(now or datetime.now(UTC)) >= cutoff:
         raise WagerConflictError("Betting closes 30 minutes before scheduled kickoff")
-    quote = db.scalar(
-        select(MarketQuote).where(
-            MarketQuote.market_id == market_id,
-            MarketQuote.selection == selection.value,
-        )
+    quote_query = select(MarketQuote).where(
+        MarketQuote.market_id == market_id,
+        MarketQuote.selection == selection.value,
     )
+    if quote_id is not None:
+        quote_query = quote_query.where(MarketQuote.id == quote_id)
+    quotes = list(db.scalars(quote_query))
+    quote = quotes[0] if len(quotes) == 1 else None
     if quote is None:
-        raise WagerValidationError("Selection does not have a quote in this market")
+        if quote_id is None and len(quotes) > 1:
+            raise WagerValidationError(
+                "Multiple source quotes are available; quote_id is required"
+            )
+        raise WagerValidationError("Selection does not have the requested quote")
 
     normalized_reason = reason.strip() if reason else None
     normalized_notes = notes.strip() if notes else None
@@ -141,6 +154,9 @@ def place_bet(
             market_type=market.market_type,
             line_millipoints=market.line_millipoints,
             american_odds=quote.american_odds,
+            quote_source=quote.source,
+            quote_source_id=quote.source_quote_id,
+            quote_observed_at=quote.observed_at,
             stake_cents=stake_cents,
             bankroll_before_cents=bankroll_before,
             reason=normalized_reason or None,
@@ -149,6 +165,17 @@ def place_bet(
             status=BetStatus.PENDING.value,
         )
         db.add(bet)
+        db.flush()
+        db.add(
+            BetReview(
+                bet_id=bet.id,
+                status=(
+                    ReviewStatus.PENDING.value
+                    if normalized_reason or normalized_notes or rationale_category
+                    else ReviewStatus.NOT_APPLICABLE.value
+                ),
+            )
+        )
         db.commit()
         db.refresh(bet)
         return bet, account.current_balance_cents, True
@@ -184,7 +211,12 @@ def _winning_payout_cents(stake_cents: int, american_odds: int) -> int:
 
 
 def record_game_result(
-    db: Session, *, game_id: str, home_score: int, away_score: int
+    db: Session,
+    *,
+    game_id: str,
+    home_score: int,
+    away_score: int,
+    commit: bool = True,
 ) -> tuple[Game, list[Bet]]:
     """Finalize a score and atomically settle every pending bet for the game."""
     if home_score < 0 or away_score < 0:
@@ -232,8 +264,9 @@ def record_game_result(
         game.status = GameStatus.FINAL
         game.home_score = home_score
         game.away_score = away_score
-        db.commit()
-        db.refresh(game)
+        if commit:
+            db.commit()
+            db.refresh(game)
         return game, bets
     except Exception:
         db.rollback()

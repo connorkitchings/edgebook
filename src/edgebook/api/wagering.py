@@ -1,5 +1,6 @@
 """FastAPI routes for simulated bet placement and history."""
 
+import json
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
@@ -14,7 +15,19 @@ from edgebook.core.money import (
     validate_credit_amount,
 )
 from edgebook.ledger.services import AccountConflictError, AccountNotFoundError
-from edgebook.wagering.models import Bet, BetStatus, RationaleCategory
+from edgebook.wagering.models import (
+    Bet,
+    BetReview,
+    BetStatus,
+    RationaleCategory,
+    ReviewStatus,
+)
+from edgebook.wagering.reviews import (
+    ReviewConflictError,
+    ReviewNotFoundError,
+    complete_review,
+    get_review,
+)
 from edgebook.wagering.services import (
     WagerConflictError,
     WagerNotFoundError,
@@ -30,6 +43,7 @@ router = APIRouter(prefix="/accounts", tags=["simulated-wagers"])
 class BetCreate(BaseModel):
     market_id: str
     selection: MarketSelection
+    quote_id: str | None = None
     stake: Decimal
     reason: str | None = Field(default=None, max_length=500)
     rationale_category: RationaleCategory | None = None
@@ -63,6 +77,9 @@ class BetResponse(BaseModel):
     market_type: MarketType
     line: str | None
     american_odds: int
+    quote_source: str | None
+    quote_source_id: str | None
+    quote_observed_at: str | None
     stake: str
     bankroll_before: str
     payout: str | None
@@ -104,6 +121,11 @@ def bet_response(bet: Bet) -> BetResponse:
         market_type=MarketType(bet.market_type),
         line=line,
         american_odds=bet.american_odds,
+        quote_source=bet.quote_source,
+        quote_source_id=bet.quote_source_id,
+        quote_observed_at=(
+            bet.quote_observed_at.isoformat() if bet.quote_observed_at else None
+        ),
         stake=cents_to_string(bet.stake_cents),
         bankroll_before=cents_to_string(bet.bankroll_before_cents),
         payout=cents_to_string(bet.payout_cents)
@@ -125,6 +147,10 @@ def raise_wager_http_error(error: Exception) -> None:
         raise HTTPException(status_code=409, detail=str(error)) from error
     if isinstance(error, WagerValidationError):
         raise HTTPException(status_code=422, detail=str(error)) from error
+    if isinstance(error, ReviewNotFoundError):
+        raise HTTPException(status_code=404, detail=str(error)) from error
+    if isinstance(error, ReviewConflictError):
+        raise HTTPException(status_code=409, detail=str(error)) from error
     raise error
 
 
@@ -147,6 +173,7 @@ def place_bet_endpoint(
             if payload.rationale_category
             else None,
             notes=payload.notes,
+            quote_id=payload.quote_id,
             idempotency_key=idempotency_key,
         )
     except Exception as error:
@@ -184,3 +211,72 @@ def get_bet_endpoint(
     except Exception as error:
         raise_wager_http_error(error)
     return bet_response(bet)
+
+
+class ReviewResponse(BaseModel):
+    bet_id: str
+    status: ReviewStatus
+    reviewer_label: str | None
+    summary: str | None
+    bias_flags: list[str]
+    assessment_notes: str | None
+    review_version: str
+    created_at: str
+    started_at: str | None
+    completed_at: str | None
+
+
+class ReviewComplete(BaseModel):
+    reviewer_label: str = Field(min_length=1, max_length=200)
+    summary: str = Field(min_length=1, max_length=2000)
+    bias_flags: list[str] = Field(default_factory=list, max_length=20)
+    assessment_notes: str | None = Field(default=None, max_length=2000)
+    review_version: str = Field(default="human-v1", min_length=1, max_length=64)
+
+
+def review_response(review: BetReview) -> ReviewResponse:
+    return ReviewResponse(
+        bet_id=review.bet_id,
+        status=ReviewStatus(review.status),
+        reviewer_label=review.reviewer_label,
+        summary=review.summary,
+        bias_flags=json.loads(review.bias_flags or "[]"),
+        assessment_notes=review.assessment_notes,
+        review_version=review.review_version,
+        created_at=review.created_at.isoformat(),
+        started_at=review.started_at.isoformat() if review.started_at else None,
+        completed_at=review.completed_at.isoformat() if review.completed_at else None,
+    )
+
+
+@router.get("/{account_id}/bets/{bet_id}/review", response_model=ReviewResponse)
+def get_review_endpoint(
+    account_id: str, bet_id: str, db: Session = Depends(get_db)
+) -> ReviewResponse:
+    try:
+        get_bet(db, account_id=account_id, bet_id=bet_id)
+        return review_response(get_review(db, bet_id))
+    except Exception as error:
+        raise_wager_http_error(error)
+        raise AssertionError("unreachable")
+
+
+@router.put("/{account_id}/bets/{bet_id}/review", response_model=ReviewResponse)
+def complete_review_endpoint(
+    account_id: str, bet_id: str, payload: ReviewComplete, db: Session = Depends(get_db)
+) -> ReviewResponse:
+    """Complete a local human rationale review; authorization is deferred."""
+    try:
+        get_bet(db, account_id=account_id, bet_id=bet_id)
+        review = complete_review(
+            db,
+            bet_id=bet_id,
+            reviewer_label=payload.reviewer_label,
+            summary=payload.summary,
+            bias_flags=payload.bias_flags,
+            assessment_notes=payload.assessment_notes,
+            review_version=payload.review_version,
+        )
+    except Exception as error:
+        raise_wager_http_error(error)
+    return review_response(review)

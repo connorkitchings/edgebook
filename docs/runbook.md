@@ -68,6 +68,23 @@ curl http://127.0.0.1:8000/health
 }
 ```
 
+## Ingestion Scheduler Hooks
+
+The ingestion worker is intentionally outside the FastAPI process. Configure at least three
+independent provider adapters and invoke the normalized-feed commands from cron or the hosting
+platform scheduler:
+
+```bash
+uv run python -m edgebook.ingestion.cli sync --provider provider-a --feed provider-a.json
+uv run python -m edgebook.ingestion.cli settle-confirmed
+uv run python -m edgebook.ingestion.cli claim-reviews
+uv run python -m edgebook.ingestion.cli report
+```
+
+Score disagreements remain held in `CONFLICTED` state and must be resolved through the local
+score-resolution API before settlement. Never put provider keys or raw credentials in a feed file
+or source control.
+
 ---
 
 ## Troubleshooting

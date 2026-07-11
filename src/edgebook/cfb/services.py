@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from uuid import uuid4
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
@@ -182,7 +183,13 @@ def create_market(
 
 
 def create_quote(
-    db: Session, *, market_id: str, selection: MarketSelection, american_odds: int
+    db: Session,
+    *,
+    market_id: str,
+    selection: MarketSelection,
+    american_odds: int,
+    source: str | None = "MANUAL",
+    source_quote_id: str | None = None,
 ) -> MarketQuote:
     """Add a manual quote and open the market when its quote pair is complete."""
     market = db.get(Market, market_id)
@@ -193,14 +200,22 @@ def create_quote(
         raise CfbValidationError("Selection is not valid for this market type")
     if abs(american_odds) < 100:
         raise CfbValidationError("American odds must have a magnitude of at least 100")
-    if (
-        db.scalar(
-            select(MarketQuote).where(
-                MarketQuote.market_id == market_id,
-                MarketQuote.selection == selection.value,
-            )
+    source_quote_id = source_quote_id or str(uuid4())
+    if source == "MANUAL" and db.scalar(
+        select(MarketQuote).where(
+            MarketQuote.market_id == market_id,
+            MarketQuote.selection == selection.value,
+            MarketQuote.source == "MANUAL",
         )
-        is not None
+    ):
+        raise CfbConflictError("This market already has a quote for that selection")
+    if db.scalar(
+        select(MarketQuote).where(
+            MarketQuote.market_id == market_id,
+            MarketQuote.selection == selection.value,
+            MarketQuote.source == source,
+            MarketQuote.source_quote_id == source_quote_id,
+        )
     ):
         raise CfbConflictError("This market already has a quote for that selection")
     try:
@@ -208,6 +223,9 @@ def create_quote(
             market_id=market_id,
             selection=selection,
             american_odds=american_odds,
+            source=source,
+            source_quote_id=source_quote_id,
+            observed_at=datetime.now(UTC),
         )
         db.add(quote)
         db.flush()
@@ -226,3 +244,29 @@ def create_quote(
     except Exception:
         db.rollback()
         raise
+
+
+def quote_comparison(db: Session, game_id: str) -> list[dict]:
+    """Return derived best/worst source observations without canonicalizing odds."""
+    game = get_game(db, game_id)
+    rows: list[dict] = []
+    for market in game.markets:
+        for selection in EXPECTED_SELECTIONS[MarketType(market.market_type)]:
+            quotes = [
+                quote for quote in market.quotes if quote.selection == selection.value
+            ]
+            if not quotes:
+                continue
+            rows.append(
+                {
+                    "market_id": market.id,
+                    "selection": selection.value,
+                    "best_quote_id": max(
+                        quotes, key=lambda quote: quote.american_odds
+                    ).id,
+                    "worst_quote_id": min(
+                        quotes, key=lambda quote: quote.american_odds
+                    ).id,
+                }
+            )
+    return rows

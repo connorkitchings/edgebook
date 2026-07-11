@@ -465,3 +465,60 @@ def test_score_correction_validates_final_state_and_reason(client):
         ).status_code
         == 404
     )
+
+
+def test_score_correction_handles_repeated_changes_for_inactive_accounts(
+    client, db_session
+):
+    """Re-settlement stays balanced through repeated corrections after deactivation."""
+    account = create_account(client)
+    game, market = create_open_market(
+        client, market_type="MONEYLINE", line=None, odds=(-110, 150)
+    )
+    placed = client.post(
+        f"/accounts/{account['id']}/bets",
+        json={"market_id": market["id"], "selection": "HOME", "stake": "10.00"},
+    )
+    assert placed.status_code == 201
+    bet_id = placed.json()["bet"]["id"]
+
+    assert (
+        client.put(
+            f"/cfb/games/{game['id']}/result",
+            json={"home_score": 10, "away_score": 21},
+        ).status_code
+        == 200
+    )
+
+    stored_account = db_session.get(Account, account["id"])
+    assert stored_account is not None
+    stored_account.is_active = False
+    db_session.commit()
+
+    first_correction = client.put(
+        f"/cfb/games/{game['id']}/correction",
+        json={"home_score": 17, "away_score": 17, "reason": "Official tie correction"},
+    )
+    assert first_correction.status_code == 200
+    assert (
+        client.get(f"/accounts/{account['id']}/bets/{bet_id}").json()["status"]
+        == "PUSH"
+    )
+    assert (
+        client.post(f"/accounts/{account['id']}/reconcile").json()["is_balanced"]
+        is True
+    )
+
+    second_correction = client.put(
+        f"/cfb/games/{game['id']}/correction",
+        json={"home_score": 21, "away_score": 17, "reason": "Final score review"},
+    )
+    assert second_correction.status_code == 200
+    corrected_bet = client.get(f"/accounts/{account['id']}/bets/{bet_id}").json()
+    assert corrected_bet["status"] == "WON"
+    assert corrected_bet["payout"] == "19.09"
+    assert (
+        client.post(f"/accounts/{account['id']}/reconcile").json()["is_balanced"]
+        is True
+    )
+    assert db_session.scalar(select(func.count()).select_from(ScoreCorrection)) == 2

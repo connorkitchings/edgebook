@@ -6,7 +6,8 @@ return plain dicts suitable for Pydantic serialization. No data is modified.
 
 from __future__ import annotations
 
-from datetime import datetime
+import json
+from datetime import UTC, datetime
 from statistics import mean, pstdev
 
 from sqlalchemy import func, select
@@ -15,7 +16,7 @@ from sqlalchemy.orm import Session
 from edgebook.cfb.models import Game
 from edgebook.ledger.models import Account, Transaction
 from edgebook.ledger.services import get_account
-from edgebook.wagering.models import Bet, BetStatus
+from edgebook.wagering.models import Bet, BetReview, BetStatus, ReviewStatus
 
 DEFAULT_BUCKETS = [1, 2, 5, 10, 25]
 
@@ -48,6 +49,21 @@ def _settled_bet_filter(bet_cls, account_id: str, from_dt, to_dt):
     if to_dt is not None:
         conditions.append(bet_cls.settled_at <= to_dt)
     return conditions
+
+
+def _opening_balance_cents(
+    db: Session, account_id: str, from_dt: datetime | None
+) -> int:
+    """Return the balance immediately before an optional reporting period."""
+    if from_dt is None:
+        return 0
+    opening_balance = db.scalar(
+        select(func.coalesce(func.sum(Transaction.amount_cents), 0)).where(
+            Transaction.account_id == account_id,
+            Transaction.created_at < from_dt,
+        )
+    )
+    return int(opening_balance or 0)
 
 
 def compute_summary(
@@ -274,7 +290,7 @@ def compute_drawdown(
     to_dt: datetime | None = None,
 ) -> dict:
     """Compute max drawdown by replaying the account's ledger chronologically."""
-    account = _validate_account(db, account_id)
+    _validate_account(db, account_id)
 
     tx_conditions = [Transaction.account_id == account_id]
     if from_dt is not None:
@@ -290,7 +306,7 @@ def compute_drawdown(
         )
     )
 
-    balance = account.starting_bankroll_cents
+    balance = _opening_balance_cents(db, account_id, from_dt)
     peak = balance
     max_dd_cents = 0
     max_dd_pct = 0.0
@@ -318,7 +334,7 @@ def compute_drawdown_series(
     to_dt: datetime | None = None,
 ) -> list[dict]:
     """Emit per-transaction drawdown points for chart rendering."""
-    account = _validate_account(db, account_id)
+    _validate_account(db, account_id)
 
     tx_conditions = [Transaction.account_id == account_id]
     if from_dt is not None:
@@ -334,9 +350,20 @@ def compute_drawdown_series(
         )
     )
 
-    balance = account.starting_bankroll_cents
+    balance = _opening_balance_cents(db, account_id, from_dt)
     peak = balance
     series: list[dict] = []
+
+    if from_dt is not None:
+        series.append(
+            {
+                "timestamp": from_dt.isoformat(),
+                "balance_cents": balance,
+                "peak_cents": peak,
+                "drawdown_pct": 0.0,
+                "event": "OPENING_BALANCE",
+            }
+        )
 
     for tx in transactions:
         balance += tx.amount_cents
@@ -362,7 +389,7 @@ def compute_balance_series(
     to_dt: datetime | None = None,
 ) -> list[dict]:
     """Emit daily balance points for chart rendering."""
-    account = _validate_account(db, account_id)
+    _validate_account(db, account_id)
 
     tx_conditions = [Transaction.account_id == account_id]
     if from_dt is not None:
@@ -378,20 +405,26 @@ def compute_balance_series(
         )
     )
 
+    opening_balance = _opening_balance_cents(db, account_id, from_dt)
+
     if not transactions:
         return [
             {
-                "date": datetime.utcnow().date().isoformat(),
-                "balance_cents": account.current_balance_cents,
+                "date": (
+                    from_dt.date().isoformat()
+                    if from_dt is not None
+                    else datetime.now(UTC).date().isoformat()
+                ),
+                "balance_cents": opening_balance,
             }
         ]
 
     daily: dict[str, int] = {}
-    balance = account.starting_bankroll_cents
+    balance = opening_balance
 
-    first_date = transactions[0].created_at.date()
-    if from_dt is not None:
-        first_date = from_dt.date()
+    first_date = (
+        from_dt.date() if from_dt is not None else transactions[0].created_at.date()
+    )
     daily[first_date.isoformat()] = balance
 
     for tx in transactions:
@@ -403,6 +436,32 @@ def compute_balance_series(
         {"date": date_str, "balance_cents": bal}
         for date_str, bal in sorted(daily.items())
     ]
+
+
+def compute_review_summary(db: Session, account_id: str) -> dict:
+    """Summarize non-financial human-review workflow coverage and bias tags."""
+    rows = db.execute(
+        select(BetReview.status, BetReview.bias_flags)
+        .join(Bet, BetReview.bet_id == Bet.id)
+        .where(Bet.account_id == account_id)
+    ).all()
+    counts = {status.value: 0 for status in ReviewStatus}
+    flags: dict[str, int] = {}
+    for status, raw_flags in rows:
+        counts[status] = counts.get(status, 0) + 1
+        for flag in json.loads(raw_flags or "[]"):
+            flags[flag] = flags.get(flag, 0) + 1
+    eligible = len(rows) - counts[ReviewStatus.NOT_APPLICABLE.value]
+    completed = counts[ReviewStatus.COMPLETED.value]
+    return {
+        "eligible": eligible,
+        "completed": completed,
+        "coverage": round(completed / eligible, 4) if eligible else 0.0,
+        "status_counts": counts,
+        "bias_flags": [
+            {"flag": flag, "count": count} for flag, count in sorted(flags.items())
+        ],
+    }
 
 
 def compute_analytics(
@@ -430,4 +489,5 @@ def compute_analytics(
         ),
         "drawdown_series": compute_drawdown_series(db, account_id, from_dt, to_dt),
         "balance_series": compute_balance_series(db, account_id, from_dt, to_dt),
+        "review_summary": compute_review_summary(db, account_id),
     }

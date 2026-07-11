@@ -1,6 +1,7 @@
 """End-to-end API coverage for the analytics endpoint."""
 
 import uuid
+from datetime import UTC, datetime, timedelta
 
 from tests.api.test_wagering import create_account
 
@@ -243,3 +244,74 @@ def test_analytics_with_losses(client):
     assert summary["net_profit"] == "-10.00"
     assert summary["roi"] == -1.0
     assert summary["sharpe_ratio"] is None
+
+
+def test_analytics_replays_ledger_without_double_counting_opening_balance(
+    client,
+):
+    """Lifetime and range chart values replay the true opening balance."""
+    account = create_account(client, "100.00")
+    assert (
+        client.post(
+            f"/accounts/{account['id']}/transactions",
+            json={"type": "DEPOSIT", "amount": "50.00"},
+        ).status_code
+        == 201
+    )
+    assert (
+        client.post(
+            f"/accounts/{account['id']}/transactions",
+            json={"type": "WITHDRAWAL", "amount": "20.00"},
+        ).status_code
+        == 201
+    )
+
+    lifetime = client.get(f"/accounts/{account['id']}/analytics").json()
+    assert [point["balance"] for point in lifetime["drawdown_series"]] == [
+        "100.00",
+        "150.00",
+        "130.00",
+    ]
+    assert [point["balance"] for point in lifetime["balance_series"]] == ["130.00"]
+    assert lifetime["summary"]["max_drawdown"] == "-20.00"
+    assert lifetime["summary"]["max_drawdown_pct"] == 0.1333
+
+    range_start = datetime.now(UTC) + timedelta(days=1)
+    range_end = range_start + timedelta(days=1)
+    ranged = client.get(
+        f"/accounts/{account['id']}/analytics",
+        params={
+            "from": range_start.isoformat(),
+            "to": range_end.isoformat(),
+        },
+    ).json()
+    assert [point["balance"] for point in ranged["drawdown_series"]] == ["130.00"]
+    assert ranged["drawdown_series"][0]["event"] == "OPENING_BALANCE"
+    assert ranged["balance_series"] == [
+        {"date": range_start.date().isoformat(), "balance": "130.00"},
+    ]
+
+
+def test_analytics_rejects_ambiguous_periods_and_invalid_buckets(client):
+    """Analytics accepts only unambiguous periods and useful bucket boundaries."""
+    account = create_account(client)
+    endpoint = f"/accounts/{account['id']}/analytics"
+
+    assert (
+        client.get(
+            endpoint,
+            params={
+                "from": "2026-01-02T00:00:00Z",
+                "to": "2026-01-01T00:00:00Z",
+            },
+        ).status_code
+        == 422
+    )
+    assert (
+        client.get(endpoint, params={"from": "2026-01-02T00:00:00"}).status_code == 422
+    )
+
+    for buckets in ("0,5", "5,5", "10,5", "1,not-a-number"):
+        assert client.get(endpoint, params={"buckets": buckets}).status_code == 422
+
+    assert client.get(endpoint, params={"buckets": "5,10,25"}).status_code == 200
