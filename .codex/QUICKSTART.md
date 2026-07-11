@@ -98,12 +98,12 @@ git push origin <branch-name>
 # Start a new session
 # 1. Check branch: git branch
 # 2. Read: .agent/CONTEXT.md
-# 3. Load: .agent/skills/start-session/SKILL.md
+# 3. Load: .agent/skills/session-lifecycle/SKILL.md
 
 # End a session
 # 1. Create log: session_logs/YYYY-MM-DD/NN.md
 # 2. Health check: See .agent/workflows/health-check.md
-# 3. Load: .agent/skills/end-session/SKILL.md
+# 3. Load: .agent/skills/session-lifecycle/SKILL.md
 ```
 
 ---

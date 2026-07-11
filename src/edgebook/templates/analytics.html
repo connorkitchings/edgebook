@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics — Edgebook{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Analytics</h2>
+    <p>Performance metrics and insights</p>
+</div>
+
+{% if account and summary %}
+    <div class="stat-grid">
+        <div class="stat-card">
+            <div class="label">Net Profit</div>
+            <div class="value {% if summary.net_profit_cents >= 0 %}positive{% else %}negative{% endif %}">
+                {% if summary.net_profit_cents >= 0 %}+{% endif %}${{ "%.2f" | format(summary.net_profit_cents / 100) }}
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="label">ROI</div>
+            <div class="value {% if summary.roi >= 0 %}positive{% else %}negative{% endif %}">
+                {{ "%.1f" | format(summary.roi * 100) }}%
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Win Rate</div>
+            <div class="value">{{ "%.1f" | format(summary.win_rate * 100) }}%</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Total Bets</div>
+            <div class="value">{{ summary.total_bets }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Current Balance</div>
+            <div class="value">${{ "%.2f" | format(summary.current_balance_cents / 100) }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Max Drawdown</div>
+            <div class="value negative">{{ "%.1f" | format(summary.max_drawdown_pct * 100) }}%</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Sharpe Ratio</div>
+            <div class="value">{{ "%.2f" | format(summary.sharpe_ratio) if summary.sharpe_ratio is not none else '—' }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">W / L / P</div>
+            <div class="value" style="font-size: 1.125rem;">{{ summary.wins }} / {{ summary.losses }} / {{ summary.pushes }}</div>
+        </div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom: 1.5rem;">
+        <div class="card">
+            <div class="card-header"><h3>Balance Over Time</h3></div>
+            <canvas id="balanceChart" height="200"></canvas>
+        </div>
+        <div class="card">
+            <div class="card-header"><h3>Drawdown</h3></div>
+            <canvas id="drawdownChart" height="200"></canvas>
+        </div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom: 1.5rem;">
+        <div class="card">
+            <div class="card-header"><h3>ROI by Market Type</h3></div>
+            <canvas id="marketRoiChart" height="200"></canvas>
+        </div>
+        <div class="card">
+            <div class="card-header"><h3>Allocation Calibration</h3></div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Bucket</th>
+                            <th>Bets</th>
+                            <th>ROI</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for bucket in calibration %}
+                        <tr>
+                            <td>{{ bucket.bucket }}</td>
+                            <td>{{ bucket.bets }}</td>
+                            <td class="{% if bucket.roi >= 0 %}positive{% else %}negative{% endif %}">
+                                {{ "%.1f" | format(bucket.roi * 100) }}%
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><h3>Review Summary</h3></div>
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="label">Eligible Reviews</div>
+                <div class="value">{{ review_summary.eligible }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Completed</div>
+                <div class="value">{{ review_summary.completed }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Coverage</div>
+                <div class="value">{{ "%.1f" | format(review_summary.coverage * 100) }}%</div>
+            </div>
+        </div>
+        {% if review_summary.bias_flags %}
+        <div style="margin-top: 1rem;">
+            <strong style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Bias Flags</strong>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem;">
+                {% for flag in review_summary.bias_flags %}
+                <span class="badge badge-warning">{{ flag.flag }} ({{ flag.count }})</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+{% else %}
+    <div class="card">
+        <div class="empty-state">
+            <p>{% if not account %}No account found.{% else %}No analytics data yet. Place some bets to see metrics.{% endif %}</p>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if summary %}
+<script>
+    const chartDefaults = {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: {
+                grid: { color: 'rgba(51, 65, 85, 0.5)' },
+                ticks: { color: '#64748b', maxTicksLimit: 8 }
+            },
+            y: {
+                grid: { color: 'rgba(51, 65, 85, 0.5)' },
+                ticks: { color: '#64748b' }
+            }
+        }
+    };
+
+    // Balance chart
+    const balCtx = document.getElementById('balanceChart');
+    if (balCtx) {
+        new Chart(balCtx, {
+            type: 'line',
+            data: {
+                labels: {{ balance_dates | tojson }},
+                datasets: [{
+                    label: 'Balance',
+                    data: {{ balance_values | tojson }},
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 0,
+                }]
+            },
+            options: {
+                ...chartDefaults,
+                scales: {
+                    ...chartDefaults.scales,
+                    y: {
+                        ...chartDefaults.scales.y,
+                        ticks: { ...chartDefaults.scales.y.ticks, callback: v => '$' + v }
+                    }
+                },
+                plugins: {
+                    ...chartDefaults.plugins,
+                    tooltip: { callbacks: { label: ctx => '$' + ctx.parsed.y.toFixed(2) } }
+                }
+            }
+        });
+    }
+
+    // Drawdown chart
+    const ddCtx = document.getElementById('drawdownChart');
+    if (ddCtx) {
+        new Chart(ddCtx, {
+            type: 'line',
+            data: {
+                labels: {{ drawdown_labels | tojson }},
+                datasets: [{
+                    label: 'Drawdown %',
+                    data: {{ drawdown_values | tojson }},
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 0,
+                }]
+            },
+            options: {
+                ...chartDefaults,
+                scales: {
+                    ...chartDefaults.scales,
+                    y: {
+                        ...chartDefaults.scales.y,
+                        ticks: { ...chartDefaults.scales.y.ticks, callback: v => v + '%' }
+                    }
+                }
+            }
+        });
+    }
+
+    // Market ROI chart
+    const mktCtx = document.getElementById('marketRoiChart');
+    if (mktCtx) {
+        new Chart(mktCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ market_labels | tojson }},
+                datasets: [{
+                    label: 'ROI %',
+                    data: {{ market_values | tojson }},
+                    backgroundColor: {{ market_colors | tojson }},
+                }]
+            },
+            options: {
+                ...chartDefaults,
+                scales: {
+                    ...chartDefaults.scales,
+                    y: {
+                        ...chartDefaults.scales.y,
+                        ticks: { ...chartDefaults.scales.y.ticks, callback: v => v + '%' }
+                    }
+                }
+            }
+        });
+    }
+</script>
+{% endif %}
+{% endblock %}

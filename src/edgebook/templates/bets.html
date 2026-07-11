@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Bets — Edgebook{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Bets</h2>
+    <p>Place a simulated bet or review history</p>
+</div>
+
+<div class="tabs" style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
+    <button class="btn btn-primary" id="tab-place">Place Bet</button>
+    <a href="/bets/history" class="btn btn-secondary">History</a>
+</div>
+
+<div id="bet-wizard">
+    {% if account %}
+        <div class="card" style="margin-bottom: 1.5rem;">
+            <div id="wizard-step"
+                 hx-get="/partials/game-select"
+                 hx-trigger="load"
+                 hx-swap="innerHTML">
+                <div class="empty-state">
+                    <p>Loading games...</p>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="card">
+            <div class="empty-state">
+                <p>No account found. Create one via the API to get started.</p>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

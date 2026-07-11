@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Games — Edgebook{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Game Management</h2>
+    <p>Create teams, schedule games, and record scores</p>
+</div>
+
+<div class="grid-2" style="margin-bottom: 1.5rem;">
+    <div class="card">
+        <div class="card-header"><h3>New Team</h3></div>
+        <form hx-post="/partials/create-team"
+              hx-target="#team-result"
+              hx-swap="innerHTML">
+            <div style="margin-bottom: 0.75rem;">
+                <label for="team_name" style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.375rem;">Team Name</label>
+                <input type="text" id="team_name" name="name" required maxlength="200"
+                       placeholder="e.g., Alabama Crimson Tide"
+                       style="width: 100%; padding: 0.5rem; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 0.375rem; color: var(--text-primary); font-size: 0.875rem;">
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Create Team</button>
+        </form>
+        <div id="team-result" style="margin-top: 0.75rem;"></div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><h3>New Game</h3></div>
+        <form hx-post="/partials/create-game"
+              hx-target="#game-result"
+              hx-swap="innerHTML">
+            <div style="margin-bottom: 0.75rem;">
+                <label for="home_team_id" style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.375rem;">Home Team</label>
+                <select id="home_team_id" name="home_team_id" required
+                        style="width: 100%; padding: 0.5rem; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 0.375rem; color: var(--text-primary); font-size: 0.875rem;">
+                    <option value="">— Select —</option>
+                    {% for team in teams %}
+                    <option value="{{ team.id }}">{{ team.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="margin-bottom: 0.75rem;">
+                <label for="away_team_id" style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.375rem;">Away Team</label>
+                <select id="away_team_id" name="away_team_id" required
+                        style="width: 100%; padding: 0.5rem; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 0.375rem; color: var(--text-primary); font-size: 0.875rem;">
+                    <option value="">— Select —</option>
+                    {% for team in teams %}
+                    <option value="{{ team.id }}">{{ team.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="margin-bottom: 0.75rem;">
+                <label for="scheduled_at" style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.375rem;">Kickoff Time (UTC)</label>
+                <input type="datetime-local" id="scheduled_at" name="scheduled_at" required
+                       style="width: 100%; padding: 0.5rem; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 0.375rem; color: var(--text-primary); font-size: 0.875rem;">
+                <input type="hidden" name="timezone" value="UTC">
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Create Game</button>
+        </form>
+        <div id="game-result" style="margin-top: 0.75rem;"></div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header"><h3>Scheduled Games</h3></div>
+    <div id="game-list"
+         hx-get="/partials/game-list"
+         hx-trigger="load"
+         hx-swap="innerHTML">
+        <div class="empty-state"><p>Loading games...</p></div>
+    </div>
+</div>
+{% endblock %}

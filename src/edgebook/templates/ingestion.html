@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Ingestion — Edgebook{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Ingestion</h2>
+    <p>Sync fixture data, monitor runs, and resolve conflicts</p>
+</div>
+
+<div class="grid-2" style="margin-bottom: 1.5rem;">
+    <div class="card">
+        <div class="card-header"><h3>Sync Triggers</h3></div>
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <button class="btn btn-primary"
+                    hx-post="/ingestion/sync/games"
+                    hx-target="#sync-result"
+                    hx-swap="innerHTML">
+                Sync Games
+            </button>
+            <button class="btn btn-primary"
+                    hx-post="/ingestion/sync/quotes"
+                    hx-target="#sync-result"
+                    hx-swap="innerHTML">
+                Sync Quotes
+            </button>
+            <button class="btn btn-primary"
+                    hx-post="/ingestion/sync/scores"
+                    hx-target="#sync-result"
+                    hx-swap="innerHTML">
+                Sync Scores
+            </button>
+            <button class="btn btn-secondary"
+                    hx-post="/ingestion/settle"
+                    hx-target="#sync-result"
+                    hx-swap="innerHTML">
+                Settle Confirmed
+            </button>
+        </div>
+        <div id="sync-result" style="margin-top: 1rem;"></div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><h3>Unresolved Conflicts</h3></div>
+        <div id="conflict-list"
+             hx-get="/partials/conflict-list"
+             hx-trigger="load"
+             hx-swap="innerHTML">
+            <div class="empty-state"><p>Loading...</p></div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header"><h3>Run History</h3></div>
+    <div id="run-history"
+         hx-get="/partials/run-history"
+         hx-trigger="load"
+         hx-swap="innerHTML">
+        <div class="empty-state"><p>Loading...</p></div>
+    </div>
+</div>
+{% endblock %}

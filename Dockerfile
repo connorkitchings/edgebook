@@ -33,6 +33,9 @@ COPY --from=builder /app/.venv ./.venv
 # Copy the application source code
 COPY src/ src/
 
+# Copy fixture data for ingestion sync triggers
+COPY data/ data/
+
 # Chown the directory to the new user
 RUN chown -R appuser:appuser /app
 

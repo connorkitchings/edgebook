@@ -1,0 +1,41 @@
+<div id="game-select-section">
+    <div class="card-header" style="margin-bottom: 1rem;">
+        <h3>Step 1 — Select a Game</h3>
+    </div>
+
+    {% if games %}
+    <div class="game-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
+        {% for game in games %}
+        <div class="game-card"
+             style="border: 1px solid var(--border); border-radius: 0.5rem; padding: 1rem; cursor: pointer;"
+             hx-get="/partials/market-picker?game_id={{ game.id }}"
+             hx-target="#wizard-step"
+             hx-swap="innerHTML">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <strong>{{ game.home_team.name }}</strong>
+                    <span style="color: var(--text-muted); margin: 0 0.5rem;">vs</span>
+                    <strong>{{ game.away_team.name }}</strong>
+                </div>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    {% set open_markets = game.markets | selectattr('status.value', 'equalto', 'OPEN') | list %}
+                    {% if open_markets %}
+                        <span class="badge badge-success">{{ open_markets | length }} open market{{ open_markets | length | pluralize }}</span>
+                    {% else %}
+                        <span class="badge badge-neutral">No open markets</span>
+                    {% endif %}
+                    <span class="badge badge-info">{{ game.status }}</span>
+                </div>
+            </div>
+            <div style="color: var(--text-muted); font-size: 0.75rem; margin-top: 0.25rem;">
+                {{ game.scheduled_at | format_datetime }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p>No games available. Create teams and games first.</p>
+    </div>
+    {% endif %}
+</div>

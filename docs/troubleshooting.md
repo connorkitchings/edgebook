@@ -211,7 +211,7 @@ cat docs/<file>.md | grep -E "\[.*\]\(.*\)"
 **Problem: Agent making changes without approval**
 - Review permission settings
 - Ensure planning phase completes before implementation
-- Use `.agent/skills/start-session/SKILL.md` workflow
+- Use `.agent/skills/session-lifecycle/SKILL.md` workflow
 
 **Problem: Agent not following project rules**
 - Verify critical rules in `AGENTS.md` are up-to-date
@@ -263,7 +263,7 @@ cat docs/<file>.md | grep -E "\[.*\]\(.*\)"
    ```
 
 2. **Create session logs consistently**
-   - Use `.agent/skills/end-session/SKILL.md`
+   - Use `.agent/skills/session-lifecycle/SKILL.md`
    - Document decisions and blockers
    - Update implementation schedule
 

@@ -166,6 +166,6 @@ After all checks pass:
 ---
 
 **Links:**
-- `.agent/skills/end-session/SKILL.md` - End session workflow
+- `.agent/skills/session-lifecycle/SKILL.md` - Session lifecycle workflow
 - `docs/checklists.md` - Pre-commit checklist
 - `docs/development_standards.md` - Code standards

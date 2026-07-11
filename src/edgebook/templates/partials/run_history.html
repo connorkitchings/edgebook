@@ -1,0 +1,48 @@
+<div id="run-history-content">
+    {% if runs %}
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Provider</th>
+                    <th>Scope</th>
+                    <th>Status</th>
+                    <th>Seen</th>
+                    <th>Created</th>
+                    <th>Skipped</th>
+                    <th>Conflicts</th>
+                    <th>Started</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for run in runs %}
+                <tr>
+                    <td><strong>{{ run.provider }}</strong></td>
+                    <td>{{ run.scope }}</td>
+                    <td>
+                        {% if run.status == 'COMPLETED' %}
+                        <span class="badge badge-success">{{ run.status }}</span>
+                        {% else %}
+                        <span class="badge badge-info">{{ run.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ run.records_seen }}</td>
+                    <td>{{ run.records_created }}</td>
+                    <td>{{ run.records_skipped }}</td>
+                    <td>{% if run.conflict_count > 0 %}
+                        <span class="badge badge-warning">{{ run.conflict_count }}</span>
+                        {% else %}0{% endif %}</td>
+                    <td style="color: var(--text-muted); font-size: 0.75rem;">
+                        {{ run.started_at | format_datetime }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p>No ingestion runs yet. Use the sync triggers above.</p>
+    </div>
+    {% endif %}
+</div>

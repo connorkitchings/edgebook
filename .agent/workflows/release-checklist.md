@@ -324,7 +324,7 @@ If critical bug found in production:
 
 ## Links
 
-- `.agent/skills/end-session/SKILL.md` - Session close workflow
+- `.agent/skills/session-lifecycle/SKILL.md` - Session lifecycle workflow
 - `.agent/workflows/test-ci.md` - CI testing
 - `CHANGELOG.md` - Release notes
 - `.github/workflows/deploy.yml` - Deployment config

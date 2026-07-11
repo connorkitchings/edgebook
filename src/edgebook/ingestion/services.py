@@ -397,3 +397,31 @@ def resolve_score_conflict(
     except Exception:
         db.rollback()
         raise
+
+
+def list_runs(
+    db: Session,
+    *,
+    limit: int = 50,
+    offset: int = 0,
+) -> tuple[list[IngestionRun], int]:
+    """Return paginated ingestion runs newest-first."""
+    query = (
+        select(IngestionRun)
+        .order_by(IngestionRun.started_at.desc(), IngestionRun.id.desc())
+        .limit(limit)
+        .offset(offset)
+    )
+    total = db.scalar(select(func.count()).select_from(IngestionRun)) or 0
+    runs = db.scalars(query).all()
+    return list(runs), int(total)
+
+
+def list_conflicts(db: Session) -> list[Game]:
+    """Return all games with a CONFLICTED score sync state."""
+    query = (
+        select(Game)
+        .where(Game.score_sync_state == ScoreSyncState.CONFLICTED.value)
+        .order_by(Game.scheduled_at.desc())
+    )
+    return list(db.scalars(query).unique().all())

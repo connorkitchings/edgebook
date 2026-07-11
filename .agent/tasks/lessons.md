@@ -117,8 +117,7 @@ Track improvement over time:
 ## Links
 
 - Principles: `.agent/PRINCIPLES.md`
-- Start session: `.agent/skills/start-session/SKILL.md`
-- End session: `.agent/skills/end-session/SKILL.md`
+- Session lifecycle: `.agent/skills/session-lifecycle/SKILL.md`
 
 ---
 

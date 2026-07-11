@@ -1,0 +1,68 @@
+<div id="game-list-content">
+    {% if games %}
+    <div style="display: flex; flex-direction: column; gap: 1rem;">
+        {% for game in games %}
+        <div style="border: 1px solid var(--border); border-radius: 0.5rem; padding: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                <div>
+                    <strong>{{ game.home_team.name }}</strong>
+                    <span style="color: var(--text-muted); margin: 0 0.5rem;">vs</span>
+                    <strong>{{ game.away_team.name }}</strong>
+                    {% if game.status == 'FINAL' and game.home_score is not none %}
+                    <span style="margin-left: 0.75rem;">
+                        <span class="badge badge-neutral">{{ game.home_score }}–{{ game.away_score }}</span>
+                    </span>
+                    {% endif %}
+                </div>
+                <span class="badge {% if game.status == 'FINAL' %}badge-success{% else %}badge-info{% endif %}">{{ game.status }}</span>
+            </div>
+            <div style="color: var(--text-muted); font-size: 0.75rem; margin-bottom: 0.75rem;">
+                {{ game.scheduled_at | format_datetime }}
+            </div>
+
+            {% if game.status == 'SCHEDULED' %}
+            <div id="score-form-{{ game.id }}" style="display: none; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border);">
+                <form hx-post="/partials/record-score"
+                      hx-target="#score-result-{{ game.id }}"
+                      hx-swap="innerHTML">
+                    <input type="hidden" name="game_id" value="{{ game.id }}">
+                    <div style="display: flex; gap: 0.5rem; align-items: end; flex-wrap: wrap;">
+                        <div>
+                            <label style="display: block; font-size: 0.7rem; color: var(--text-muted); margin-bottom: 0.25rem;">{{ game.home_team.name }}</label>
+                            <input type="number" name="home_score" min="0" required placeholder="0"
+                                   style="width: 80px; padding: 0.375rem; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 0.375rem; color: var(--text-primary); font-size: 0.875rem;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.7rem; color: var(--text-muted); margin-bottom: 0.25rem;">{{ game.away_team.name }}</label>
+                            <input type="number" name="away_score" min="0" required placeholder="0"
+                                   style="width: 80px; padding: 0.375rem; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 0.375rem; color: var(--text-primary); font-size: 0.875rem;">
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="font-size: 0.75rem; padding: 0.375rem 0.75rem;">Settle</button>
+                    </div>
+                </form>
+                <div id="score-result-{{ game.id }}" style="margin-top: 0.5rem;"></div>
+            </div>
+            <button class="btn btn-secondary" style="font-size: 0.75rem; padding: 0.25rem 0.625rem;"
+                    onclick="document.getElementById('score-form-{{ game.id }}').style.display = 'block'; this.style.display = 'none';">
+                Record Score
+            </button>
+            {% endif %}
+
+            {% if game.markets %}
+            <div style="margin-top: 0.5rem;">
+                {% for market in game.markets %}
+                <span class="badge {% if market.status.value == 'OPEN' %}badge-success{% else %}badge-neutral{% endif %}" style="margin-right: 0.25rem;">
+                    {{ market.market_type.value }}{% if market.line %} {{ market.line }}{% endif %}
+                </span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p>No games scheduled. Create teams and a game above.</p>
+    </div>
+    {% endif %}
+</div>

@@ -1,0 +1,29 @@
+<div id="bet-filters" style="display: flex; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; align-items: center;">
+    <div style="display: flex; gap: 0.25rem;">
+        <button class="btn {% if not current_status %}btn-primary{% else %}btn-secondary{% endif %}"
+                style="font-size: 0.75rem; padding: 0.25rem 0.625rem;"
+                hx-get="/partials/bet-table?account_id={{ account_id }}&offset=0"
+                hx-target="#bet-table-container"
+                hx-swap="innerHTML">All</button>
+        {% for val, label in statuses %}
+        <button class="btn {% if current_status == val %}btn-primary{% else %}btn-secondary{% endif %}"
+                style="font-size: 0.75rem; padding: 0.25rem 0.625rem;"
+                hx-get="/partials/bet-table?account_id={{ account_id }}&status={{ val }}&offset=0"
+                hx-target="#bet-table-container"
+                hx-swap="innerHTML">{{ label }}</button>
+        {% endfor %}
+    </div>
+
+    <select name="market_type"
+            style="padding: 0.25rem 0.5rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 0.375rem; color: var(--text-primary); font-size: 0.75rem;"
+            hx-get="/partials/bet-table?account_id={{ account_id }}{% if current_status %}&status={{ current_status }}{% endif %}&offset=0"
+            hx-target="#bet-table-container"
+            hx-swap="innerHTML"
+            hx-include="this"
+            hx-vals='js:{market_type: event.target.value}'>
+        <option value="">All Markets</option>
+        {% for val in market_types %}
+        <option value="{{ val }}" {% if current_market_type == val %}selected{% endif %}>{{ val }}</option>
+        {% endfor %}
+    </select>
+</div>

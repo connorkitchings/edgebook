@@ -1,0 +1,40 @@
+{% if bets %}
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Game</th>
+                <th>Selection</th>
+                <th>Odds</th>
+                <th>Stake</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for bet in bets %}
+            <tr>
+                <td>{{ bet.game_id[:8] }}...</td>
+                <td>{{ bet.selection.value }}</td>
+                <td>{{ bet.american_odds }}</td>
+                <td>${{ bet.stake }}</td>
+                <td>
+                    {% if bet.status.value == 'WON' %}
+                        <span class="badge badge-success">Won</span>
+                    {% elif bet.status.value == 'LOST' %}
+                        <span class="badge badge-danger">Lost</span>
+                    {% elif bet.status.value == 'PUSH' %}
+                        <span class="badge badge-warning">Push</span>
+                    {% else %}
+                        <span class="badge badge-info">Pending</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="empty-state">
+    <p>No bets placed yet</p>
+</div>
+{% endif %}

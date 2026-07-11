@@ -57,9 +57,9 @@ session_logs/
 
 Session logs should be created for every development session:
 
-1. **Start session**: Follow `.agent/skills/start-session/SKILL.md`
+1. **Start session**: Follow `.agent/skills/session-lifecycle/SKILL.md`
 2. **During work**: Document decisions and issues
-3. **End session**: Follow `.agent/skills/end-session/SKILL.md`
+3. **End session**: Follow `.agent/skills/session-lifecycle/SKILL.md`
 4. **Create log**: Use `TEMPLATE.md` as starting point
 
 ### Workflow
@@ -119,7 +119,7 @@ Session logs provide:
 - **Tag appropriately**: Use consistent tags for filtering
 
 ### Maintenance
-- Create log at end of **every** session (use end-session skill)
+- Create log at end of **every** session (use session-lifecycle skill)
 - Keep logs focused on one session's work
 - If session spans multiple days, create multiple logs
 - Archive old logs periodically (older than 90 days)
@@ -144,8 +144,7 @@ find session_logs -name "*.md" ! -name "README.md" ! -name "TEMPLATE.md" -type f
 ## Integration with Workflow
 
 Session logs integrate with:
-- **Start session skill**: Reviews last 3-5 logs for context
-- **End session skill**: Creates log based on template
+- **Session lifecycle skill**: Reviews last 3-5 logs for context and creates log at session end
 - **Implementation schedule**: Links tasks to session logs
 - **Git commits**: Reference session logs in commit messages
 - **PR descriptions**: Link to relevant session logs
@@ -156,7 +155,7 @@ Session logs integrate with:
 
 When working with session logs:
 1. **Always read last 3-5 logs** when starting session
-2. **Create log at session end** using end-session skill
+2. **Create log at session end** using session-lifecycle skill
 3. **Document handoff notes** for next session
 4. **Link to implementation schedule** tasks
 5. **Tag appropriately** for easy filtering

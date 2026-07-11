@@ -1,0 +1,56 @@
+<div id="conflict-list-content">
+    {% if conflicts %}
+    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+        {% for conflict in conflicts %}
+        <div style="border: 1px solid var(--warning); border-radius: 0.5rem; padding: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <div>
+                    <strong>{{ conflict.home_team }}</strong>
+                    <span style="color: var(--text-muted);">vs</span>
+                    <strong>{{ conflict.away_team }}</strong>
+                </div>
+                <span class="badge badge-warning">CONFLICTED</span>
+            </div>
+
+            <div id="conflict-form-{{ conflict.game_id }}" style="display: none; margin-top: 0.75rem;">
+                <form hx-post="/ingestion/conflicts/{{ conflict.game_id }}/resolve"
+                      hx-target="#conflict-result-{{ conflict.game_id }}"
+                      hx-swap="innerHTML"
+                      style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: end;">
+                    <div>
+                        <label style="display: block; font-size: 0.7rem; color: var(--text-muted); margin-bottom: 0.25rem;">Home Score</label>
+                        <input type="number" name="home_score" min="0" required
+                               style="width: 80px; padding: 0.375rem; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 0.375rem; color: var(--text-primary); font-size: 0.875rem;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.7rem; color: var(--text-muted); margin-bottom: 0.25rem;">Away Score</label>
+                        <input type="number" name="away_score" min="0" required
+                               style="width: 80px; padding: 0.375rem; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 0.375rem; color: var(--text-primary); font-size: 0.875rem;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.7rem; color: var(--text-muted); margin-bottom: 0.25rem;">Reason</label>
+                        <input type="text" name="reason" required maxlength="1000"
+                               style="width: 200px; padding: 0.375rem; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 0.375rem; color: var(--text-primary); font-size: 0.875rem;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.7rem; color: var(--text-muted); margin-bottom: 0.25rem;">Resolved By</label>
+                        <input type="text" name="resolved_by" required maxlength="200"
+                               style="width: 120px; padding: 0.375rem; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 0.375rem; color: var(--text-primary); font-size: 0.875rem;">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="font-size: 0.75rem; padding: 0.375rem 0.75rem;">Resolve</button>
+                </form>
+                <div id="conflict-result-{{ conflict.game_id }}" style="margin-top: 0.5rem;"></div>
+            </div>
+            <button class="btn btn-secondary" style="font-size: 0.75rem; padding: 0.25rem 0.625rem;"
+                    onclick="document.getElementById('conflict-form-{{ conflict.game_id }}').style.display = 'block'; this.style.display = 'none';">
+                Resolve
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p>No score conflicts.</p>
+    </div>
+    {% endif %}
+</div>

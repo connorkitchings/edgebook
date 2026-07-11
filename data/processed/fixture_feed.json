@@ -1,0 +1,57 @@
+{
+  "games": [
+    {
+      "external_id": "fixture-game-1",
+      "home_team": "Crimson State",
+      "away_team": "Blue Tech",
+      "scheduled_at": "2026-09-05T19:30:00+00:00"
+    }
+  ],
+  "quotes": [
+    {
+      "external_id": "fixture-quote-home-1",
+      "game_external_id": "fixture-game-1",
+      "market_type": "MONEYLINE",
+      "line_millipoints": null,
+      "selection": "HOME",
+      "american_odds": -150,
+      "observed_at": "2026-09-05T18:00:00+00:00"
+    },
+    {
+      "external_id": "fixture-quote-away-1",
+      "game_external_id": "fixture-game-1",
+      "market_type": "MONEYLINE",
+      "line_millipoints": null,
+      "selection": "AWAY",
+      "american_odds": 130,
+      "observed_at": "2026-09-05T18:00:00+00:00"
+    },
+    {
+      "external_id": "fixture-quote-home-2",
+      "game_external_id": "fixture-game-1",
+      "market_type": "SPREAD",
+      "line_millipoints": -3500,
+      "selection": "HOME",
+      "american_odds": -110,
+      "observed_at": "2026-09-05T18:00:00+00:00"
+    },
+    {
+      "external_id": "fixture-quote-away-2",
+      "game_external_id": "fixture-game-1",
+      "market_type": "SPREAD",
+      "line_millipoints": -3500,
+      "selection": "AWAY",
+      "american_odds": -110,
+      "observed_at": "2026-09-05T18:00:00+00:00"
+    }
+  ],
+  "scores": [
+    {
+      "external_id": "fixture-score-1",
+      "game_external_id": "fixture-game-1",
+      "home_score": 28,
+      "away_score": 17,
+      "observed_at": "2026-09-06T01:00:00+00:00"
+    }
+  ]
+}

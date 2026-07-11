@@ -1,0 +1,61 @@
+<div id="stake-form-section">
+    <div class="card-header" style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+        <h3>Step 3 — Enter Stake</h3>
+        <button class="btn btn-secondary"
+                hx-get="/partials/market-picker?game_id={{ game_id }}"
+                hx-target="#wizard-step"
+                hx-swap="innerHTML"
+                style="font-size: 0.75rem; padding: 0.25rem 0.75rem;">
+            Back
+        </button>
+    </div>
+
+    <div style="margin-bottom: 1.5rem; padding: 1rem; border: 1px solid var(--border); border-radius: 0.5rem;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.875rem;">
+            <div><span style="color: var(--text-muted);">Selection:</span> <strong>{{ selection }}</strong></div>
+            <div><span style="color: var(--text-muted);">Odds:</span> <strong>{{ american_odds }}</strong></div>
+            <div><span style="color: var(--text-muted);">Market:</span> {{ market_type }}</div>
+            {% if line %}
+            <div><span style="color: var(--text-muted);">Line:</span> {{ line }}</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <form hx-post="/partials/place-bet"
+          hx-target="#wizard-step"
+          hx-swap="innerHTML">
+        <input type="hidden" name="account_id" value="{{ account_id }}">
+        <input type="hidden" name="market_id" value="{{ market_id }}">
+        <input type="hidden" name="selection" value="{{ selection }}">
+        <input type="hidden" name="quote_id" value="{{ quote_id }}">
+
+        <div style="margin-bottom: 1rem;">
+            <label for="stake" style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Stake Amount ($)</label>
+            <input type="number" id="stake" name="stake" step="0.01" min="0.01" required
+                   placeholder="10.00"
+                   style="width: 100%; padding: 0.625rem; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 0.5rem; color: var(--text-primary); font-size: 1rem;">
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            <label for="rationale_category" style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Rationale Category (optional)</label>
+            <select id="rationale_category" name="rationale_category"
+                    style="width: 100%; padding: 0.625rem; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 0.5rem; color: var(--text-primary); font-size: 0.875rem;">
+                <option value="">— Select —</option>
+                {% for cat in rationale_categories %}
+                <option value="{{ cat.value }}">{{ cat.value.replace('_', ' ').title() }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            <label for="reason" style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Reasoning (optional)</label>
+            <textarea id="reason" name="reason" rows="3" maxlength="500"
+                      placeholder="Why are you making this bet?"
+                      style="width: 100%; padding: 0.625rem; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 0.5rem; color: var(--text-primary); font-size: 0.875rem; resize: vertical;"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%;">
+            Confirm Bet
+        </button>
+    </form>
+</div>

@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     HOST: str = "127.0.0.1"
     INGESTION_MIN_PROVIDERS: int = 3
     INGESTION_PROVIDER_NAMES: str = ""
+    ODDS_API_KEY: str = ""
 
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"

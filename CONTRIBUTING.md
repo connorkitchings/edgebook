@@ -69,7 +69,7 @@ cat .agent/workflows/health-check.md
 
 ### 4. Create Session Log
 
-Follow `.agent/skills/end-session/SKILL.md` to document work.
+Follow `.agent/skills/session-lifecycle/SKILL.md` to document work.
 
 ### 5. Commit and Push
 
@@ -196,8 +196,8 @@ Include:
 
 This project uses AI coding tools. When working with AI:
 
-- Start with `.agent/skills/start-session/SKILL.md`
-- End with `.agent/skills/end-session/SKILL.md`
+- Start with `.agent/skills/session-lifecycle/SKILL.md`
+- End with `.agent/skills/session-lifecycle/SKILL.md`
 - Create session logs for all work
 - Follow skills catalog for common tasks
 - Never commit directly on main

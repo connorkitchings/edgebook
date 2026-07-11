@@ -374,20 +374,29 @@ def correct_game_result(
 
 
 def list_bets(
-    db: Session, *, account_id: str, limit: int, offset: int
+    db: Session,
+    *,
+    account_id: str,
+    limit: int,
+    offset: int,
+    status: str | None = None,
+    market_type: str | None = None,
 ) -> tuple[list[Bet], int]:
     try:
         get_account(db, account_id)
     except (AccountNotFoundError, AccountConflictError, LedgerValidationError) as error:
         raise WagerNotFoundError(str(error)) from error
+    conditions = [Bet.account_id == account_id]
+    if status is not None:
+        conditions.append(Bet.status == status)
+    if market_type is not None:
+        conditions.append(Bet.market_type == market_type)
     statement = (
         select(Bet)
-        .where(Bet.account_id == account_id)
+        .where(*conditions)
         .order_by(Bet.placed_at.desc(), Bet.id.desc())
         .limit(limit)
         .offset(offset)
     )
-    total = db.scalar(
-        select(func.count()).select_from(Bet).where(Bet.account_id == account_id)
-    )
+    total = db.scalar(select(func.count()).select_from(Bet).where(*conditions))
     return list(db.scalars(statement)), int(total or 0)

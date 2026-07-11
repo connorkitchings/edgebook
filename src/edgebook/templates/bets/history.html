@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Bet History — Edgebook{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Bet History</h2>
+    <p>Filter and browse past bets</p>
+</div>
+
+<div style="margin-bottom: 1rem;">
+    <a href="/bets" class="btn btn-secondary">Place a Bet</a>
+</div>
+
+<div class="card">
+    {% if account %}
+    <div hx-get="/partials/bet-table?account_id={{ account.id }}&offset=0"
+         hx-trigger="load"
+         hx-swap="innerHTML">
+        <div class="empty-state">
+            <p>Loading bets...</p>
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p>No account found. Create one via the API to get started.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

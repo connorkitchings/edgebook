@@ -188,10 +188,19 @@ def list_bets_endpoint(
     account_id: str,
     limit: int = Query(default=50, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
+    status: str | None = Query(default=None),
+    market_type: str | None = Query(default=None),
     db: Session = Depends(get_db),
 ) -> BetPage:
     try:
-        bets, total = list_bets(db, account_id=account_id, limit=limit, offset=offset)
+        bets, total = list_bets(
+            db,
+            account_id=account_id,
+            limit=limit,
+            offset=offset,
+            status=status,
+            market_type=market_type,
+        )
     except Exception as error:
         raise_wager_http_error(error)
     return BetPage(

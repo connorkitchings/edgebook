@@ -8,5 +8,5 @@
 
 **Quick Start:**
 1. Read `.agent/CONTEXT.md` for project snapshot
-2. Load `.agent/skills/start-session/SKILL.md` to begin
+2. Load `.agent/skills/session-lifecycle/SKILL.md` to begin
 3. Check `.agent/skills/CATALOG.md` for available skills

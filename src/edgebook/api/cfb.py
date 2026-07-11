@@ -3,7 +3,7 @@
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
@@ -27,6 +27,7 @@ from edgebook.cfb.services import (
     create_quote,
     create_team,
     get_game,
+    list_games,
     quote_comparison,
 )
 from edgebook.core.database import get_db
@@ -276,6 +277,21 @@ def create_game_endpoint(
     except Exception as error:
         raise_cfb_http_error(error)
     return game_response(game)
+
+
+@router.get("/games", response_model=list[GameResponse])
+def list_games_endpoint(
+    status_filter: str | None = Query(default=None, alias="status"),
+    limit: int = Query(default=50, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+    db: Session = Depends(get_db),
+) -> list[GameResponse]:
+    """List games newest-first with optional status filter."""
+    try:
+        games, _ = list_games(db, status=status_filter, limit=limit, offset=offset)
+    except Exception as error:
+        raise_cfb_http_error(error)
+    return [game_response(g) for g in games]
 
 
 @router.get("/games/{game_id}", response_model=GameResponse)

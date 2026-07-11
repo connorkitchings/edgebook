@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — Edgebook{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Dashboard</h2>
+    <p>Bankroll overview and recent activity</p>
+</div>
+
+{% if account %}
+    <div class="stat-grid">
+        <div class="stat-card">
+            <div class="label">Current Balance</div>
+            <div class="value">{{ account.current_balance | format_cents }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Starting Bankroll</div>
+            <div class="value">{{ account.starting_bankroll | format_cents }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Net P&L</div>
+            {% set net = (account.current_balance | float) - (account.starting_bankroll | float) %}
+            <div class="value {% if net >= 0 %}positive{% else %}negative{% endif %}">
+                {% if net >= 0 %}+{% endif %}${{ "%.2f" | format(net) }}
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Account</div>
+            <div class="value" style="font-size: 1rem;">{{ account.owner_name }}</div>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="card">
+            <div class="card-header">
+                <h3>Balance Over Time</h3>
+            </div>
+            <canvas id="balanceChart" height="200"></canvas>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3>Recent Bets</h3>
+                <a href="/bets" class="btn btn-secondary">View All</a>
+            </div>
+            <div id="recent-bets"
+                 hx-get="/partials/recent-bets?account_id={{ account.id }}"
+                 hx-trigger="load"
+                 hx-swap="innerHTML">
+                <div class="empty-state">
+                    <p>Loading recent bets...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="card">
+        <div class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+            <p>No account found. Create one via the API to get started.</p>
+            <p style="margin-top: 0.5rem; font-size: 0.75rem;">POST /accounts with owner_name and starting_bankroll</p>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if account and balance_series %}
+<script>
+    const ctx = document.getElementById('balanceChart');
+    if (ctx) {
+        const labels = {{ balance_series | map(attribute='date') | list | tojson }};
+        const data = {{ balance_series | map(attribute='balance') | list | tojson }};
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Balance',
+                    data: data.map(Number),
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 0,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(ctx) { return '$' + ctx.parsed.y.toFixed(2); }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(51, 65, 85, 0.5)' },
+                        ticks: { color: '#64748b', maxTicksLimit: 8 }
+                    },
+                    y: {
+                        grid: { color: 'rgba(51, 65, 85, 0.5)' },
+                        ticks: {
+                            color: '#64748b',
+                            callback: function(v) { return '$' + v; }
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
+{% endif %}
+{% endblock %}

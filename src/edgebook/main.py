@@ -1,11 +1,16 @@
 """Main entry point for Edgebook FastAPI application."""
 
+from pathlib import Path
+
 from fastapi import Depends, FastAPI
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 
 from edgebook.api.accounts import router as accounts_router
 from edgebook.api.analytics import router as analytics_router
 from edgebook.api.cfb import router as cfb_router
+from edgebook.api.ingestion import router as ingestion_router
+from edgebook.api.pages import router as pages_router
 from edgebook.api.wagering import router as wagering_router
 from edgebook.core.config import settings
 from edgebook.core.database import check_db_health, get_db
@@ -16,20 +21,15 @@ app = FastAPI(
     version="0.1.0",
 )
 
+app.include_router(pages_router)
 app.include_router(accounts_router)
 app.include_router(cfb_router)
 app.include_router(wagering_router)
 app.include_router(analytics_router)
+app.include_router(ingestion_router)
 
-
-@app.get("/")
-def read_root():
-    """Welcome root endpoint."""
-    return {
-        "message": f"Welcome to {settings.PROJECT_NAME}",
-        "environment": settings.ENV,
-        "debug": settings.DEBUG,
-    }
+static_dir = Path(__file__).resolve().parent / "static"
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 
 @app.get("/health")

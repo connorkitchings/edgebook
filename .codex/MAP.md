@@ -37,8 +37,9 @@ edgebook/
 ├── reviews/                    # Review templates
 ├── skills/                     # Reusable task workflows
 │   ├── CATALOG.md              # Skills index
-│   ├── start-session/
-│   └── end-session/
+│   ├── session-lifecycle/
+│   ├── api-development/
+│   └── database-migrations/
 └── workflows/                  # Automation references (health-check, test-ci, ...)
 
 .codex/                         # Read-only context cache
@@ -139,7 +140,7 @@ session_logs/
 ### Starting a Session
 1. `AGENTS.md` → `.agent/AGENTS.md` - Read first
 2. `.agent/CONTEXT.md` - Current state
-3. `.agent/skills/start-session/SKILL.md` - Session workflow
+3. `.agent/skills/session-lifecycle/SKILL.md` - Session workflow
 4. `session_logs/` - Review recent logs
 
 ### During Development
@@ -149,7 +150,7 @@ session_logs/
 - `.agent/skills/CATALOG.md` - Available workflows
 
 ### Closing a Session
-1. `.agent/skills/end-session/SKILL.md` - Closing workflow
+1. `.agent/skills/session-lifecycle/SKILL.md` - Closing workflow
 2. `session_logs/MM-DD-YYYY/N - Title.md` - Create log
 3. `.agent/workflows/health-check.md` - Run checks
 4. `docs/implementation_schedule.md` - Update if tasks completed

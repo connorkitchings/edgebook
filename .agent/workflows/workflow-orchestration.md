@@ -199,6 +199,5 @@ At each milestone, provide a summary:
 
 - Principles: `.agent/PRINCIPLES.md`
 - Lessons: `.agent/tasks/lessons.md`
-- Start session: `.agent/skills/start-session/SKILL.md`
-- End session: `.agent/skills/end-session/SKILL.md`
+- Session lifecycle: `.agent/skills/session-lifecycle/SKILL.md`
 - Health check: `.agent/workflows/health-check.md`
