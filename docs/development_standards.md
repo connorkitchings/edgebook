@@ -1,7 +1,7 @@
 # Development Standards & Workflow
 
 This document provides comprehensive standards, workflows, and best practices for development
-in the Vibe Coding System. It consolidates coding standards, review processes, and operational
+in the Edgebook project. It consolidates coding standards, review processes, and operational
 workflows into a single reference.
 
 > 📚 For a high-level overview and entry point to all documentation, see [README.md](../README.md).
@@ -178,5 +178,5 @@ All pull requests trigger:
 
 ---
 
-*This document consolidates development standards, code review guidelines, notebook governance,
-and operational workflows into a single reference for the Vibe Coding System.*
+*This document consolidates development standards, code review guidelines,
+and operational workflows into a single reference for the Edgebook project.*

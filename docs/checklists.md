@@ -23,7 +23,7 @@ Run this checklist before every git commit.
 - [ ] **Code is self-documented:** Variables and functions have clear, intention-revealing names
 - [ ] **No commented-out code:** Dead code has been removed
 - [ ] **No hardcoded secrets:** API keys, passwords, etc., are loaded from environment variables
-- [ ] **Commit message is descriptive:** Follows the convention in project_context.md
+- [ ] **Commit message is descriptive:** Follows the conventional commit format in CONTRIBUTING.md
 
 ## Pre-Merge Checklist (Pull Request) {#pre-merge}
 

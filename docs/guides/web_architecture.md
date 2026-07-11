@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide establishes the architectural patterns for adding a web interface to Vibe Coding projects. The goal is "Progressive Disclosure"—allowing simple scripts to evolve into full apps without rewrite.
+This guide establishes the architectural patterns for adding a web interface to Edgebook. The goal is "Progressive Disclosure"—allowing simple scripts to evolve into full apps without rewrite.
 
 ## Core Rules
 
@@ -22,7 +22,7 @@ This guide establishes the architectural patterns for adding a web interface to 
 **Principle:** Prefer Server State tools over complex Client State stores.
 -   **Recommended:** TanStack Query (React Query) or SWR.
 -   **Discouraged:** Redux, mobx, or heavy Zustand stores for simple data fetching.
--   *Why?* "Vibe coding" often leads to over-engineered state management. Keep it simple: invalidating a query is easier than managing a reducer.
+-   *Why?* AI-assisted development often leads to over-engineered state management. Keep it simple: invalidating a query is easier than managing a reducer.
 
 ## Recommended Stack
 

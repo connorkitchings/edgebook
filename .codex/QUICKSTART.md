@@ -130,18 +130,16 @@ uv pip list --outdated
 ### Python Examples
 
 ```python
-# Fetch web content as Markdown
-from vibe_coding.utils.markdown_fetcher import fetch_markdown, MarkdownFetcherConfig
+# Access Edgebook settings
+from edgebook.core.config import Settings
 
-# Basic usage
-result = fetch_markdown("https://example.com")
-print(result.content)
+settings = Settings()
+print(settings.PROJECT_NAME)
 
-# With configuration
-config = MarkdownFetcherConfig(method="ai", retain_images=True, timeout=60)
-result = fetch_markdown("https://example.com", config)
-print(f"Tokens: {result.metadata.token_count}")
-print(f"Method: {result.metadata.method_used}")
+# Get a database session
+from edgebook.core.database import get_db
+
+db = next(get_db())
 ```
 
 ---
@@ -171,15 +169,15 @@ find . -type f -name "*.pyc" -delete
 ## Project Structure
 
 ```
-Vibe-Coding/
+edgebook/
 ├── .agent/              # AI session management
 ├── .codex/              # Quick reference (this file)
-├── src/                 # Source code
+├── alembic/             # Database migrations
+├── src/edgebook/        # Application source
 ├── tests/               # Test suite
 ├── docs/                # Documentation
-├── scripts/             # Utility scripts
 ├── session_logs/        # Session history
-├── config/              # Configuration
+├── config/              # Configuration templates
 └── pyproject.toml       # Dependencies and tooling
 ```
 

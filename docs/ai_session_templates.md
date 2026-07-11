@@ -1,7 +1,7 @@
 # AI Development Session Templates
 
 This document provides **copy-paste templates** for starting and ending an AI-assisted development
-session inside the Vibe Coding System.  Each template ensures the assistant gathers the right
+session inside the Edgebook project.  Each template ensures the assistant gathers the right
 context, operates within project standards, and records its work correctly.
 
 ---

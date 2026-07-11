@@ -1,80 +1,83 @@
 # System Overview
 
-This document provides a high-level overview of the system architecture for a typical AI project. It is intended to be a starting point and should be adapted to fit the specific needs of your project.
+This document provides a high-level overview of the Edgebook architecture. Edgebook is a
+**simulation-only college football paper-betting platform** built as a modular monolith.
 
 ## Architecture Diagram
 
 ```mermaid
 graph TD
-    subgraph "Data Sources"
-        A[External APIs]
-        B[Databases]
-        C[File Storage]
+    subgraph "Clients"
+        A[API Consumer]
     end
 
-    subgraph "Data Platform"
-        D[Data Ingestion & ETL]
-        E[Data Warehouse]
-        F[Feature Store]
+    subgraph "Application - FastAPI modular monolith"
+        B[API Layer<br/>src/edgebook/api]
+        C[CFB Domain<br/>src/edgebook/cfb]
+        D[Ledger Domain<br/>src/edgebook/ledger]
+        E[Core<br/>config + database session]
     end
 
-    subgraph "ML Platform"
-        G[Experiment Tracking]
-        H[Model Training]
-        I[Model Registry]
+    subgraph "Persistence"
+        F[(PostgreSQL<br/>SQLite for local dev)]
+        G[Alembic migrations]
     end
 
-    subgraph "Serving"
-        J[API Server]
-        K[Batch Inference]
-    end
-
-    subgraph "Monitoring"
-        L[Data Quality Monitoring]
-        M[Model Performance Monitoring]
-    end
-
-    A --> D
+    A -->|HTTP REST| B
+    B --> C
     B --> D
-    C --> D
+    B --> E
+    C --> E
     D --> E
     E --> F
-    F --> H
-    G --> H
-    H --> I
-    I --> J
-    I --> K
-    J --> M
-    K --> M
-    E --> L
+    G -->|schema| F
 ```
+
+## Core Design Principle: Strict Module Separation
+
+The ledger accounting module (`src/edgebook/ledger/`) is **strictly isolated** from the
+college-football domain module (`src/edgebook/cfb/`). The two never import from each other
+directly. This keeps the double-entry ledger reusable for future paper-investing use cases
+beyond sports betting, and confines CFB-specific rules to their own boundary.
+
+The API layer (`src/edgebook/api/`) is the only place that orchestrates across both modules.
 
 ## Components
 
-### Data Sources
+### API Layer (`src/edgebook/api/`)
+- **`accounts.py`** — Fictional account creation, deposits/withdrawals, and statement history.
+- **`cfb.py`** — Manual intake of teams, games, markets, and American-odds quotes.
+- FastAPI provides automatic request validation and OpenAPI docs at `/docs`.
 
-*   **External APIs:** Third-party services that provide data.
-*   **Databases:** Internal databases containing business data.
-*   **File Storage:** Cloud storage services like S3 or GCS for storing raw data.
+### CFB Domain (`src/edgebook/cfb/`)
+- **Models:** `Team`, `Game`, `Market`, `MarketQuote`.
+- **Markets:** Spread, Moneyline, and Total with `HOME`/`AWAY`/`OVER`/`UNDER` selections.
+- **Intake:** Manual entry only in Phase 1; external ingestion is a later phase.
+- CFB intake never touches ledger balances.
 
-### Data Platform
+### Ledger Domain (`src/edgebook/ledger/`)
+- **Models:** `Account`, `JournalEntry`, `Transaction`.
+- **Double-entry:** Every balance change is a balanced set of signed postings between the
+  user's `USER_ASSET` account and the internal `EQUITY` (simulation-capital) counterparty.
+- **Immutable & append-only:** Postings and journal entries are never mutated.
+- **Transaction types:** `DEPOSIT`, `WITHDRAWAL`, `WAGER_STAKE`, `WAGER_PAYOUT`, `ADJUSTMENT`.
 
-*   **Data Ingestion & ETL:** Pipelines for extracting, transforming, and loading data from various sources into the data warehouse.
-*   **Data Warehouse:** A central repository for structured and semi-structured data.
-*   **Feature Store:** A centralized repository for storing, sharing, and managing features for machine learning models.
+### Core (`src/edgebook/core/`)
+- **`config.py`** — Pydantic `Settings` (project name, database URL, etc.).
+- **`database.py`** — SQLAlchemy session/engine setup and `get_db` dependency.
 
-### ML Platform
+### Persistence
+- **PostgreSQL 15+** is the system of record for production.
+- **SQLite** is used for local development and the test suite.
+- **Alembic** manages schema migrations (`alembic/versions/`).
 
-*   **Experiment Tracking:** Tools for tracking experiments, including code, data, parameters, and metrics.
-*   **Model Training:** The process of training machine learning models on the prepared data.
-*   **Model Registry:** A central repository for storing, versioning, and managing trained models.
+## Money Representation
 
-### Serving
+All monetary amounts are stored as **integer cents** (`_cents` columns) to avoid
+floating-point rounding. The API accepts two-decimal floats and converts internally.
 
-*   **API Server:** A web server that exposes the trained model as an API for real-time inference.
-*   **Batch Inference:** The process of running inference on a large batch of data.
+## Roadmap Context
 
-### Monitoring
-
-*   **Data Quality Monitoring:** Tools for monitoring the quality of the data used to train and evaluate models.
-*   **Model Performance Monitoring:** Tools for monitoring the performance of the model in production.
+This overview reflects Phase 1 (manual end-to-end betting flow). Future phases add automated
+settlement, analytics, external CFB ingestion, and AI-assisted review. See the
+[Implementation Schedule](../implementation_schedule.md) for the full roadmap.

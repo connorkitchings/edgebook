@@ -42,8 +42,8 @@ USER appuser
 # Add the virtual environment's bin to the PATH
 ENV PATH="/app/.venv/bin:$PATH"
 
-# Expose a default port (if the application were a web service)
-# EXPOSE 8000
+# Expose the FastAPI default port
+EXPOSE 8000
 
-# Set a default command to run when the container starts
-CMD ["python", "-c", "print('Welcome to the Vibe Coding container!')"]
+# Run the Edgebook API
+CMD ["uvicorn", "edgebook.main:app", "--host", "0.0.0.0", "--port", "8000"]

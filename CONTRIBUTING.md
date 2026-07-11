@@ -1,4 +1,4 @@
-# Vibe Coding Template - Contributing Guide
+# Edgebook - Contributing Guide
 
 > **Purpose:** Guidelines for contributing to this project.
 
@@ -8,7 +8,7 @@
 
 ### Prerequisites
 
-- Python 3.10+
+- Python 3.11
 - [uv](https://github.com/astral-sh/uv) package manager
 - Git
 
@@ -181,13 +181,13 @@ Include:
 
 ```
 .
-├── src/              # Source code
+├── src/edgebook/     # Application source (core, api, cfb, ledger, utils)
+├── alembic/          # Database migrations
 ├── tests/            # Test suite
 ├── docs/             # Documentation
-├── scripts/          # Utility scripts
-├── .agent/           # AI workflows
+├── .agent/           # AI agent guidance and skills
 ├── session_logs/     # Session history
-└── config/           # Configuration
+└── config/           # Configuration templates
 ```
 
 ---

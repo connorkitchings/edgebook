@@ -1,17 +1,19 @@
-# Vibe Coding Documentation
+# Edgebook Documentation
 
-For project overview, setup instructions, and getting started, see the [main README.md](../README.md).
+For a project overview, setup instructions, and getting started, see the [main README.md](../README.md).
 
-This documentation site contains the detailed guides and templates for project development:
+Edgebook is a **simulation-only college football paper-betting platform**. These docs cover the
+architecture, API, and operational guidance for the platform.
 
 ## Navigation
 
-- **[Template Kickoff Guide](./template_starting_guide.md)** - Convert this repository from template to real project
-- **[Project Charter](./project_charter.md)** - Project goals, scope, and technical context
-- **[Implementation Schedule](./implementation_schedule.md)** - Current project timeline and milestones
-- **[Development Standards & Workflow](./development_standards.md)** - Coding standards,
-  review process, and workflow
+- **[Getting Started](./getting_started.md)** - Set up a local development environment
+- **[Project Charter](./project_charter.md)** - Vision, scope, users, and decision log
+- **[Project Brief](./project_brief.md)** - Objectives, success metrics, and timeline
+- **[Implementation Schedule](./implementation_schedule.md)** - Phase roadmap and current priorities
+- **[Development Standards & Workflow](./development_standards.md)** - Coding standards and review process
 - **[Checklists](./checklists.md)** - Quality gates and review checklists
-- **[Knowledge Base](./knowledge_base.md)** - Project decisions and accumulated knowledge
-- **[AI Session Templates](./ai_session_templates.md)** - Templates for starting and ending AI
-  development sessions
+- **[Knowledge Base](./knowledge_base.md)** - Patterns and accumulated knowledge
+- **[Runbook](./runbook.md)** - Operations guide
+- **[Security & Responsible Use](./security.md)** - Simulation-only policy
+- **[AI Session Templates](./ai_session_templates.md)** - Templates for AI-assisted development sessions

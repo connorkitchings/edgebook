@@ -58,19 +58,19 @@
 - **Context budget**: ≤2k tokens initial, then targeted fetches
 
 **Key Files**:
-- `src/data/` - Data access and ingestion
-- `alembic/` or migrations directory - Database migrations
+- `src/edgebook/cfb/` - CFB data models and intake services
+- `alembic/` - Database migrations
 - `.agent/skills/database-migration/SKILL.md` - Migration workflow
 - `.agent/skills/data-ingestion/SKILL.md` - Ingestion workflow
 
 **Commands**:
 ```bash
 # Database migrations
-alembic upgrade head
-alembic revision --autogenerate -m "description"
+uv run alembic upgrade head
+uv run alembic revision --autogenerate -m "description"
 
-# Data pipeline
-uv run python scripts/ingest_data.py
+# Run ingestion (when external sources are added)
+uv run python -m edgebook.cfb.services
 ```
 
 ---
@@ -88,8 +88,7 @@ uv run python scripts/ingest_data.py
 - **Context budget**: ≤2k tokens initial
 
 **Key Files**:
-- `src/api/` - API routes
-- `src/web/` or frontend directory - Frontend code
+- `src/edgebook/api/` - API routes (accounts, cfb)
 - `docs/api/` - API documentation
 - `.agent/skills/api-endpoint/SKILL.md` - API workflow
 
@@ -145,9 +144,9 @@ When routing a task, Navigator provides:
 **Example**:
 
 ```text
-Task: Implement user authentication endpoint
-DoD: POST /auth/login returns JWT token, tests pass
-Files: src/api/auth.py:1-50, src/models/user.py:20
+Task: Implement simulated bet placement
+DoD: POST endpoint records stake/odds with WAGER_STAKE ledger posting, tests pass
+Files: src/edgebook/api/cfb.py:1-50, src/edgebook/ledger/services.py:20
 Constraints: ≤2hr, backend only, no schema changes
 Artifacts: Route handler, tests, API docs
 Rollback: Revert migration if needed

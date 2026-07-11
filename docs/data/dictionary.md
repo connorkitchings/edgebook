@@ -1,32 +1,93 @@
 # Data Dictionary
 
-This document serves as a data dictionary, providing definitions and descriptions for key data elements used within the project.
+Definitions for key data elements used across Edgebook. All monetary values are fictional
+simulation credits.
 
-## Table of Contents
+## Terms
 
-- [Term 1](#term-1)
-- [Term 2](#term-2)
+### Account Kind
 
-## Term 1
+**Definition:** Classifies a ledger account without coupling it to a product domain.
 
-**Definition:** [Clear and concise definition of the term]
+**Data Type:** enum (string)
 
-**Data Type:** [e.g., string, integer, boolean, date]
+**Allowed values:** `USER_ASSET`, `EQUITY`
 
-**Format/Constraints:** [e.g., YYYY-MM-DD, max 255 characters, positive integer]
+**Source:** `src/edgebook/ledger/models.py` (`AccountKind`)
 
-**Source:** [Where does this data come from?]
+**Usage:** `USER_ASSET` is the user's fictional bankroll account; `EQUITY` is the internal
+simulation-capital counterparty used to balance every posting.
 
-**Usage:** [How is this data used within the project?]
+---
 
-## Term 2
+### Transaction Type
 
-**Definition:** [Clear and concise definition of the term]
+**Definition:** The economic event category recorded by a ledger posting.
 
-**Data Type:** [e.g., string, integer, boolean, date]
+**Data Type:** enum (string)
 
-**Format/Constraints:** [e.g., YYYY-MM-DD, max 255 characters, positive integer]
+**Allowed values:** `DEPOSIT`, `WITHDRAWAL`, `WAGER_STAKE`, `WAGER_PAYOUT`, `ADJUSTMENT`
 
-**Source:** [Where does this data come from?]
+**Source:** `src/edgebook/ledger/models.py` (`TransactionType`)
 
-**Usage:** [How is this data used within the project?]
+**Usage:** The manual transaction API accepts only `DEPOSIT` and `WITHDRAWAL`.
+`WAGER_STAKE`, `WAGER_PAYOUT`, and `ADJUSTMENT` are reserved for settlement and later phases.
+
+---
+
+### Amount (cents)
+
+**Definition:** A signed, non-zero integer amount in cents representing a ledger posting.
+
+**Data Type:** integer
+
+**Format/Constraints:** Non-zero; positive credits, negative debits; the API accepts
+two-decimal floats which are converted to cents internally.
+
+**Source:** `ledger_transactions.amount_cents`
+
+**Usage:** Stored as cents to avoid floating-point rounding across balances and statements.
+
+---
+
+### American Odds
+
+**Definition:** Signed integer American-odds quote for a CFB market selection.
+
+**Data Type:** integer
+
+**Format/Constraints:** Non-zero; positive for underdogs (+), negative for favorites (-).
+
+**Source:** `cfb_market_quotes.american_odds`
+
+**Usage:** Captured during manual CFB intake; consumed later by settlement logic.
+
+---
+
+### Market Type
+
+**Definition:** The category of a CFB betting market.
+
+**Data Type:** enum (string)
+
+**Allowed values:** `SPREAD`, `MONEYLINE`, `TOTAL`
+
+**Source:** `src/edgebook/cfb/models.py` (`MarketType`)
+
+**Usage:** One market type per game; combined with `MarketSelection` defines a wagerable
+outcome.
+
+---
+
+### Market Selection
+
+**Definition:** The outcome side being quoted within a market.
+
+**Data Type:** enum (string)
+
+**Allowed values:** `HOME`, `AWAY`, `OVER`, `UNDER`
+
+**Source:** `src/edgebook/cfb/models.py` (`MarketSelection`)
+
+**Usage:** Paired with a market to form a quote; a market opens once it has its required
+pair of quotes.

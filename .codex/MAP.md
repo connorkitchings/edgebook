@@ -1,21 +1,26 @@
 # Project Map
 
-> **Purpose**: Visual project structure for quick orientation.
+> **Purpose**: Visual project structure for quick orientation of the Edgebook repository.
 
 ---
 
 ## Root Level
 
 ```
-Vibe-Coding/
-├── AGENTS.md                   # Multi-tool AI guidance (read first)
-├── CLAUDE.md                   # Redirect to AGENTS.md
-├── GEMINI.md                   # Redirect to AGENTS.md
+edgebook/
+├── AGENTS.md                   # AI guidance redirect (read .agent/AGENTS.md)
+├── CLAUDE.md                   # Redirect for Claude Code
+├── GEMINI.md                   # Redirect for Gemini CLI
 ├── README.md                   # Project overview
 ├── CHANGELOG.md                # Version history
+├── CONTRIBUTING.md             # Contribution guide
+├── LICENSE                     # MIT license
 ├── pyproject.toml              # Dependencies and tooling
+├── uv.lock                     # Locked dependency versions
 ├── mkdocs.yml                  # Documentation config
-├── prefect.yaml                # Workflow orchestration (optional)
+├── alembic.ini                 # Migration config
+├── Makefile                    # Common commands
+├── Dockerfile                  # Container image
 └── .pre-commit-config.yaml     # Pre-commit hooks
 ```
 
@@ -26,17 +31,18 @@ Vibe-Coding/
 ```
 .agent/                         # Active session management
 ├── CONTEXT.md                  # Entry point (project snapshot)
+├── AGENTS.md                   # Agent operating manual
+├── PRINCIPLES.md               # Operating principles
+├── tasks/                      # Lessons and tasks
+├── reviews/                    # Review templates
 ├── skills/                     # Reusable task workflows
 │   ├── CATALOG.md              # Skills index
 │   ├── start-session/
-│   │   └── SKILL.md            # Session initialization
 │   └── end-session/
-│       └── SKILL.md            # Session closing
-└── workflows/                  # Automation scripts
-    └── health-check.md         # Pre-commit validation
+└── workflows/                  # Automation references (health-check, test-ci, ...)
 
 .codex/                         # Read-only context cache
-├── README.md                   # Purpose explanation
+├── README.md
 ├── MAP.md                      # This file
 └── QUICKSTART.md               # Essential commands
 ```
@@ -46,35 +52,41 @@ Vibe-Coding/
 ## Source Code
 
 ```
-src/
-└── vibe_coding/
-    ├── __init__.py
-    └── utils/
-        └── agent_logging.py    # Logging utilities
+src/edgebook/
+├── __init__.py
+├── main.py                     # FastAPI app entry point
+├── core/
+│   ├── config.py               # Pydantic settings
+│   └── database.py             # SQLAlchemy session setup
+├── api/
+│   ├── accounts.py             # Fictional account & ledger transactions
+│   └── cfb.py                  # CFB team/game/market/quote intake
+├── cfb/                        # College football domain (isolated from ledger)
+│   ├── models.py               # Team, Game, Market, MarketQuote
+│   └── services.py             # CFB intake operations
+├── ledger/                     # Double-entry ledger accounting
+│   ├── models.py               # Accounts, postings
+│   └── services.py             # Ledger business operations
+└── utils/
+    └── logging.py              # Edgebook logging utility
 ```
 
 ---
 
-## Tests
+## Migrations & Tests
 
 ```
-tests/
-├── __init__.py
-├── api/
-│   ├── __init__.py
-│   └── test_endpoints.py
-├── core/
-│   ├── __init__.py
-│   └── test_config.py
-├── data/
-│   ├── __init__.py
-│   ├── test_make_dataset.py
-│   └── test_process_features.py
-└── models/
-    ├── __init__.py
-    ├── test_evaluate_model.py
-    ├── test_predict_model.py
-    └── test_train_model.py
+alembic/                        # Database migrations
+└── versions/
+
+tests/                          # Test suite
+├── conftest.py
+├── test_config.py
+├── test_database.py
+├── test_migrations.py
+├── api/                        # API endpoint tests
+├── ledger/                     # Ledger service tests
+└── utils/                      # Utility tests
 ```
 
 ---
@@ -84,64 +96,28 @@ tests/
 ```
 docs/
 ├── index.md                    # Documentation hub
-├── project_charter.md          # Project vision and goals
-├── project_brief.md            # Executive summary
-├── implementation_schedule.md  # Current priorities
+├── project_charter.md          # Vision, scope, users, decision log
+├── project_brief.md            # Objectives, metrics, timeline
+├── implementation_schedule.md  # Phase roadmap
+├── runbook.md                  # Operations guide
+├── security.md                 # Responsible-use policy
+├── getting_started.md          # Onboarding guide
 ├── development_standards.md    # Coding standards
 ├── checklists.md               # Quality gates
-├── knowledge_base.md           # Solutions and patterns
-├── runbook.md                  # Operations guide
-├── security.md                 # Security guidelines
-├── glossary.md                 # Project terminology
-├── getting_started.md          # Onboarding guide
-├── template_starting_guide.md  # Template adaptation
-├── ai_guide.md                 # AI tool guidance (legacy)
-├── ai_session_templates.md     # Session templates (legacy)
+├── knowledge_base.md           # Patterns and gotchas
+├── troubleshooting.md
+├── ai_guide.md
+├── ai_session_templates.md
 ├── architecture/
-│   ├── system_overview.md      # Architecture overview
-│   ├── data_modeling.md        # Data architecture
-│   ├── ai_docs_organization_guide.md
-│   └── adr/                    # Architecture decisions
+│   ├── system_overview.md
+│   ├── data_modeling.md
+│   └── adr/                    # Architecture decision records
 ├── api/
 │   ├── README.md
-│   └── openapi.yaml            # API specification
-├── data/
-│   ├── contracts.md            # Data contracts
-│   └── dictionary.md           # Data dictionary
-├── models/
-│   ├── model_card.md           # Model documentation
-│   └── experiment_plan.md      # Experiment tracking
-├── guides/
-│   ├── silo_architecture.md    # Data silo pattern
-│   └── web_architecture.md     # Web architecture
-├── workflows/
-│   ├── feature_development.md
-│   ├── bugfix_troubleshooting.md
-│   ├── data_pipeline_changes.md
-│   ├── model_training_and_eval.md
-│   └── deployment_and_rollbacks.md
-├── tools/
-│   ├── mcp_tooling.md          # MCP integration
-│   ├── cli_tool_template.md    # CLI tool guide
-│   └── cli_agent_coding_guide.md
-└── archive/
-    ├── v1.0.0_implementation_summary.md
-    ├── v1.1.0_enhancements_summary.md
-    ├── implementation_checklist.md
-    └── enhancements_completed.md
-```
-
----
-
-## Scripts
-
-```
-scripts/
-├── cli.py                      # CLI interface
-├── init_session.py             # Session initialization
-├── init_template.py            # Template setup
-├── check_links.py              # Documentation link checker
-└── test_notebooks.py           # Notebook testing
+│   └── openapi.yaml
+└── data/
+    ├── contracts.md
+    └── dictionary.md
 ```
 
 ---
@@ -152,43 +128,8 @@ scripts/
 session_logs/
 ├── README.md                   # Logging guidelines
 ├── TEMPLATE.md                 # Session log template
-├── log_template.md             # Alternative template
-└── YYYY-MM-DD/                 # Daily session logs
-    ├── 01.md
-    ├── 02.md
-    └── ...
-```
-
----
-
-## Configuration
-
-```
-config/
-├── github/                     # GitHub templates
-│   ├── PULL_REQUEST_TEMPLATE.md
-│   └── ISSUE_TEMPLATE/
-│       ├── bug_report.md
-│       ├── feature_request.md
-│       └── improvement.md
-└── (other config files)
-```
-
----
-
-## Legacy Structure (To Be Removed)
-
-```
-.agents/                        # Old agent structure
-├── AGENTS.md                   # Superseded by /AGENTS.md
-├── prompts/
-│   ├── navigator.md
-│   ├── dataops.md
-│   └── specialist.md
-└── skills/
-    ├── CATALOG.md
-    ├── context-audit.py
-    └── web_init.py
+└── MM-DD-YYYY/                 # Daily session logs
+    └── N - Title.md
 ```
 
 ---
@@ -196,29 +137,23 @@ config/
 ## Key Paths for Common Tasks
 
 ### Starting a Session
-1. `AGENTS.md` - Read first
+1. `AGENTS.md` → `.agent/AGENTS.md` - Read first
 2. `.agent/CONTEXT.md` - Current state
 3. `.agent/skills/start-session/SKILL.md` - Session workflow
-4. `session_logs/` - Review last 3-5 logs
+4. `session_logs/` - Review recent logs
 
 ### During Development
-- `src/` - Source code
+- `src/edgebook/` - Source code
 - `tests/` - Test suite
 - `docs/implementation_schedule.md` - Current priorities
 - `.agent/skills/CATALOG.md` - Available workflows
 
 ### Closing a Session
 1. `.agent/skills/end-session/SKILL.md` - Closing workflow
-2. `session_logs/YYYY-MM-DD/NN.md` - Create log
+2. `session_logs/MM-DD-YYYY/N - Title.md` - Create log
 3. `.agent/workflows/health-check.md` - Run checks
-4. `docs/implementation_schedule.md` - Update if needed
-
-### Documentation
-- `docs/index.md` - Start here
-- `mkdocs.yml` - Navigation structure
-- Run: `mkdocs serve` for local preview
+4. `docs/implementation_schedule.md` - Update if tasks completed
 
 ---
 
-**Last Updated**: 2026-02-11
-**Update Frequency**: When major structural changes occur
+**Update Frequency**: When major structural changes occur.

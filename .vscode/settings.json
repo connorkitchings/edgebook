@@ -9,16 +9,13 @@
     ],
     "files.trimTrailingWhitespace": true,
     "cSpell.words": [
-        "edium",
+        "edgebook",
         "mypy",
-        "nbstripout",
-        "openlineage",
         "Runbooks",
-        "dataframe",
-        "dataset",
-        "mlflow",
-        "scikit",
-        "sklearn",
-        "prefect"
+        "uvicorn",
+        "fastapi",
+        "sqlalchemy",
+        "alembic",
+        "pydantic"
     ]
 }

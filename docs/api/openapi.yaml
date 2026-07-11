@@ -1,19 +1,176 @@
 openapi: 3.0.0
 info:
-  title: [Your API Name]
-  version: 1.0.0
+  title: Edgebook API
+  description: >-
+    Simulation-only college football paper-betting platform API. All balances and
+    odds are fictional simulation data. There is no real-money payment, wagering,
+    or sportsbook integration.
+  version: 0.1.0
+servers:
+  - url: http://127.0.0.1:8000
+    description: Local development server
 paths:
-  /example:
+  /health:
     get:
-      summary: Get an example resource
+      summary: Health check
+      description: Verifies that the API and configured database are reachable.
       responses:
         '200':
-          description: Successful response
+          description: API and database are healthy
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  message:
+                  status:
                     type: string
-                    example: Hello, World!
+                    example: ok
+  /accounts:
+    post:
+      summary: Create a fictional account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [owner_name]
+              properties:
+                owner_name:
+                  type: string
+                  maxLength: 200
+                starting_bankroll:
+                  type: number
+                  format: float
+                  minimum: 0
+                  description: Two-decimal simulation credits.
+      responses:
+        '201':
+          description: Account created with opening bankroll posting.
+        '422':
+          description: Invalid request payload.
+  /accounts/{account_id}:
+    get:
+      summary: Retrieve account status and balance
+      parameters:
+        - in: path
+          name: account_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Account status, opening bankroll, and current balance.
+        '404':
+          description: Account not found.
+  /accounts/{account_id}/transactions:
+    post:
+      summary: Record a DEPOSIT or WITHDRAWAL
+      parameters:
+        - in: path
+          name: account_id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [transaction_type, amount]
+              properties:
+                transaction_type:
+                  type: string
+                  enum: [DEPOSIT, WITHDRAWAL]
+                amount:
+                  type: number
+                  format: float
+                  description: Positive two-decimal simulation credits.
+                description:
+                  type: string
+      responses:
+        '201':
+          description: Transaction posted; balance updated.
+        '404':
+          description: Account not found.
+        '409':
+          description: Operation conflicts with current state (e.g., overdraft).
+        '422':
+          description: Invalid request payload.
+    get:
+      summary: Read a newest-first statement
+      parameters:
+        - in: path
+          name: account_id
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            minimum: 0
+      responses:
+        '200':
+          description: Paginated transaction statement.
+        '404':
+          description: Account not found.
+  /cfb/teams:
+    post:
+      summary: Add a reusable team catalog entry
+      responses:
+        '201':
+          description: Team created.
+        '409':
+          description: Duplicate team.
+  /cfb/games:
+    post:
+      summary: Create a scheduled game between distinct teams
+      responses:
+        '201':
+          description: Game created.
+        '404':
+          description: Team dependency not found.
+        '422':
+          description: Invalid request payload.
+  /cfb/games/{game_id}:
+    get:
+      summary: Retrieve the game, markets, and quotes
+      parameters:
+        - in: path
+          name: game_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Game with nested markets and quotes.
+        '404':
+          description: Game not found.
+  /cfb/games/{game_id}/markets:
+    post:
+      summary: Create a draft SPREAD, MONEYLINE, or TOTAL market
+      responses:
+        '201':
+          description: Draft market created.
+        '409':
+          description: Duplicate market for this game and type.
+  /cfb/markets/{market_id}/quotes:
+    post:
+      summary: Add a selection and signed American odds quote
+      description: >-
+        A market opens once it has its required pair of quotes.
+      responses:
+        '201':
+          description: Quote added.
+        '409':
+          description: Duplicate quote for this market and selection.
+        '422':
+          description: Invalid odds or inappropriate market line.

@@ -2,7 +2,7 @@
 
 **Purpose.** This is the shortest path to doing real work in this repo. Read this page first, then jump via the links below. Keep changes small, testable, and linked to the schedule.
 
-Read-first order: [README](./README.md) → [Template Kickoff Guide](./docs/template_starting_guide.md) → [Project Brief](./docs/project_brief.md) → [Project Charter](./docs/project_charter.md) → [Implementation Schedule](./docs/implementation_schedule.md) → [Development Standards](./docs/development_standards.md) → [Runbook](./docs/runbook.md) → [Changelog](./CHANGELOG.md).
+Read-first order: [README](../README.md) → [Project Brief](./project_brief.md) → [Project Charter](./project_charter.md) → [Implementation Schedule](./implementation_schedule.md) → [Development Standards](./development_standards.md) → [Runbook](./runbook.md) → [Changelog](../CHANGELOG.md).
 
 **Status Legend:** ☐ Not Started · ▶ In Progress · ✅ Done · ⚠ Risk/Blocked
 
@@ -57,13 +57,11 @@ Read-first order: [README](./README.md) → [Template Kickoff Guide](./docs/temp
 
 ## Repo Map (10-line tour)
 
-- `src/` — Source code (modules, flows, utils).
+- `src/edgebook/` — Application source (core, api, cfb, ledger, utils).
+- `alembic/` — Database migrations.
 - `docs/` — This guide + standards, checklists, schedule, charter, KB.
 - `session_logs/` — Daily work logs (start/end templates).
-- `scripts/` — One-off helpers and automation.
 - `.github/` — CI workflows and PR templates.
-- `notebooks/` — Exploratory analysis (clear outputs before commit).
-- `models/` & `reports/` — Generated artifacts (usually git-ignored).
 - `pyproject.toml` — Dependencies and tooling config.
 - `mkdocs.yml` — Docs site nav.
 

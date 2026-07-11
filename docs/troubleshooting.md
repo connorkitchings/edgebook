@@ -389,11 +389,8 @@ uv run pytest tests/unit/
 # Skip specific test files
 uv run pytest --ignore=tests/integration/
 
-# Check fixtures exist
-ls tests/fixtures/
-
 # Verify test imports work
-uv run python -c "from vibe_coding.config import Config"
+uv run python -c "from edgebook.core.config import Settings"
 ```
 
 ---
@@ -420,9 +417,6 @@ uv run mkdocs build --verbose
 
 # Validate YAML syntax
 python -c "import yaml; yaml.safe_load(open('mkdocs.yml'))"
-
-# Check for broken links
-python scripts/validate_template.py
 
 # Check all referenced files exist
 # Look for errors like: "File not found: docs/missing_file.md"
@@ -455,59 +449,7 @@ grep -r "\./docs/missing" docs/
 
 ---
 
-## VS Code Issues
-
-### Problem: Snippets not appearing
-
-**Symptoms:**
-- Typing prefix doesn't show snippet
-- Snippets don't expand
-
-**Solutions:**
-```bash
-# Verify snippets file exists
-ls .vscode/vibe-coding.code-snippets
-
-# Check JSON syntax
-python -c "import json; json.load(open('.vscode/vibe-coding.code-snippets'))"
-
-# Reload VS Code window
-# Command Palette → "Developer: Reload Window"
-
-# Check VS Code settings
-# File → Preferences → Settings
-# Search "snippets" and ensure enabled
-```
-
----
-
 ## Git Integration Issues
-
-### Problem: vibe_sync suggest shows no session logs
-
-**Symptoms:**
-- "No session logs found" error
-- Empty commit message suggestions
-
-**Solutions:**
-```bash
-# Check if session logs exist
-ls session_logs/
-
-# Create a session log first
-uv run python scripts/vibe_sync.py end
-
-# Check log format matches template
-cat session_logs/TEMPLATE.md
-
-# Verify log was created
-ls -la session_logs/$(date +%m-%d-%Y)/
-
-# Run suggest again
-uv run python scripts/vibe_sync.py suggest
-```
-
----
 
 ### Problem: Git operations fail during setup
 

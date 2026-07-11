@@ -1,5 +1,5 @@
-site_name: Vibe Coding Template
-site_description: A template for Vibe Coding data science projects.
+site_name: Edgebook
+site_description: A simulation-only college football paper-betting platform.
 
 theme:
   name: material
@@ -27,17 +27,14 @@ nav:
     - 'Troubleshooting': 'troubleshooting.md'
   - 'Architecture':
     - 'System Overview': 'architecture/system_overview.md'
-    - 'ADR': 'architecture/adr/adr-0001-template.md'
+    - 'Data Modeling': 'architecture/data_modeling.md'
+    - 'Initial Architecture (ADR)': 'architecture/adr/adr-0001-initial-architecture.md'
   - 'Operations':
     - 'Runbook': 'runbook.md'
-    - 'Security & Privacy': 'security.md'
+    - 'Security & Responsible Use': 'security.md'
     - 'Knowledge Base': 'knowledge_base.md'
-    - 'Glossary': 'glossary.md'
-  - 'Tools & Guides':
-    - 'CLI Tool Template': 'tools/cli_tool_template.md'
-    - 'CLI Agent Coding Guide': 'tools/cli_agent_coding_guide.md'
-    - 'MCP Tooling': 'tools/mcp_tooling.md'
-    - 'Pre-commit Hooks': 'tools/pre_commit_hooks.md'
+  - 'API':
+    - 'Reference': 'api/README.md'
   - 'Reference':
     - 'AI Guide': 'ai_guide.md'
     - 'AI Session Templates': 'ai_session_templates.md'
