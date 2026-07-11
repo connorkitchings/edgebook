@@ -106,12 +106,6 @@
 **Triggers**: "release", "deploy production", "create release"
 **Use when**: Preparing for production deployment
 
-### session-handoff
-**Path**: `.agent/workflows/session-handoff.md`
-**Purpose**: Transfer session context between AI coding tools using cli-continues
-**Triggers**: "handoff", "switch tool", "continue session", "cross-tool", "rate limit"
-**Use when**: Switching between Claude, Copilot, Gemini, Codex, OpenCode, Droid, or Cursor
-
 ---
 
 ## How to Use Skills

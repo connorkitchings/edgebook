@@ -99,9 +99,6 @@ uv run bandit -r src/
 ```bash
 # Build docs (if using mkdocs)
 mkdocs build --strict
-
-# Or check for broken links
-# python scripts/check_links.py
 ```
 
 **Expected Result:**

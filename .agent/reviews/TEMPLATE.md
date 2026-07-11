@@ -152,9 +152,7 @@ Depending on the agent type, use these additional sections:
 ## Links
 
 - Context: `.agent/CONTEXT.md`
-- Playbook: `.agent/PLAYBOOK.md`
-- Vibe Coding: `.agent/VIBE_CODING.md`
-- Critique Prompts: `.agent/VIBE_CRITIQUE_PROMPTS.md`
+- Principles: `.agent/PRINCIPLES.md`
 - Lessons: `.agent/tasks/lessons.md`
 
 ---

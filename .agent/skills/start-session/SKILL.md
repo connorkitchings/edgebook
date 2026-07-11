@@ -86,25 +86,9 @@ git stash pop
 ### 4. (Optional) Inject Previous Context
 
 If continuing from a previous session (or switching tools), optionally inject context:
-
-**With cli-continues:**
-```bash
-# List available sessions
-continues list
-
-# Resume a specific session
-continues resume <session-id>
-
-# Or cross-tool handoff
-continues resume <session-id> --in <target-tool>
-```
-
-**Without cli-continues:**
 - Read relevant session logs manually
 - Review files mentioned in handoff notes
 - Run status commands to verify current state
-
-See `.agent/workflows/session-handoff.md` for detailed workflow.
 
 ### 5. Produce Planning-Only Output
 
@@ -162,7 +146,6 @@ Before proceeding to implementation, confirm:
 - [ ] You are NOT on `main` branch
 - [ ] Context loaded from `.agent/CONTEXT.md`
 - [ ] Recent session logs reviewed
-- [ ] (Optional) Previous context injected via cli-continues
 - [ ] Planning output produced with roadmap options
 - [ ] User has selected and approved a plan
 
@@ -210,8 +193,6 @@ Rollback: [If applicable]
 - Workflow orchestration: `.agent/workflows/workflow-orchestration.md`
 - End session: `.agent/skills/end-session/SKILL.md`
 - Session logs: `session_logs/`
-- Session handoff: `.agent/workflows/session-handoff.md`
-- cli-continues docs: `docs/tools/cli-continues.md`
 
 ---
 

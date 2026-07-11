@@ -250,9 +250,6 @@ Review for completeness and update related docs.
 
 ### Verification
 ```bash
-# Check links
-python scripts/check_links.py
-
 # Preview markdown
 cat docs/your_file.md | less
 

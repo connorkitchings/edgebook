@@ -115,23 +115,11 @@ See `.agent/tasks/lessons.md` for the template.
 
 ### 3. (Optional) Prepare Session for Handoff
 
-If you may continue in a different AI tool, optionally prepare for handoff:
-
-**With cli-continues:**
-```bash
-# List sessions to verify discovery
-continues list
-# Note: Session will be automatically discoverable
-```
-
-**Without cli-continues:**
-Document context manually in session log:
+If you may continue in a different AI tool, document context manually in the session log:
 - Current work state
 - Files being modified
 - Recent decisions
 - Open questions
-
-See `.agent/workflows/session-handoff.md` for detailed workflow.
 
 ### 4. Run Health Checks
 
@@ -201,7 +189,6 @@ Create handoff documentation for the next session:
 Before ending session, confirm:
 - [ ] Session log created in `session_logs/`
 - [ ] Lessons captured (if user corrected you during session)
-- [ ] (Optional) Session prepared for handoff with cli-continues
 - [ ] Health check passed (or failures documented)
 - [ ] Implementation schedule updated if tasks completed
 - [ ] Commit message proposed (not executed)
@@ -279,8 +266,6 @@ Document these for the next session:
 - Workflow orchestration: `.agent/workflows/workflow-orchestration.md`
 - Start session: `.agent/skills/start-session/SKILL.md`
 - Health check: `.agent/workflows/health-check.md`
-- Session handoff: `.agent/workflows/session-handoff.md`
-- cli-continues docs: `docs/tools/cli-continues.md`
 
 ---
 
