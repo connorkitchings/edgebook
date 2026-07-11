@@ -6,15 +6,15 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
-from edgebook.api.accounts import (
+from edgebook.cfb.models import MarketSelection, MarketType
+from edgebook.core.database import get_db
+from edgebook.core.money import (
     cents_to_string,
     decimal_to_cents,
     validate_credit_amount,
 )
-from edgebook.cfb.models import MarketSelection, MarketType
-from edgebook.core.database import get_db
 from edgebook.ledger.services import AccountConflictError, AccountNotFoundError
-from edgebook.wagering.models import Bet, BetStatus
+from edgebook.wagering.models import Bet, BetStatus, RationaleCategory
 from edgebook.wagering.services import (
     WagerConflictError,
     WagerNotFoundError,
@@ -32,6 +32,8 @@ class BetCreate(BaseModel):
     selection: MarketSelection
     stake: Decimal
     reason: str | None = Field(default=None, max_length=500)
+    rationale_category: RationaleCategory | None = None
+    notes: str | None = Field(default=None, max_length=500)
 
     @field_validator("stake")
     @classmethod
@@ -41,6 +43,11 @@ class BetCreate(BaseModel):
     @field_validator("reason")
     @classmethod
     def normalize_reason(cls, value: str | None) -> str | None:
+        return value.strip() or None if value is not None else None
+
+    @field_validator("notes")
+    @classmethod
+    def normalize_notes(cls, value: str | None) -> str | None:
         return value.strip() or None if value is not None else None
 
 
@@ -60,6 +67,8 @@ class BetResponse(BaseModel):
     bankroll_before: str
     payout: str | None
     reason: str | None
+    rationale_category: str | None
+    notes: str | None
     status: BetStatus
     placed_at: str
     settled_at: str | None
@@ -101,6 +110,8 @@ def bet_response(bet: Bet) -> BetResponse:
         if bet.payout_cents is not None
         else None,
         reason=bet.reason,
+        rationale_category=bet.rationale_category,
+        notes=bet.notes,
         status=BetStatus(bet.status),
         placed_at=bet.placed_at.isoformat(),
         settled_at=bet.settled_at.isoformat() if bet.settled_at else None,
@@ -132,6 +143,10 @@ def place_bet_endpoint(
             selection=payload.selection,
             stake_cents=decimal_to_cents(payload.stake),
             reason=payload.reason,
+            rationale_category=payload.rationale_category.value
+            if payload.rationale_category
+            else None,
+            notes=payload.notes,
             idempotency_key=idempotency_key,
         )
     except Exception as error:

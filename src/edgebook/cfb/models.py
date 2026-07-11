@@ -12,6 +12,7 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
+    Text,
     UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -29,6 +30,12 @@ class GameStatus(str, Enum):
 
     SCHEDULED = "SCHEDULED"
     FINAL = "FINAL"
+
+
+class SportType(str, Enum):
+    """Supported sport categories. CFB is the initial sport; others may follow."""
+
+    CFB = "CFB"
 
 
 class MarketType(str, Enum):
@@ -81,10 +88,14 @@ class Game(Base):
     __tablename__ = "cfb_games"
     __table_args__ = (
         CheckConstraint("home_team_id <> away_team_id", name="ck_game_distinct_teams"),
+        CheckConstraint("sport IN ('CFB')", name="ck_game_sport"),
     )
 
     id: Mapped[str] = mapped_column(
         String(36), primary_key=True, default=lambda: str(uuid4())
+    )
+    sport: Mapped[str] = mapped_column(
+        String(32), nullable=False, default=SportType.CFB.value
     )
     home_team_id: Mapped[str] = mapped_column(
         ForeignKey("cfb_teams.id"), nullable=False, index=True
@@ -113,12 +124,14 @@ class Game(Base):
 
 
 class Market(Base):
-    """A manual market line for one game and market type."""
+    """A manual market line for one game and market type.
+
+    Multiple markets of the same type may exist for a game when they have
+    different lines (e.g., alternate spreads). Moneyline markets have a
+    NULL line and are limited to one per game via the service layer.
+    """
 
     __tablename__ = "cfb_markets"
-    __table_args__ = (
-        UniqueConstraint("game_id", "market_type", name="uq_market_game_type"),
-    )
 
     id: Mapped[str] = mapped_column(
         String(36), primary_key=True, default=lambda: str(uuid4())
@@ -163,3 +176,31 @@ class MarketQuote(Base):
     )
 
     market: Mapped[Market] = relationship(back_populates="quotes")
+
+
+class ScoreCorrection(Base):
+    """An audit-trail record for a corrected final score.
+
+    Each correction stores the original and corrected scores along with a
+    required reason. The correction process reverses prior payout postings
+    via offsetting ADJUSTMENT entries and re-settles all bets atomically.
+    """
+
+    __tablename__ = "cfb_score_corrections"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid4())
+    )
+    game_id: Mapped[str] = mapped_column(
+        ForeignKey("cfb_games.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    original_home_score: Mapped[int] = mapped_column(Integer, nullable=False)
+    original_away_score: Mapped[int] = mapped_column(Integer, nullable=False)
+    corrected_home_score: Mapped[int] = mapped_column(Integer, nullable=False)
+    corrected_away_score: Mapped[int] = mapped_column(Integer, nullable=False)
+    reason: Mapped[str] = mapped_column(Text, nullable=False)
+    corrected_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utc_now
+    )

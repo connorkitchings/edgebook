@@ -94,6 +94,20 @@ paths:
           description: Transaction posted; balance updated.
         '404':
           description: Account not found.
+  /accounts/{account_id}/reconcile:
+    post:
+      summary: Verify account balance integrity
+      description: >-
+        Checks that the materialized current balance matches the sum of all
+        ledger postings. Returns discrepancy if any drift is detected.
+      parameters:
+        - in: path
+          name: account_id
+          required: true
+          schema: {type: string}
+      responses:
+        '200': {description: Reconciliation result with balance status.}
+        '404': {description: Account not found.}
   /accounts/{account_id}/bets:
     post:
       summary: Place a straight simulated bet
@@ -155,10 +169,7 @@ paths:
       responses:
         '200': {description: Bet placement snapshot and settlement result.}
         '404': {description: Account or bet not found.}
-        '409':
-          description: Operation conflicts with current state (e.g., overdraft).
-        '422':
-          description: Invalid request payload.
+  /accounts/{account_id}/transactions:
     get:
       summary: Read a newest-first statement
       parameters:
@@ -183,6 +194,32 @@ paths:
           description: Paginated transaction statement.
         '404':
           description: Account not found.
+  /accounts/{account_id}/analytics:
+    get:
+      summary: Retrieve comprehensive performance analytics
+      description: >-
+        Returns ROI, win rate, Sharpe ratio, drawdown, balance series,
+        and breakdowns by sport, market type, and rationale category.
+      parameters:
+        - in: path
+          name: account_id
+          required: true
+          schema: {type: string}
+        - in: query
+          name: from
+          schema: {type: string, format: date-time}
+          description: Optional start of date range.
+        - in: query
+          name: to
+          schema: {type: string, format: date-time}
+          description: Optional end of date range.
+        - in: query
+          name: buckets
+          schema: {type: string}
+          description: Comma-separated conviction bucket boundaries (e.g., "1,2,5,10,25").
+      responses:
+        '200': {description: Comprehensive analytics with summary, breakdowns, and chart series.}
+        '404': {description: Account not found.}
   /cfb/teams:
     post:
       summary: Add a reusable team catalog entry
@@ -246,6 +283,34 @@ paths:
         '404': {description: Game not found.}
         '409': {description: A different score was already finalized.}
         '422': {description: Invalid score.}
+  /cfb/games/{game_id}/correction:
+    put:
+      summary: Correct a finalized score and re-settle bets
+      description: >-
+        Reverses prior payouts via offsetting ADJUSTMENT entries, re-settles
+        all bets with corrected scores, and records an audit-trail entry.
+        Admin access required (placeholder for future auth).
+      parameters:
+        - in: path
+          name: game_id
+          required: true
+          schema: {type: string}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [home_score, away_score, reason]
+              properties:
+                home_score: {type: integer, minimum: 0}
+                away_score: {type: integer, minimum: 0}
+                reason: {type: string, maxLength: 1000}
+      responses:
+        '200': {description: Corrected game with re-settled bets.}
+        '404': {description: Game not found.}
+        '409': {description: Game is not finalized.}
+        '422': {description: Scores unchanged or reason missing.}
   /cfb/markets/{market_id}/quotes:
     post:
       summary: Add a selection and signed American odds quote

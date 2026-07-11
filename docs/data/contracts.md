@@ -9,8 +9,10 @@ fictional simulation credits.
 - [Ledger Account](#ledger-account)
 - [Ledger Transaction](#ledger-transaction)
 - [CFB Game](#cfb-game)
+- [CFB Market](#cfb-market)
 - [CFB Market Quote](#cfb-market-quote)
 - [Simulated Bet](#simulated-bet)
+- [Score Correction](#score-correction)
 
 ---
 
@@ -97,6 +99,7 @@ A scheduled college-football contest between two distinct teams.
     "id": {"type": "string", "format": "uuid"},
     "home_team_id": {"type": "string", "description": "FK to cfb_teams"},
     "away_team_id": {"type": "string", "description": "FK to cfb_teams"},
+    "sport": {"type": "string", "enum": ["CFB"], "description": "Sport category (defaults to CFB)"},
     "scheduled_at": {"type": "string", "format": "date-time"},
     "status": {"type": "string", "enum": ["SCHEDULED", "FINAL"]},
     "home_score": {"type": ["integer", "null"], "minimum": 0},
@@ -110,10 +113,40 @@ A scheduled college-football contest between two distinct teams.
 
 ### Quality Expectations
 - **Integrity:** `home_team_id != away_team_id` (enforced by check constraint).
-- **Finality:** A `FINAL` game has both scores; finalized scores cannot be corrected in Phase 1.
+- **Finality:** A `FINAL` game has both scores. Scores can be corrected via the score-correction workflow (Phase 2C), which creates offsetting ledger entries and an audit record.
 
 ### Ownership
 - **Owner:** Edgebook CFB module (`src/edgebook/cfb/`)
+
+---
+
+## CFB Market
+
+### Description
+A manual market line for one game and market type. Multiple markets of the same type may
+exist for a game when they have different lines (alternate spreads/totals). Moneyline is
+limited to one per game.
+
+### Schema
+```json
+{
+  "type": "object",
+  "properties": {
+    "id": {"type": "string", "format": "uuid"},
+    "game_id": {"type": "string", "description": "FK to cfb_games"},
+    "market_type": {"type": "string", "enum": ["SPREAD", "MONEYLINE", "TOTAL"]},
+    "line_millipoints": {"type": ["integer", "null"], "description": "Point line in millipoints (null for moneyline)"},
+    "status": {"type": "string", "enum": ["DRAFT", "OPEN"]},
+    "created_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"}
+  },
+  "required": ["id", "game_id", "market_type", "status"]
+}
+```
+
+### Quality Expectations
+- **Uniqueness:** One moneyline per game; spread/total unique per `(game_id, market_type, line_millipoints)`.
+- **Lifecycle:** Markets start as DRAFT and transition to OPEN when required quotes are present.
 
 ---
 
@@ -140,7 +173,12 @@ exact placement terms and ledger audit references.
     "stake_cents": {"type": "integer", "minimum": 1},
     "bankroll_before_cents": {"type": "integer", "minimum": 1},
     "payout_cents": {"type": ["integer", "null"], "minimum": 0},
-    "reason": {"type": ["string", "null"], "maxLength": 500},
+    "reason": {"type": ["string", "null"], "maxLength": 500, "description": "Legacy free-text rationale"},
+    "rationale_category": {
+      "type": ["string", "null"],
+      "enum": ["MATCHUP_ANALYSIS", "STATISTICAL_EDGE", "LINE_VALUE", "INJURY_IMPACT", "SITUATIONAL", "CONTRARIAN", "OTHER", null]
+    },
+    "notes": {"type": ["string", "null"], "maxLength": 500, "description": "Structured free-text notes (Phase 2)"},
     "status": {"type": "string", "enum": ["PENDING", "WON", "LOST", "PUSH"]}
   },
   "required": ["id", "account_id", "game_id", "market_id", "selection", "american_odds", "stake_cents", "bankroll_before_cents", "status"]
@@ -181,6 +219,41 @@ has its required pair of quotes.
 ### Quality Expectations
 - **Uniqueness:** One quote per `(market_id, selection)` pair.
 - **Accuracy:** `american_odds` is a non-zero signed integer.
+
+### Ownership
+- **Owner:** Edgebook CFB module (`src/edgebook/cfb/`)
+
+---
+
+## Score Correction
+
+### Description
+An audit-trail record for a corrected final score. Each correction stores the original and
+corrected scores along with a required reason. The correction process reverses prior payout
+postings via offsetting ADJUSTMENT entries and re-settles all bets atomically.
+
+### Schema
+```json
+{
+  "type": "object",
+  "properties": {
+    "id": {"type": "string", "format": "uuid"},
+    "game_id": {"type": "string", "description": "FK to cfb_games"},
+    "original_home_score": {"type": "integer", "minimum": 0},
+    "original_away_score": {"type": "integer", "minimum": 0},
+    "corrected_home_score": {"type": "integer", "minimum": 0},
+    "corrected_away_score": {"type": "integer", "minimum": 0},
+    "reason": {"type": "string", "maxLength": 1000},
+    "corrected_at": {"type": "string", "format": "date-time"}
+  },
+  "required": ["id", "game_id", "original_home_score", "original_away_score", "corrected_home_score", "corrected_away_score", "reason", "corrected_at"]
+}
+```
+
+### Quality Expectations
+- **Integrity:** `corrected_scores != original_scores`; game must be FINAL at correction time.
+- **Audit trail:** Offsetting ADJUSTMENT entries preserve the append-only ledger invariant.
+- **Immutability:** Correction records are never updated or deleted.
 
 ### Ownership
 - **Owner:** Edgebook CFB module (`src/edgebook/cfb/`)

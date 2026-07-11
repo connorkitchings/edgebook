@@ -15,6 +15,7 @@ from edgebook.cfb.models import (
     MarketSelection,
     MarketStatus,
     MarketType,
+    SportType,
     Team,
 )
 
@@ -68,7 +69,12 @@ def create_team(db: Session, *, name: str) -> Team:
 
 
 def create_game(
-    db: Session, *, home_team_id: str, away_team_id: str, scheduled_at: datetime
+    db: Session,
+    *,
+    home_team_id: str,
+    away_team_id: str,
+    scheduled_at: datetime,
+    sport: SportType = SportType.CFB,
 ) -> Game:
     """Create a scheduled game after validating both teams."""
     if home_team_id == away_team_id:
@@ -81,10 +87,11 @@ def create_game(
         raise CfbValidationError("Scheduled time must include a timezone")
     try:
         game = Game(
+            sport=sport,
             home_team_id=home_team_id,
             away_team_id=away_team_id,
             scheduled_at=scheduled_at.astimezone(UTC),
-            status=GameStatus.SCHEDULED.value,
+            status=GameStatus.SCHEDULED,
         )
         db.add(game)
         db.commit()
@@ -127,25 +134,43 @@ def _validate_market_line(
 def create_market(
     db: Session, *, game_id: str, market_type: MarketType, line_millipoints: int | None
 ) -> Market:
-    """Create a draft market for a game."""
+    """Create a draft market for a game.
+
+    Multiple markets of the same type may coexist when they have different
+    lines (alternate spreads/totals). Moneyline is limited to one per game.
+    """
     if db.get(Game, game_id) is None:
         raise CfbNotFoundError(f"Game {game_id} was not found")
     _validate_market_line(market_type, line_millipoints)
-    if (
-        db.scalar(
+
+    if market_type == MarketType.MONEYLINE:
+        existing = db.scalar(
             select(Market).where(
-                Market.game_id == game_id, Market.market_type == market_type.value
+                Market.game_id == game_id,
+                Market.market_type == market_type,
             )
         )
-        is not None
-    ):
-        raise CfbConflictError("This game already has that market type")
+        if existing is not None:
+            raise CfbConflictError("This game already has a moneyline market")
+    else:
+        existing = db.scalar(
+            select(Market).where(
+                Market.game_id == game_id,
+                Market.market_type == market_type,
+                Market.line_millipoints == line_millipoints,
+            )
+        )
+        if existing is not None:
+            raise CfbConflictError(
+                "This game already has that market type at the same line"
+            )
+
     try:
         market = Market(
             game_id=game_id,
-            market_type=market_type.value,
+            market_type=market_type,
             line_millipoints=line_millipoints,
-            status=MarketStatus.DRAFT.value,
+            status=MarketStatus.DRAFT,
         )
         db.add(market)
         db.commit()
@@ -181,7 +206,7 @@ def create_quote(
     try:
         quote = MarketQuote(
             market_id=market_id,
-            selection=selection.value,
+            selection=selection,
             american_odds=american_odds,
         )
         db.add(quote)

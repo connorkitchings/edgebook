@@ -38,14 +38,59 @@ Implement manual creation of fictional accounts, game data entry, bet placement,
 
 ---
 
-### Phase 2: Product Hardening ☐ NOT STARTED
-- Enforce double-entry ledger controls.
-- Expand support for teasers/parlays and alternative market lines.
-- Implement structured reasoning fields.
+### Phase 2: Product Hardening ✅ COMPLETE
+Strengthen ledger integrity, add structured reasoning for analytics, support alternative market lines, and implement score correction workflows with full audit trails.
 
-### Phase 3: Analytics ☐ NOT STARTED
-- Calculate ROI, win-loss units, and bankroll drawdowns.
-- Stake-allocation calibration chart logic.
+#### Phase 2A: Ledger Hardening & Structured Reasoning
+
+| Task | Deliverable | Status | Notes |
+|------|-------------|--------|-------|
+| Add reconciliation service | `reconcile_account_balance()` verifies materialized balance | ✅ Done | Compares `current_balance_cents` to sum of postings |
+| Add reconciliation API endpoint | `POST /accounts/{id}/reconcile` | ✅ Done | Returns balance status and discrepancy if any |
+| Add `rationale_category` enum to Bet model | Typed rationale field (nullable) | ✅ Done | Categories: MATCHUP_ANALYSIS, STATISTICAL_EDGE, LINE_VALUE, INJURY_IMPACT, SITUATIONAL, CONTRARIAN, OTHER |
+| Add `notes` field to Bet model | Backward-compatible with legacy `reason` | ✅ Done | Both fields coexist; new bets use `notes` |
+| Update API schemas for reasoning | Accept/return `rationale_category` and `notes` | ✅ Done | BetCreate and BetResponse updated |
+
+#### Phase 2B: Alternative Market Lines
+
+| Task | Deliverable | Status | Notes |
+|------|-------------|--------|-------|
+| Relax market uniqueness constraint | Dropped `UNIQUE(game_id, market_type)` | ✅ Done | Service layer enforces: one moneyline per game; spread/total unique per line |
+| Update market creation service | Allow multiple spread/total markets with different lines | ✅ Done | Duplicate line still rejected with 409 |
+| Update tests | Verify alternative lines and duplicate detection | ✅ Done | New test for multi-line betting flow |
+
+#### Phase 2C: Score Correction Workflow
+
+| Task | Deliverable | Status | Notes |
+|------|-------------|--------|-------|
+| Add `ScoreCorrection` model | Track original/corrected scores with reason | ✅ Done | Table: `cfb_score_corrections` |
+| Implement score correction service | `correct_game_result()` with full audit trail | ✅ Done | Offsetting ADJUSTMENT entries reverse payouts; re-settlement creates new WAGER_PAYOUT entries |
+| Add correction API endpoint | `PUT /cfb/games/{id}/correction` | ✅ Done | Admin-auth placeholder via TODO comment |
+| Preserve append-only invariant | All corrections via offsetting entries | ✅ Done | No deletions; original payouts and reversals remain in ledger |
+
+#### Deferred to Later Phases
+
+| Feature | Reason | Target Phase |
+|---------|--------|--------------|
+| Parlays | Requires real market odds data | After Phase 4 (External Ingestion) |
+| Teasers | Complex line adjustment logic; needs real odds | After Phase 4 (External Ingestion) |
+| Authentication | Not critical for simulation | Phase 3+ |
+
+### Phase 3: Analytics ✅ COMPLETE
+Calculate ROI, win-loss units, bankroll drawdowns, stake-allocation calibration, Sharpe ratio, and analytics by rationale category, sport, and market type.
+
+| Task | Deliverable | Status | Notes |
+|------|-------------|--------|-------|
+| Add `sport` column to `cfb_games` | Migration, model, API update; defaults to `"CFB"` | ✅ Done | Future-proofs analytics for multi-sport expansion |
+| Summary metrics service | ROI, win rate, net profit, Sharpe ratio, max drawdown | ✅ Done | Sharpe uses per-bet returns with population std dev |
+| Per-sport breakdown | GROUP BY `cfb_games.sport` | ✅ Done | Currently only CFB; ready for expansion |
+| Per-market-type breakdown | GROUP BY `bet.market_type` | ✅ Done | SPREAD, MONEYLINE, TOTAL |
+| Per-rationale-category breakdown | GROUP BY `bet.rationale_category` | ✅ Done | Null category grouped explicitly |
+| Allocation calibration | Bucket by conviction %, configurable boundaries | ✅ Done | Default buckets: <1%, 1-2%, 2-5%, 5-10%, 10-25%, 25%+ |
+| Drawdown series | Per-transaction drawdown from chronological replay | ✅ Done | Chart-ready: timestamp, balance, peak, drawdown_pct, event |
+| Balance series | Daily balance from transaction replay | ✅ Done | Chart-ready: date, balance |
+| API endpoint + schemas | `GET /accounts/{id}/analytics` with date range and bucket params | ✅ Done | All params optional; no params = lifetime |
+| Tests | 11 tests covering settled bets, losses, no bets, missing account, custom buckets | ✅ Done | 47 total tests, 90.80% coverage |
 
 ### Phase 4: External Ingestion ☐ NOT STARTED
 - CFB API integration to ingest games, schedules, and scores.

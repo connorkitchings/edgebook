@@ -6,11 +6,15 @@ from decimal import Decimal
 import pytest
 from sqlalchemy import func, select
 
-from edgebook.cfb.models import Game, GameStatus, MarketSelection
+from edgebook.cfb.models import Game, GameStatus, MarketSelection, ScoreCorrection
 from edgebook.ledger.models import Account, Transaction, TransactionType
 from edgebook.wagering import services as wagering_services
 from edgebook.wagering.models import Bet, BetStatus
-from edgebook.wagering.services import WagerConflictError, place_bet, record_game_result
+from edgebook.wagering.services import (
+    WagerConflictError,
+    place_bet,
+    record_game_result,
+)
 
 
 def create_account(client, bankroll: str = "100.00") -> dict:
@@ -288,3 +292,176 @@ def test_settlement_failure_rolls_back_score_bet_and_payout(
     assert stored_game.home_score is None and stored_game.away_score is None
     assert stored_bet is not None and stored_bet.status == BetStatus.PENDING.value
     assert stored_bet.payout_transaction_id is None
+
+
+def test_place_bet_with_structured_reasoning_fields(client, db_session):
+    """Bets accept rationale_category and notes alongside the legacy reason field."""
+    account = create_account(client)
+    _, market = create_open_market(client)
+    payload = {
+        "market_id": market["id"],
+        "selection": "HOME",
+        "stake": "10.00",
+        "rationale_category": "LINE_VALUE",
+        "notes": "Spread is 2 points off my model",
+    }
+    response = client.post(f"/accounts/{account['id']}/bets", json=payload)
+    assert response.status_code == 201
+    body = response.json()["bet"]
+    assert body["rationale_category"] == "LINE_VALUE"
+    assert body["notes"] == "Spread is 2 points off my model"
+    assert body["reason"] is None
+
+    stored = db_session.scalar(select(Bet).where(Bet.id == body["id"]))
+    assert stored is not None
+    assert stored.rationale_category == "LINE_VALUE"
+    assert stored.notes == "Spread is 2 points off my model"
+
+
+def test_place_bet_rejects_invalid_rationale_category(client):
+    """An invalid rationale category returns a 422."""
+    account = create_account(client)
+    _, market = create_open_market(client)
+    response = client.post(
+        f"/accounts/{account['id']}/bets",
+        json={
+            "market_id": market["id"],
+            "selection": "HOME",
+            "stake": "10.00",
+            "rationale_category": "GUT_FEELING",
+        },
+    )
+    assert response.status_code == 422
+
+
+def test_structured_reasoning_idempotency_check(client):
+    """Idempotency replay checks notes and rationale_category for conflicts."""
+    account = create_account(client)
+    _, market = create_open_market(client)
+    payload = {
+        "market_id": market["id"],
+        "selection": "HOME",
+        "stake": "10.00",
+        "rationale_category": "MATCHUP_ANALYSIS",
+        "notes": "Strong defensive edge",
+    }
+    first = client.post(
+        f"/accounts/{account['id']}/bets",
+        json=payload,
+        headers={"Idempotency-Key": "reasoning-1"},
+    )
+    assert first.status_code == 201
+    replay = client.post(
+        f"/accounts/{account['id']}/bets",
+        json=payload,
+        headers={"Idempotency-Key": "reasoning-1"},
+    )
+    assert replay.status_code == 201
+    assert replay.json()["bet"]["id"] == first.json()["bet"]["id"]
+
+    mismatched = client.post(
+        f"/accounts/{account['id']}/bets",
+        json=payload | {"rationale_category": "CONTRARIAN"},
+        headers={"Idempotency-Key": "reasoning-1"},
+    )
+    assert mismatched.status_code == 409
+
+
+def test_score_correction_reverses_and_re_settles_with_audit_trail(client, db_session):
+    """Correcting a final score reverses payouts and re-settles atomically."""
+    account = create_account(client)
+    game, market = create_open_market(
+        client, market_type="MONEYLINE", line=None, odds=(-110, 150)
+    )
+    placed = client.post(
+        f"/accounts/{account['id']}/bets",
+        json={"market_id": market["id"], "selection": "HOME", "stake": "10.00"},
+    )
+    assert placed.status_code == 201
+
+    client.put(
+        f"/cfb/games/{game['id']}/result",
+        json={"home_score": 21, "away_score": 17},
+    )
+
+    corrections_before = db_session.scalar(
+        select(func.count()).select_from(ScoreCorrection)
+    )
+    assert corrections_before == 0
+
+    correction = client.put(
+        f"/cfb/games/{game['id']}/correction",
+        json={
+            "home_score": 17,
+            "away_score": 21,
+            "reason": "Official score correction after review",
+        },
+    )
+    assert correction.status_code == 200
+    assert correction.json()["status"] == "FINAL"
+    assert correction.json()["home_score"] == 17
+    assert correction.json()["away_score"] == 21
+
+    bet_detail = client.get(
+        f"/accounts/{account['id']}/bets/{placed.json()['bet']['id']}"
+    ).json()
+    assert bet_detail["status"] == "LOST"
+    assert bet_detail["payout"] == "0.00"
+
+    corrections_after = db_session.scalar(
+        select(func.count()).select_from(ScoreCorrection)
+    )
+    assert corrections_after == 1
+
+    adjustment_postings = db_session.scalars(
+        select(Transaction).where(
+            Transaction.transaction_type == TransactionType.ADJUSTMENT.value
+        )
+    ).all()
+    assert len(adjustment_postings) == 2
+    signed_amounts = sorted(t.amount_cents for t in adjustment_postings)
+    assert signed_amounts[0] < 0
+    assert signed_amounts[1] > 0
+    assert signed_amounts[0] + signed_amounts[1] == 0
+
+
+def test_score_correction_validates_final_state_and_reason(client):
+    """Score correction only works on finalized games and requires a reason."""
+    game, market = create_open_market(client, market_type="MONEYLINE", line=None)
+
+    assert (
+        client.put(
+            f"/cfb/games/{game['id']}/correction",
+            json={"home_score": 21, "away_score": 17, "reason": "test"},
+        ).status_code
+        == 409
+    )
+
+    client.put(
+        f"/cfb/games/{game['id']}/result",
+        json={"home_score": 21, "away_score": 17},
+    )
+
+    assert (
+        client.put(
+            f"/cfb/games/{game['id']}/correction",
+            json={"home_score": 21, "away_score": 17, "reason": "no change"},
+        ).status_code
+        == 422
+    )
+
+    assert (
+        client.put(
+            f"/cfb/games/{game['id']}/correction",
+            json={"home_score": 17, "away_score": 21, "reason": "  "},
+        ).status_code
+        == 422
+    )
+
+    assert (
+        client.put(
+            "/cfb/games/missing/correction",
+            json={"home_score": 17, "away_score": 21, "reason": "test"},
+        ).status_code
+        == 404
+    )

@@ -14,6 +14,7 @@ from edgebook.cfb.models import (
     MarketSelection,
     MarketStatus,
     MarketType,
+    SportType,
     Team,
 )
 from edgebook.cfb.services import (
@@ -31,6 +32,7 @@ from edgebook.wagering.services import (
     WagerConflictError,
     WagerNotFoundError,
     WagerValidationError,
+    correct_game_result,
     record_game_result,
 )
 
@@ -85,6 +87,7 @@ class GameCreate(BaseModel):
     home_team_id: str
     away_team_id: str
     scheduled_at: datetime
+    sport: SportType = SportType.CFB
 
     @field_validator("scheduled_at")
     @classmethod
@@ -140,6 +143,7 @@ class GameResponse(BaseModel):
     """Public representation of a game including its manual market intake."""
 
     id: str
+    sport: str
     home_team: TeamResponse
     away_team: TeamResponse
     scheduled_at: str
@@ -188,6 +192,7 @@ def game_response(game: Game) -> GameResponse:
     """Translate a fully-loaded game ORM model to its API response."""
     return GameResponse(
         id=game.id,
+        sport=game.sport,
         home_team=team_response(game.home_team),
         away_team=team_response(game.away_team),
         scheduled_at=game.scheduled_at.isoformat(),
@@ -246,6 +251,7 @@ def create_game_endpoint(
             home_team_id=payload.home_team_id,
             away_team_id=payload.away_team_id,
             scheduled_at=payload.scheduled_at,
+            sport=payload.sport,
         )
         game = get_game(db, game.id)
     except Exception as error:
@@ -325,6 +331,39 @@ def record_game_result_endpoint(
             game_id=game_id,
             home_score=payload.home_score,
             away_score=payload.away_score,
+        )
+        game = get_game(db, game_id)
+    except Exception as error:
+        raise_cfb_http_error(error)
+    return game_response(game)
+
+
+class ScoreCorrectionCreate(BaseModel):
+    """Payload for correcting a finalized game score."""
+
+    home_score: int = Field(ge=0)
+    away_score: int = Field(ge=0)
+    reason: str = Field(min_length=1, max_length=1000)
+
+
+# TODO: When authentication is added (Phase 3+), this endpoint must require
+# admin-level access. For now it is open but documented as restricted.
+@router.put("/games/{game_id}/correction", response_model=GameResponse)
+def correct_game_result_endpoint(
+    game_id: str, payload: ScoreCorrectionCreate, db: Session = Depends(get_db)
+) -> GameResponse:
+    """Correct a finalized score and re-settle all affected bets.
+
+    Creates offsetting ledger entries to reverse prior payouts, re-settles
+    bets with the corrected score, and records an audit-trail entry.
+    """
+    try:
+        correct_game_result(
+            db,
+            game_id=game_id,
+            home_score=payload.home_score,
+            away_score=payload.away_score,
+            reason=payload.reason,
         )
         game = get_game(db, game_id)
     except Exception as error:

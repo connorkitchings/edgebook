@@ -7,7 +7,7 @@
 ## 🗺️ Project Snapshot
 
 - **Product:** Edgebook (Simulated college football bankroll allocator)
-- **Current Phase:** Phase 2 planning (Phase 1 manual flow complete)
+- **Current Phase:** Phase 4 planning (Phase 3 analytics complete)
 - **Architecture:** FastAPI backend, SQLAlchemy database layers, modular monolithic boundary separation.
 - **Active Branch:** `feat/manual-betting-flow`
 
@@ -45,4 +45,4 @@ uv run uvicorn edgebook.main:app --reload
 
 ## 🎯 Next Prioritized Task
 
-- Review and plan **Phase 2 Product Hardening** after the Phase 1 manual workflow is merged.
+- Plan **Phase 4 External Ingestion**: CFB API integration to ingest games, schedules, and scores automatically.

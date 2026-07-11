@@ -1,6 +1,6 @@
 """FastAPI routes for fictional accounts and generic ledger statements."""
 
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 from enum import Enum
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -8,6 +8,11 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy.orm import Session
 
 from edgebook.core.database import get_db
+from edgebook.core.money import (
+    cents_to_string,
+    decimal_to_cents,
+    validate_credit_amount,
+)
 from edgebook.ledger.models import Account, Transaction, TransactionType
 from edgebook.ledger.services import (
     AccountConflictError,
@@ -16,12 +21,11 @@ from edgebook.ledger.services import (
     create_account,
     get_account,
     list_transactions,
+    reconcile_account_balance,
     record_manual_transaction,
 )
 
 router = APIRouter(prefix="/accounts", tags=["accounts"])
-
-CENT = Decimal("0.01")
 
 
 class ManualTransactionType(str, Enum):
@@ -29,32 +33,6 @@ class ManualTransactionType(str, Enum):
 
     DEPOSIT = "DEPOSIT"
     WITHDRAWAL = "WITHDRAWAL"
-
-
-def validate_credit_amount(value: Decimal, *, allow_zero: bool = False) -> Decimal:
-    """Validate a two-decimal simulation-credit amount without using floats."""
-    try:
-        amount = Decimal(value)
-    except (InvalidOperation, ValueError, TypeError) as error:
-        raise ValueError("Amount must be a decimal value") from error
-    if not amount.is_finite():
-        raise ValueError("Amount must be finite")
-    if amount != amount.quantize(CENT):
-        raise ValueError("Amount cannot have more than two decimal places")
-    if amount < 0 or (amount == 0 and not allow_zero):
-        qualifier = "non-negative" if allow_zero else "positive"
-        raise ValueError(f"Amount must be {qualifier}")
-    return amount
-
-
-def decimal_to_cents(value: Decimal) -> int:
-    """Convert a validated decimal simulation-credit amount to integer cents."""
-    return int(value * 100)
-
-
-def cents_to_string(value: int) -> str:
-    """Render integer cents as an exact two-decimal string."""
-    return f"{Decimal(value) / 100:.2f}"
 
 
 class AccountCreate(BaseModel):
@@ -137,6 +115,16 @@ class TransactionExecutionResponse(BaseModel):
 
     transaction: TransactionResponse
     current_balance: str
+
+
+class ReconciliationResponse(BaseModel):
+    """Result of a balance reconciliation check."""
+
+    account_id: str
+    materialized_balance: str
+    computed_balance: str
+    is_balanced: bool
+    discrepancy: str
 
 
 def account_response(account: Account) -> AccountResponse:
@@ -253,4 +241,25 @@ def list_transactions_endpoint(
         total=total,
         limit=limit,
         offset=offset,
+    )
+
+
+@router.post(
+    "/{account_id}/reconcile",
+    response_model=ReconciliationResponse,
+)
+def reconcile_account_endpoint(
+    account_id: str, db: Session = Depends(get_db)
+) -> ReconciliationResponse:
+    """Verify that an account's materialized balance matches its posting sum."""
+    try:
+        result = reconcile_account_balance(db, account_id)
+    except Exception as error:
+        raise_ledger_http_error(error)
+    return ReconciliationResponse(
+        account_id=result["account_id"],
+        materialized_balance=cents_to_string(result["materialized_balance_cents"]),
+        computed_balance=cents_to_string(result["computed_balance_cents"]),
+        is_balanced=result["is_balanced"],
+        discrepancy=cents_to_string(result["discrepancy_cents"]),
     )

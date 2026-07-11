@@ -123,6 +123,11 @@ def test_cfb_intake_validation_and_conflicts(client):
         ).status_code
         == 409
     )
+    alt_line = client.post(
+        f"/cfb/games/{game['id']}/markets",
+        json={"market_type": "TOTAL", "line": "49.000"},
+    )
+    assert alt_line.status_code == 201
     assert (
         client.post(
             f"/cfb/games/{game['id']}/markets",
@@ -130,3 +135,67 @@ def test_cfb_intake_validation_and_conflicts(client):
         ).status_code
         == 409
     )
+    assert (
+        client.post(
+            f"/cfb/games/{game['id']}/markets",
+            json={"market_type": "MONEYLINE", "line": None},
+        ).status_code
+        == 201
+    )
+    assert (
+        client.post(
+            f"/cfb/games/{game['id']}/markets",
+            json={"market_type": "MONEYLINE", "line": None},
+        ).status_code
+        == 409
+    )
+
+
+def test_alternative_lines_allow_multiple_markets_and_bets(client):
+    """Multiple spread markets with different lines coexist and accept bets."""
+    from tests.api.test_wagering import create_account
+
+    account = create_account(client)
+    game = create_game(client, home_name="Alt Home", away_name="Alt Away")
+
+    main_spread = client.post(
+        f"/cfb/games/{game['id']}/markets",
+        json={"market_type": "SPREAD", "line": "-3.500"},
+    ).json()
+    alt_spread = client.post(
+        f"/cfb/games/{game['id']}/markets",
+        json={"market_type": "SPREAD", "line": "-7.000"},
+    ).json()
+    assert main_spread["id"] != alt_spread["id"]
+
+    for market in (main_spread, alt_spread):
+        for selection, odds in (("HOME", -110), ("AWAY", -110)):
+            assert (
+                client.post(
+                    f"/cfb/markets/{market['id']}/quotes",
+                    json={"selection": selection, "american_odds": odds},
+                ).status_code
+                == 201
+            )
+
+    bet1 = client.post(
+        f"/accounts/{account['id']}/bets",
+        json={
+            "market_id": main_spread["id"],
+            "selection": "HOME",
+            "stake": "10.00",
+        },
+    )
+    assert bet1.status_code == 201
+    assert bet1.json()["bet"]["line"] == "-3.500"
+
+    bet2 = client.post(
+        f"/accounts/{account['id']}/bets",
+        json={
+            "market_id": alt_spread["id"],
+            "selection": "HOME",
+            "stake": "10.00",
+        },
+    )
+    assert bet2.status_code == 201
+    assert bet2.json()["bet"]["line"] == "-7.000"

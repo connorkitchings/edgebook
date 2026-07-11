@@ -16,6 +16,7 @@ from edgebook.cfb.models import (
     MarketSelection,
     MarketStatus,
     MarketType,
+    ScoreCorrection,
 )
 from edgebook.ledger.models import TransactionType
 from edgebook.ledger.services import (
@@ -23,9 +24,10 @@ from edgebook.ledger.services import (
     AccountNotFoundError,
     LedgerValidationError,
     get_account,
+    post_adjustment,
     post_wager_transaction,
 )
-from edgebook.wagering.models import Bet, BetStatus
+from edgebook.wagering.models import Bet, BetStatus, RationaleCategory
 
 
 class WageringError(Exception):
@@ -58,12 +60,21 @@ def place_bet(
     selection: MarketSelection,
     stake_cents: int,
     reason: str | None,
+    rationale_category: str | None = None,
+    notes: str | None = None,
     idempotency_key: str | None = None,
     now: datetime | None = None,
 ) -> tuple[Bet, int, bool]:
     """Atomically lock a quote, record a bet, and debit its fictional stake."""
     if stake_cents <= 0:
         raise WagerValidationError("Stake must be positive")
+    if rationale_category is not None:
+        try:
+            RationaleCategory(rationale_category)
+        except ValueError as error:
+            raise WagerValidationError(
+                f"Invalid rationale category: {rationale_category}"
+            ) from error
     if idempotency_key:
         existing = db.scalar(
             select(Bet).where(
@@ -72,11 +83,14 @@ def place_bet(
         )
         if existing is not None:
             normalized_reason = reason.strip() if reason else None
+            normalized_notes = notes.strip() if notes else None
             if (
                 existing.market_id != market_id
                 or existing.selection != selection.value
                 or existing.stake_cents != stake_cents
                 or existing.reason != (normalized_reason or None)
+                or existing.notes != (normalized_notes or None)
+                or existing.rationale_category != rationale_category
             ):
                 raise WagerConflictError(
                     "Idempotency key was already used for a different bet"
@@ -105,6 +119,7 @@ def place_bet(
         raise WagerValidationError("Selection does not have a quote in this market")
 
     normalized_reason = reason.strip() if reason else None
+    normalized_notes = notes.strip() if notes else None
     try:
         account = get_account(db, account_id)
         bankroll_before = account.current_balance_cents
@@ -129,6 +144,8 @@ def place_bet(
             stake_cents=stake_cents,
             bankroll_before_cents=bankroll_before,
             reason=normalized_reason or None,
+            rationale_category=rationale_category,
+            notes=normalized_notes or None,
             status=BetStatus.PENDING.value,
         )
         db.add(bet)
@@ -232,6 +249,95 @@ def get_bet(db: Session, *, account_id: str, bet_id: str) -> Bet:
     if bet is None:
         raise WagerNotFoundError(f"Bet {bet_id} was not found")
     return bet
+
+
+def correct_game_result(
+    db: Session,
+    *,
+    game_id: str,
+    home_score: int,
+    away_score: int,
+    reason: str,
+) -> tuple[Game, list[Bet], ScoreCorrection]:
+    """Correct a finalized score with a full audit trail.
+
+    Reverses prior payout postings via offsetting ADJUSTMENT entries,
+    resets all bets to PENDING, re-settles with corrected scores, and
+    records a ScoreCorrection audit entry. The game remains FINAL.
+    """
+    if home_score < 0 or away_score < 0:
+        raise WagerValidationError("Corrected scores must be non-negative")
+    normalized_reason = reason.strip() if reason else None
+    if not normalized_reason:
+        raise WagerValidationError("A reason is required for score corrections")
+
+    game = db.get(Game, game_id)
+    if game is None:
+        raise WagerNotFoundError(f"Game {game_id} was not found")
+    if game.status != GameStatus.FINAL.value:
+        raise WagerConflictError("Only finalized games can be corrected")
+    if game.home_score == home_score and game.away_score == away_score:
+        raise WagerValidationError("Corrected scores must differ from the original")
+
+    original_home = int(game.home_score or 0)
+    original_away = int(game.away_score or 0)
+
+    try:
+        bets = list(db.scalars(select(Bet).where(Bet.game_id == game_id)))
+
+        for bet in bets:
+            if bet.payout_cents and bet.payout_cents > 0:
+                post_adjustment(
+                    db,
+                    account_id=bet.account_id,
+                    amount_cents=-bet.payout_cents,
+                    description=f"Score correction reversal for bet {bet.id}",
+                )
+            bet.status = BetStatus.PENDING.value
+            bet.payout_cents = None
+            bet.payout_transaction_id = None
+            bet.settled_at = None
+
+        game.home_score = home_score
+        game.away_score = away_score
+
+        settled_at = datetime.now(UTC)
+        for bet in bets:
+            result = _result_for_bet(bet, home_score, away_score)
+            payout_cents = 0
+            if result == BetStatus.PUSH:
+                payout_cents = bet.stake_cents
+            elif result == BetStatus.WON:
+                payout_cents = _winning_payout_cents(bet.stake_cents, bet.american_odds)
+            if payout_cents:
+                payout_transaction, _ = post_wager_transaction(
+                    db,
+                    account_id=bet.account_id,
+                    transaction_type=TransactionType.WAGER_PAYOUT,
+                    amount_cents=payout_cents,
+                    description=f"Corrected wager payout for bet {bet.id}",
+                )
+                bet.payout_transaction_id = payout_transaction.id
+            bet.status = result.value
+            bet.payout_cents = payout_cents
+            bet.settled_at = settled_at
+
+        correction = ScoreCorrection(
+            game_id=game_id,
+            original_home_score=original_home,
+            original_away_score=original_away,
+            corrected_home_score=home_score,
+            corrected_away_score=away_score,
+            reason=normalized_reason,
+        )
+        db.add(correction)
+
+        db.commit()
+        db.refresh(game)
+        return game, bets, correction
+    except Exception:
+        db.rollback()
+        raise
 
 
 def list_bets(

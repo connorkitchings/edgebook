@@ -231,6 +231,32 @@ def post_wager_transaction(
     return transactions[0], account
 
 
+def post_adjustment(
+    db: Session,
+    *,
+    account_id: str,
+    amount_cents: int,
+    description: str,
+) -> tuple[Transaction, Account]:
+    """Post a signed adjustment entry (positive = credit, negative = debit).
+
+    Used by the score-correction workflow to reverse prior payouts via
+    offsetting entries, preserving the append-only ledger invariant.
+    """
+    if amount_cents == 0:
+        raise LedgerValidationError("Adjustment amount must be non-zero")
+
+    account = _get_user_account(db, account_id)
+    capital_account = _get_or_create_capital_account(db)
+    _, transactions = _post_balanced_entry(
+        db,
+        transaction_type=TransactionType.ADJUSTMENT,
+        description=description,
+        postings=[(account, amount_cents), (capital_account, -amount_cents)],
+    )
+    return transactions[0], account
+
+
 def list_transactions(
     db: Session, *, account_id: str, limit: int, offset: int
 ) -> tuple[list[Transaction], int]:
@@ -249,3 +275,34 @@ def list_transactions(
         .where(Transaction.account_id == account_id)
     )
     return list(db.scalars(statement)), int(total or 0)
+
+
+def reconcile_account_balance(db: Session, account_id: str) -> dict:
+    """Verify that the materialized balance matches the sum of all postings.
+
+    Returns a dict with:
+    - account_id: the account being reconciled
+    - materialized_balance_cents: the stored current_balance_cents
+    - computed_balance_cents: sum of all postings for this account
+    - is_balanced: whether the two match
+    - discrepancy_cents: difference if not balanced (0 if balanced)
+    """
+    account = _get_user_account(db, account_id)
+
+    computed_balance = db.scalar(
+        select(func.coalesce(func.sum(Transaction.amount_cents), 0)).where(
+            Transaction.account_id == account_id
+        )
+    )
+    computed_balance_int = int(computed_balance or 0)
+
+    is_balanced = account.current_balance_cents == computed_balance_int
+    discrepancy = account.current_balance_cents - computed_balance_int
+
+    return {
+        "account_id": account_id,
+        "materialized_balance_cents": account.current_balance_cents,
+        "computed_balance_cents": computed_balance_int,
+        "is_balanced": is_balanced,
+        "discrepancy_cents": discrepancy,
+    }

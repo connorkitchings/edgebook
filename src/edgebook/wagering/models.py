@@ -23,6 +23,18 @@ class BetStatus(str, Enum):
     PUSH = "PUSH"
 
 
+class RationaleCategory(str, Enum):
+    """Typed categories for bet rationale, enabling analytics by reasoning type."""
+
+    MATCHUP_ANALYSIS = "MATCHUP_ANALYSIS"
+    STATISTICAL_EDGE = "STATISTICAL_EDGE"
+    LINE_VALUE = "LINE_VALUE"
+    INJURY_IMPACT = "INJURY_IMPACT"
+    SITUATIONAL = "SITUATIONAL"
+    CONTRARIAN = "CONTRARIAN"
+    OTHER = "OTHER"
+
+
 class Bet(Base):
     """A straight simulated bet with immutable placement snapshots."""
 
@@ -69,6 +81,8 @@ class Bet(Base):
     bankroll_before_cents: Mapped[int] = mapped_column(Integer, nullable=False)
     payout_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
     reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    rationale_category: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(
         String(32), nullable=False, default=BetStatus.PENDING.value
     )
