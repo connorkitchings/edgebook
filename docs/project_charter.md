@@ -2,7 +2,7 @@
 
 This document is the single source of truth for Edgebook's goals, scope, and technical context.
 
-> 📚 For a high-level entry point and links to all documentation, see [README.md](../README.md).
+> 📚 For a high-level entry point and links to all documentation, see `README.md`.
 
 ## Project Overview
 

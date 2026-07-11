@@ -5,10 +5,6 @@ description = "A simulation-only college football paper-betting platform."
 authors = [{ name = "Connor Kitchings", email = "connor.kitchings@gmail.com" }]
 requires-python = ">=3.11"
 dependencies = [
-    "typer>=0.9.0",
-    "rich>=13.0.0",
-    "pyperclip>=1.8.2",
-    "requests>=2.31.0",
     "fastapi>=0.116.1",
     "pydantic>=2.11.7",
     "pydantic-settings>=2.10.1",
@@ -18,25 +14,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = [
-    "pytest>=8.0",
-    "pytest-cov>=5.0.0",
-    "ruff>=0.5.0",
+docs = [
     "mkdocs>=1.6.0",
     "mkdocs-material>=9.0",
-]
-
-# Optional: Add these as needed for your project
-data-science = [
-    "jupyter>=1.0",
-    "nbstripout>=0.7.1",
-    "nbformat>=5.10.4",
-]
-
-mlops = [
-    "mlflow>=2.0",
-    "prefect>=2.19.0",
-    "openlineage-python>=1.15.0",
+    "mkdocstrings>=0.26",
+    "mkdocstrings-python>=1.10",
 ]
 
 security = [
@@ -56,7 +38,7 @@ addopts = [
     "--cov=edgebook",
     "--cov-report=term-missing",
     "--cov-report=html:htmlcov",
-    "--cov-fail-under=55",
+    "--cov-fail-under=80",
     "-v",
 ]
 
@@ -88,6 +70,7 @@ build-backend = "setuptools.build_meta"
 dev = [
     "alembic>=1.16.4",
     "httpx>=0.28.1",
+    "mypy>=1.10",
     "pytest>=8.4.2",
     "pytest-cov>=7.0.0",
     "ruff>=0.14.3",

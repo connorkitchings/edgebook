@@ -18,10 +18,6 @@ repos:
     hooks:
     -   id: bandit
         args: ["-r", "src/"]
--   repo: https://github.com/kynan/nbstripout
-    rev: 0.8.1
-    hooks:
-    -   id: nbstripout
 
 -   repo: https://github.com/pycqa/safety
     rev: 3.6.2

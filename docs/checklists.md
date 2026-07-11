@@ -10,7 +10,7 @@ This is the global standard for any task to be marked as "Done" in the `implemen
 A task is considered Done only when:
 
 - All code has been merged into the `main` branch
-- All checks in the [Pre-Merge Checklist](#pre-merge) are complete
+- All checks in the **Pre-Merge Checklist** are complete
 - The feature has been deployed to a staging or production environment
 - The corresponding task in `implementation_schedule.md` is marked as ✅ Done
 
@@ -37,7 +37,7 @@ Run this more thorough checklist before merging a feature branch into main.
 - [ ] **Data quality checks implemented:** New data sources and transformations are validated
 - [ ] **Model performance validated:** Metrics meet criteria in the PRD/experiment plan
 - [ ] **Security scan passed:** `uv run bandit -r src/` finds no high-severity issues
-- [ ] **Security Review Checklist reviewed:** See [Security Review](#security-review) below
+- [ ] **Security Review Checklist reviewed:** See **Security Review** below
 - [ ] **No "TODO" comments remain:** All temporary todos have been resolved or converted to tasks in
   implementation_schedule.md
 

@@ -4,7 +4,7 @@ This document provides comprehensive standards, workflows, and best practices fo
 in the Edgebook project. It consolidates coding standards, review processes, and operational
 workflows into a single reference.
 
-> 📚 For a high-level overview and entry point to all documentation, see [README.md](../README.md).
+> 📚 For a high-level overview and entry point to all documentation, see `README.md`.
 
 ## Core Principles
 

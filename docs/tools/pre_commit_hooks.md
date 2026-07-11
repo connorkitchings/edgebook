@@ -238,6 +238,6 @@ Pre-commit hooks are also run in CI to ensure consistency:
 ---
 
 **Related:**
-- [Development Standards](./development_standards.md)
-- [Quality Gates](./checklists.md)
-- [Troubleshooting Guide](./troubleshooting.md)
+- [Development Standards](../development_standards.md)
+- [Quality Gates](../checklists.md)
+- [Troubleshooting Guide](../troubleshooting.md)

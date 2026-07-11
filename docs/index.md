@@ -1,6 +1,6 @@
 # Edgebook Documentation
 
-For a project overview, setup instructions, and getting started, see the [main README.md](../README.md).
+For a project overview, setup instructions, and getting started, see the main `README.md`.
 
 Edgebook is a **simulation-only college football paper-betting platform**. These docs cover the
 architecture, API, and operational guidance for the platform.

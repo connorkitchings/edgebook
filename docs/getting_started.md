@@ -81,8 +81,8 @@ Edgebook follows an AI-assisted session workflow. To begin work:
    ```bash
    git checkout -b feat/<your-feature>
    ```
-2. Read the project snapshot: [`.agent/CONTEXT.md`](../.agent/CONTEXT.md)
-3. Follow the start workflow: [`.agent/skills/start-session/SKILL.md`](../.agent/skills/start-session/SKILL.md)
+2. Read the project snapshot: `.agent/CONTEXT.md`
+3. Follow the start workflow: `.agent/skills/start-session/SKILL.md`
 4. Review recent session logs in `session_logs/` for context.
 
 You are now ready to start developing.

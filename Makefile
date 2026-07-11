@@ -1,4 +1,4 @@
-.PHONY: help install setup test lint format format-check docs docs-serve validate clean all dev
+.PHONY: help install test lint format format-check migrate docs docs-serve clean all dev
 
 help:	## Show this help message
 	@echo 'Usage: make [target]'
@@ -9,11 +9,8 @@ help:	## Show this help message
 install:	## Install dependencies
 	uv sync
 
-setup:	## Interactive project setup
-	uv run python scripts/setup_project.py
-
 test:	## Run tests with coverage
-	uv run pytest tests/ --cov=edgebook --cov-report=html --cov-report=term-missing
+	uv run pytest
 
 lint:	## Run linter
 	uv run ruff check .
@@ -24,14 +21,16 @@ format:	## Format code
 format-check:	## Check code formatting
 	uv run ruff format . --check
 
+migrate:	## Apply database migrations
+	uv run alembic upgrade head
+
 docs:	## Build documentation
-	uv run mkdocs build
+	uv sync --extra docs
+	uv run mkdocs build --strict
 
 docs-serve:	## Serve documentation locally
+	uv sync --extra docs
 	uv run mkdocs serve
-
-validate:	## Validate template
-	uv run python scripts/validate_template.py
 
 clean:	## Clean build artifacts
 	find . -type d -name __pycache__ -exec rm -rf {} +
@@ -46,4 +45,5 @@ all:	## Run all quality checks (format, lint, test)
 dev:	## Start development environment
 	@echo "Starting development environment..."
 	@echo "Run 'make test' to verify setup"
+	@echo "Run 'make migrate' to apply database migrations"
 	@echo "Run 'make docs-serve' to preview documentation"

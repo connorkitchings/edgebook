@@ -2,7 +2,7 @@
 
 **Purpose.** This is the shortest path to doing real work in this repo. Read this page first, then jump via the links below. Keep changes small, testable, and linked to the schedule.
 
-Read-first order: [README](../README.md) → [Project Brief](./project_brief.md) → [Project Charter](./project_charter.md) → [Implementation Schedule](./implementation_schedule.md) → [Development Standards](./development_standards.md) → [Runbook](./runbook.md) → [Changelog](../CHANGELOG.md).
+Read-first order: `README.md` → [Project Brief](./project_brief.md) → [Project Charter](./project_charter.md) → [Implementation Schedule](./implementation_schedule.md) → [Development Standards](./development_standards.md) → [Runbook](./runbook.md) → `CHANGELOG.md`.
 
 **Status Legend:** ☐ Not Started · ▶ In Progress · ✅ Done · ⚠ Risk/Blocked
 
@@ -156,7 +156,7 @@ Follow these checklists from `docs/development_standards.md`:
 All contributions must:
 
 - Be submitted via pull request
-- Follow the [pull request template](./.github/pull_request_template.md)
+- Follow the pull request template (`.github/pull_request_template.md`)
 - Reference a task from the Implementation Schedule
 - Include tests and updated documentation
 - Pass all pre-commit and CI checks
@@ -168,4 +168,4 @@ All contributions must:
 - **Labels:** `size:XS/S/M/L`, `risk:low/med/high`, `area:<module>`
 - **PR body:** link to session log + checklist items ticked
 
-For detailed guidelines, see [Development Standards & Workflow](./docs/development_standards.md)
+For detailed guidelines, see [Development Standards & Workflow](./development_standards.md)
