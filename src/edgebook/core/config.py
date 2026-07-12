@@ -4,8 +4,11 @@ This module uses Pydantic Settings to load environment configuration
 from variables and optional .env files.
 """
 
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+DEV_SECRET_KEY = "dev-secret-key-change-in-production"
+MIN_SECRET_KEY_LENGTH = 32
 
 
 class Settings(BaseSettings):
@@ -13,7 +16,7 @@ class Settings(BaseSettings):
 
     PROJECT_NAME: str = "Edgebook"
     SECRET_KEY: str = Field(
-        default="dev-secret-key-change-in-production",
+        default=DEV_SECRET_KEY,
         description="Secret key for JWT signing",
     )
     DATABASE_URL: str = Field(
@@ -37,6 +40,34 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )
+
+    @model_validator(mode="after")
+    def _enforce_production_hardening(self) -> "Settings":
+        """Fail fast when production secrets are missing or insecure.
+
+        Hosting the app with the placeholder secret would let an attacker
+        forge JWTs, so this guard refuses to construct a ``Settings``
+        instance in the ``production`` environment unless a strong key is
+        provided.
+        """
+        if self.ENV != "production":
+            return self
+
+        if not self.SECRET_KEY:
+            raise ValueError("SECRET_KEY must be set in production")
+
+        if self.SECRET_KEY == DEV_SECRET_KEY:
+            raise ValueError(
+                "SECRET_KEY must be changed from the default value in production"
+            )
+
+        if len(self.SECRET_KEY) < MIN_SECRET_KEY_LENGTH:
+            raise ValueError(
+                f"SECRET_KEY must be at least {MIN_SECRET_KEY_LENGTH} "
+                "characters in production"
+            )
+
+        return self
 
 
 settings = Settings()
