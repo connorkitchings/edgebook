@@ -86,20 +86,6 @@
 **Example:**
 > Verify `account.is_active` in page views, and set `account.is_active = False` in "no account" test fixtures.
 
-### [Date: YYYY-MM-DD]
-
-**Mistake:**
-> What went wrong (from user correction)
-
-**Root Cause:**
-> Why it happened
-
-**Rule Added:**
-> Specific rule to prevent this mistake
-
-**Example:**
-> What you should have done instead
-
 ---
 
 ### Template for New Entries

@@ -114,8 +114,20 @@ Calculate ROI, win-loss units, bankroll drawdowns, stake-allocation calibration,
 - Moved score settlement, conflict resolution, and review scheduling out of ingestion-domain logic.
 - Added AST-enforced import rules; no investment schema or product abstraction was introduced.
 
-### Phase 7: Authentication and Authorization ☐ NOT STARTED
-- Add app users, account ownership, operator/admin permissions, and protected correction/review workflows before public exposure.
+### Phase 7: Authentication and Authorization ✅ COMPLETE
+- Added the `auth_users` table (Alembic revision `337ec2aab671`) with role-based `AppUser` records (`USER`, `OPERATOR`, `ADMIN`) linked one-to-one to ledger accounts through a non-null foreign key, preserving ledger atomic integration.
+- Implemented JWT-backed auth services and FastAPI dependencies (`get_current_user`, `get_optional_current_user`, `RoleChecker`, `require_role`) that read the session token from cookies or the `Authorization: Bearer` header.
+- Shipped `/login` and `/register` page routes with templates, a global 401 handler that redirects HTML requests to login, and operator/admin-gated correction and review workflows.
+- Added an auth management CLI (`edgebook.auth.cli`) for seeding operator/admin accounts and structured JSON production logging (`utils/logging.py`) plus a production Compose stack with healthchecks.
+- Coverage: added `tests/auth/test_endpoints.py` and `tests/auth/test_services.py`; `tests/api/test_pages.py` extended for authenticated page flows.
 
-### Phase 8: Hosted MVP Operations ☐ NOT STARTED
-- Add production deployment, secret management, backups, monitoring, and scheduler operations.
+### Phase 8: Hosted MVP Operations ▶ IN PROGRESS
+- Harden production deployment, secret management, backups, monitoring, and scheduler operations before public exposure.
+
+| Phase | Task | Deliverable | Status | Notes |
+|-------|------|-------------|--------|-------|
+| 8.1 | Production settings hardening | Fail-fast validation rejecting default/empty `SECRET_KEY` when `ENV=production` | ▶ In Progress | Kickoff slice for this session. |
+| 8.2 | Database backup strategy | Documented backup/restore runbook plus a `pg_dump` script for the production Compose volume | ☐ Not Started | Postgres only; SQLite dev path remains manual. |
+| 8.3 | Monitoring & metrics | Liveness/readiness split and a Prometheus-compatible `/metrics` endpoint | ☐ Not Started | Build on the existing `/health` check. |
+| 8.4 | Scheduler operations | Operator visibility into ingestion run history, quota, and failure alerting | ☐ Not Started | Surfaces the existing `ingestion_runs` records. |
+| 8.5 | Release & deployment pipeline | Version tagging, CHANGELOG, and CI deploy workflow | ☐ Not Started | Aligns with `.agent/workflows/release-checklist.md`. |
