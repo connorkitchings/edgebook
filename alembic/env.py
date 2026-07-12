@@ -5,6 +5,7 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 
 from alembic import context
+from edgebook.auth import models as auth_models  # noqa: F401
 from edgebook.cfb import models as cfb_models  # noqa: F401
 from edgebook.core.config import settings
 from edgebook.core.database import Base

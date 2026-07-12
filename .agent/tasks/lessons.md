@@ -58,6 +58,34 @@
 **Example:**
 > Preserve `ix_provider_observation_game` and add only the new run index instead of dropping and recreating unrelated indexes.
 
+### [Date: 2026-07-12]
+
+**Mistake:**
+> Used `HTMLResponse | RedirectResponse` return union type annotations on FastAPI routes.
+
+**Root Cause:**
+> FastAPI tries to parse the return type annotation to compile a Pydantic response model, throwing a `FastAPIError` when encountering non-Pydantic class types in a Union.
+
+**Rule Added:**
+> For FastAPI endpoint routes returning non-Pydantic response classes (such as HTML or Redirect responses) in a union, annotate the return type as `Any` to prevent FastAPI from attempting response model parsing.
+
+**Example:**
+> Annotate page handlers that return templates or redirects with `-> Any`.
+
+### [Date: 2026-07-12]
+
+**Mistake:**
+> Attempted to set `account_id = None` to test empty dashboard/bets states for users.
+
+**Root Cause:**
+> The database enforces a `NOT NULL` constraint on `auth_users.account_id` to guarantee ledger atomic integration, causing the db session commit to fail on integrity.
+
+**Rule Added:**
+> When simulating empty relationship states for models with database-enforced non-null constraints, toggle logical flags (such as `account.is_active = False`) in test setup and ensure view queries filter by those flags, rather than setting foreign keys to `None`.
+
+**Example:**
+> Verify `account.is_active` in page views, and set `account.is_active = False` in "no account" test fixtures.
+
 ### [Date: YYYY-MM-DD]
 
 **Mistake:**

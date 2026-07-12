@@ -3,10 +3,12 @@
 import json
 from decimal import Decimal
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
+from edgebook.auth.dependencies import get_current_user, require_role
+from edgebook.auth.models import AppUser, UserRole
 from edgebook.cfb.models import MarketSelection, MarketType
 from edgebook.core.database import get_db
 from edgebook.core.money import (
@@ -160,7 +162,16 @@ def place_bet_endpoint(
     payload: BetCreate,
     db: Session = Depends(get_db),
     idempotency_key: str | None = Header(default=None, max_length=100),
+    current_user: AppUser = Depends(get_current_user),
 ) -> BetPlacementResponse:
+    if (
+        current_user.role == UserRole.USER.value
+        and current_user.account_id != account_id
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: Cannot place wagers for other accounts",
+        )
     try:
         bet, current_balance, _ = place_bet(
             db,
@@ -188,17 +199,26 @@ def list_bets_endpoint(
     account_id: str,
     limit: int = Query(default=50, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
-    status: str | None = Query(default=None),
+    status_filter: str | None = Query(default=None, alias="status"),
     market_type: str | None = Query(default=None),
     db: Session = Depends(get_db),
+    current_user: AppUser = Depends(get_current_user),
 ) -> BetPage:
+    if (
+        current_user.role == UserRole.USER.value
+        and current_user.account_id != account_id
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: Cannot view wagers for other accounts",
+        )
     try:
         bets, total = list_bets(
             db,
             account_id=account_id,
             limit=limit,
             offset=offset,
-            status=status,
+            status=status_filter,
             market_type=market_type,
         )
     except Exception as error:
@@ -213,8 +233,19 @@ def list_bets_endpoint(
 
 @router.get("/{account_id}/bets/{bet_id}", response_model=BetResponse)
 def get_bet_endpoint(
-    account_id: str, bet_id: str, db: Session = Depends(get_db)
+    account_id: str,
+    bet_id: str,
+    db: Session = Depends(get_db),
+    current_user: AppUser = Depends(get_current_user),
 ) -> BetResponse:
+    if (
+        current_user.role == UserRole.USER.value
+        and current_user.account_id != account_id
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: Cannot access wagers for other accounts",
+        )
     try:
         bet = get_bet(db, account_id=account_id, bet_id=bet_id)
     except Exception as error:
@@ -260,8 +291,19 @@ def review_response(review: BetReview) -> ReviewResponse:
 
 @router.get("/{account_id}/bets/{bet_id}/review", response_model=ReviewResponse)
 def get_review_endpoint(
-    account_id: str, bet_id: str, db: Session = Depends(get_db)
+    account_id: str,
+    bet_id: str,
+    db: Session = Depends(get_db),
+    current_user: AppUser = Depends(get_current_user),
 ) -> ReviewResponse:
+    if (
+        current_user.role == UserRole.USER.value
+        and current_user.account_id != account_id
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: Cannot view reviews for other accounts",
+        )
     try:
         get_bet(db, account_id=account_id, bet_id=bet_id)
         return review_response(get_review(db, bet_id))
@@ -272,9 +314,13 @@ def get_review_endpoint(
 
 @router.put("/{account_id}/bets/{bet_id}/review", response_model=ReviewResponse)
 def complete_review_endpoint(
-    account_id: str, bet_id: str, payload: ReviewComplete, db: Session = Depends(get_db)
+    account_id: str,
+    bet_id: str,
+    payload: ReviewComplete,
+    db: Session = Depends(get_db),
+    current_user: AppUser = Depends(require_role([UserRole.OPERATOR, UserRole.ADMIN])),
 ) -> ReviewResponse:
-    """Complete a local human rationale review; authorization is deferred."""
+    """Complete a local human rationale review."""
     try:
         get_bet(db, account_id=account_id, bet_id=bet_id)
         review = complete_review(

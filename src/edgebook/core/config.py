@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     """Application settings class."""
 
     PROJECT_NAME: str = "Edgebook"
+    SECRET_KEY: str = Field(
+        default="dev-secret-key-change-in-production",
+        description="Secret key for JWT signing",
+    )
     DATABASE_URL: str = Field(
         default="sqlite:///./edgebook.db", description="Database connection URL"
     )

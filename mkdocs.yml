@@ -22,10 +22,20 @@ nav:
   - 'Development':
     - 'Guide': 'development_guide.md'
     - 'Troubleshooting': 'troubleshooting.md'
+    - 'Web Architecture': 'guides/web_architecture.md'
+    - 'AI Docs Organization': 'architecture/ai_docs_organization_guide.md'
   - 'Architecture':
     - 'System Overview': 'architecture/system_overview.md'
     - 'Data Modeling': 'architecture/data_modeling.md'
+    - 'Investment Adaptability': 'architecture/investment_adaptability_review.md'
     - 'Initial Architecture (ADR)': 'architecture/adr/adr-0001-initial-architecture.md'
+    - 'Application Orchestration (ADR)': 'architecture/adr/adr-0002-application-orchestration.md'
+  - 'Data Reference':
+    - 'Contracts': 'data/contracts.md'
+    - 'Dictionary': 'data/dictionary.md'
+  - 'Templates':
+    - 'ADR Template': 'architecture/adr/adr-0001-template.md'
+    - 'Decision Template': 'architecture/decisions/template.md'
   - 'Operations':
     - 'Runbook': 'runbook.md'
     - 'Security & Responsible Use': 'security.md'

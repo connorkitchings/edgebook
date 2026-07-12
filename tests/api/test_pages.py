@@ -52,21 +52,38 @@ def _create_account(client: TestClient) -> dict:
     ).json()
 
 
-def test_dashboard_page_no_account(client: TestClient):
+def test_dashboard_page_no_account(client: TestClient, db_session):
     """Dashboard renders the empty state when no account exists."""
-    response = client.get("/")
-    assert response.status_code == 200
-    assert "text/html" in response.headers["content-type"]
-    assert "Dashboard" in response.text
-    assert "No account found" in response.text
+    from edgebook.auth.models import AppUser
+    from edgebook.ledger.models import Account
+
+    user = db_session.query(AppUser).filter(AppUser.username == "default_admin").first()
+    account = db_session.get(Account, user.account_id)
+    account.is_active = False
+    db_session.commit()
+
+    try:
+        response = client.get("/")
+        assert response.status_code == 200
+        assert "text/html" in response.headers["content-type"]
+        assert "Dashboard" in response.text
+        assert "No account found" in response.text
+    finally:
+        account.is_active = True
+        db_session.commit()
 
 
-def test_dashboard_page_with_account(client: TestClient):
+def test_dashboard_page_with_account(client: TestClient, db_session):
     """Dashboard renders account details when an account exists."""
-    client.post(
-        "/accounts",
-        json={"owner_name": "Test User", "starting_bankroll": "1000.00"},
-    )
+    from edgebook.auth.models import AppUser
+    from edgebook.ledger.models import Account
+
+    user = db_session.query(AppUser).filter(AppUser.username == "default_admin").first()
+    account = db_session.get(Account, user.account_id)
+    account.owner_name = "Test User"
+    account.starting_bankroll_cents = 100000
+    account.current_balance_cents = 100000
+    db_session.commit()
 
     response = client.get("/")
     assert response.status_code == 200
@@ -82,25 +99,58 @@ def test_bets_page(client: TestClient):
     assert "Bets" in response.text
 
 
-def test_bets_page_no_account(client: TestClient):
+def test_bets_page_no_account(client: TestClient, db_session):
     """Bets page shows empty state when no account exists."""
-    response = client.get("/bets")
-    assert response.status_code == 200
-    assert "No account found" in response.text
+    from edgebook.auth.models import AppUser
+    from edgebook.ledger.models import Account
+
+    user = db_session.query(AppUser).filter(AppUser.username == "default_admin").first()
+    account = db_session.get(Account, user.account_id)
+    account.is_active = False
+    db_session.commit()
+
+    try:
+        response = client.get("/bets")
+        assert response.status_code == 200
+        assert "No account found" in response.text
+    finally:
+        account.is_active = True
+        db_session.commit()
 
 
-def test_analytics_page_no_account(client: TestClient):
+def test_analytics_page_no_account(client: TestClient, db_session):
     """Analytics page shows empty state when no account exists."""
-    response = client.get("/analytics")
-    assert response.status_code == 200
-    assert "text/html" in response.headers["content-type"]
-    assert "Analytics" in response.text
-    assert "No account found" in response.text
+    from edgebook.auth.models import AppUser
+    from edgebook.ledger.models import Account
+
+    user = db_session.query(AppUser).filter(AppUser.username == "default_admin").first()
+    account = db_session.get(Account, user.account_id)
+    account.is_active = False
+    db_session.commit()
+
+    try:
+        response = client.get("/analytics")
+        assert response.status_code == 200
+        assert "text/html" in response.headers["content-type"]
+        assert "Analytics" in response.text
+        assert "No account found" in response.text
+    finally:
+        account.is_active = True
+        db_session.commit()
 
 
-def test_analytics_page_with_account(client: TestClient):
+def test_analytics_page_with_account(client: TestClient, db_session):
     """Analytics page renders stat cards when account exists."""
-    _create_account(client)
+    from edgebook.auth.models import AppUser
+    from edgebook.ledger.models import Account
+
+    user = db_session.query(AppUser).filter(AppUser.username == "default_admin").first()
+    account = db_session.get(Account, user.account_id)
+    account.owner_name = "Test User"
+    account.starting_bankroll_cents = 100000
+    account.current_balance_cents = 100000
+    db_session.commit()
+
     response = client.get("/analytics")
     assert response.status_code == 200
     assert "ROI" in response.text

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Edgebook</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body class="auth-page">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h1>Create Account</h1>
+            <p>Register for a simulated betting account</p>
+        </div>
+
+        {% if error %}
+        <div class="auth-error">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form action="/register" method="POST">
+            <div class="form-group">
+                <label for="username" class="form-label" style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.875rem;">Username</label>
+                <input type="text" id="username" name="username" class="form-input" style="width: 100%;" required value="{{ username or '' }}" autofocus>
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label" style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.875rem;">Password</label>
+                <input type="password" id="password" name="password" class="form-input" style="width: 100%;" required>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label for="starting_bankroll" class="form-label" style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.875rem;">Starting Bankroll ($)</label>
+                <input type="number" id="starting_bankroll" name="starting_bankroll" class="form-input" style="width: 100%;" step="0.01" min="0.00" value="{{ starting_bankroll or '10000.00' }}" required>
+            </div>
+
+            <button type="submit" class="btn-primary">Register</button>
+        </form>
+
+        <div class="auth-footer">
+            Already have an account? <a href="/login">Sign In</a>
+        </div>
+    </div>
+</body>
+</html>

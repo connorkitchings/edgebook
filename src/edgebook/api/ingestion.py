@@ -11,6 +11,8 @@ from edgebook.application.operations import (
     resolve_score_conflict,
     settle_confirmed_games,
 )
+from edgebook.auth.dependencies import require_role
+from edgebook.auth.models import UserRole
 from edgebook.core.database import get_db
 from edgebook.ingestion.adapters import load_normalized_feed
 from edgebook.ingestion.providers import provider_statuses
@@ -25,7 +27,11 @@ from edgebook.ingestion.services import (
     sync_scores,
 )
 
-router = APIRouter(prefix="/ingestion", tags=["ingestion"])
+router = APIRouter(
+    prefix="/ingestion",
+    tags=["ingestion"],
+    dependencies=[Depends(require_role([UserRole.ADMIN]))],
+)
 
 FIXTURE_FEED_PATH = (
     Path(__file__).resolve().parents[3] / "data" / "processed" / "fixture_feed.json"

@@ -7,6 +7,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy.orm import Session
 
+from edgebook.auth.dependencies import get_current_user, require_role
+from edgebook.auth.models import AppUser, UserRole
 from edgebook.core.database import get_db
 from edgebook.core.money import (
     cents_to_string,
@@ -171,7 +173,9 @@ def raise_ledger_http_error(error: Exception) -> None:
 
 @router.post("", response_model=AccountResponse, status_code=status.HTTP_201_CREATED)
 def create_account_endpoint(
-    payload: AccountCreate, db: Session = Depends(get_db)
+    payload: AccountCreate,
+    db: Session = Depends(get_db),
+    current_user: AppUser = Depends(require_role([UserRole.ADMIN])),
 ) -> AccountResponse:
     """Create an active fictional account and optionally credit its opening bankroll."""
     try:
@@ -187,9 +191,19 @@ def create_account_endpoint(
 
 @router.get("/{account_id}", response_model=AccountResponse)
 def get_account_endpoint(
-    account_id: str, db: Session = Depends(get_db)
+    account_id: str,
+    db: Session = Depends(get_db),
+    current_user: AppUser = Depends(get_current_user),
 ) -> AccountResponse:
     """Retrieve a fictional account's current balance and status."""
+    if (
+        current_user.role == UserRole.USER.value
+        and current_user.account_id != account_id
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: Cannot access other accounts",
+        )
     try:
         account = get_account(db, account_id)
     except Exception as error:
@@ -203,9 +217,20 @@ def get_account_endpoint(
     status_code=status.HTTP_201_CREATED,
 )
 def create_transaction_endpoint(
-    account_id: str, payload: TransactionCreate, db: Session = Depends(get_db)
+    account_id: str,
+    payload: TransactionCreate,
+    db: Session = Depends(get_db),
+    current_user: AppUser = Depends(get_current_user),
 ) -> TransactionExecutionResponse:
     """Execute one fictional deposit or withdrawal through the double-entry ledger."""
+    if (
+        current_user.role == UserRole.USER.value
+        and current_user.account_id != account_id
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: Cannot transact on other accounts",
+        )
     try:
         transaction, account = record_manual_transaction(
             db,
@@ -228,8 +253,17 @@ def list_transactions_endpoint(
     limit: int = Query(default=50, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
+    current_user: AppUser = Depends(get_current_user),
 ) -> TransactionPage:
     """List a newest-first paginated statement for one fictional account."""
+    if (
+        current_user.role == UserRole.USER.value
+        and current_user.account_id != account_id
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: Cannot view other account statements",
+        )
     try:
         transactions, total = list_transactions(
             db, account_id=account_id, limit=limit, offset=offset
@@ -249,7 +283,9 @@ def list_transactions_endpoint(
     response_model=ReconciliationResponse,
 )
 def reconcile_account_endpoint(
-    account_id: str, db: Session = Depends(get_db)
+    account_id: str,
+    db: Session = Depends(get_db),
+    current_user: AppUser = Depends(require_role([UserRole.ADMIN])),
 ) -> ReconciliationResponse:
     """Verify that an account's materialized balance matches its posting sum."""
     try:

@@ -7,6 +7,8 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from starlette.responses import HTMLResponse
 
+from edgebook.auth.dependencies import require_role
+from edgebook.auth.models import AppUser, UserRole
 from edgebook.core.database import get_db
 from edgebook.core.templates import templates
 from edgebook.wagering.models import ReviewStatus
@@ -81,6 +83,7 @@ def list_reviews_endpoint(
     limit: int = Query(default=50, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
+    current_user: AppUser = Depends(require_role([UserRole.OPERATOR, UserRole.ADMIN])),
 ) -> ReviewQueuePage | HTMLResponse:
     """List review tasks as JSON, or render the local operator queue for browsers."""
     items, total = list_reviews(
@@ -115,7 +118,10 @@ def list_reviews_endpoint(
 
 @router.post("/{bet_id}/claim", response_model=ReviewQueueResponse)
 def claim_review_endpoint(
-    bet_id: str, payload: ReviewClaim, db: Session = Depends(get_db)
+    bet_id: str,
+    payload: ReviewClaim,
+    db: Session = Depends(get_db),
+    current_user: AppUser = Depends(require_role([UserRole.OPERATOR, UserRole.ADMIN])),
 ) -> ReviewQueueResponse:
     """Claim a pending review for the named local operator."""
     try:
@@ -134,6 +140,7 @@ def get_review_endpoint(
     request: Request,
     bet_id: str,
     db: Session = Depends(get_db),
+    current_user: AppUser = Depends(require_role([UserRole.OPERATOR, UserRole.ADMIN])),
 ) -> ReviewQueueResponse | HTMLResponse:
     """Return a single review task as JSON or as an HTML card partial."""
     try:
@@ -159,6 +166,7 @@ def complete_review_endpoint(
     bet_id: str,
     payload: ReviewCompletePayload,
     db: Session = Depends(get_db),
+    current_user: AppUser = Depends(require_role([UserRole.OPERATOR, UserRole.ADMIN])),
 ) -> ReviewQueueResponse | HTMLResponse:
     """Complete a claimed review and return the updated task."""
     try:

@@ -8,6 +8,8 @@ from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
 from edgebook.application.operations import resolve_score_conflict
+from edgebook.auth.dependencies import require_role
+from edgebook.auth.models import AppUser, UserRole
 from edgebook.cfb.models import (
     Game,
     Market,
@@ -475,7 +477,10 @@ class ScoreResolutionCreate(ScoreCorrectionCreate):
 # endpoint outside a controlled environment.
 @router.put("/games/{game_id}/correction", response_model=GameResponse)
 def correct_game_result_endpoint(
-    game_id: str, payload: ScoreCorrectionCreate, db: Session = Depends(get_db)
+    game_id: str,
+    payload: ScoreCorrectionCreate,
+    db: Session = Depends(get_db),
+    current_user: AppUser = Depends(require_role([UserRole.ADMIN])),
 ) -> GameResponse:
     """Correct a finalized score and re-settle all affected bets.
 
@@ -498,7 +503,10 @@ def correct_game_result_endpoint(
 
 @router.put("/games/{game_id}/resolve-score-conflict", response_model=GameResponse)
 def resolve_score_conflict_endpoint(
-    game_id: str, payload: ScoreResolutionCreate, db: Session = Depends(get_db)
+    game_id: str,
+    payload: ScoreResolutionCreate,
+    db: Session = Depends(get_db),
+    current_user: AppUser = Depends(require_role([UserRole.ADMIN])),
 ) -> GameResponse:
     """Locally resolve held provider-score disagreement and settle atomically."""
     try:

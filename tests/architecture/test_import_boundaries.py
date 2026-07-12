@@ -13,6 +13,7 @@ DOMAIN_PACKAGES = {
     "analytics",
     "api",
     "application",
+    "auth",
     "cfb",
     "core",
     "ingestion",
@@ -24,9 +25,18 @@ ALLOWED_IMPORTS = {
     "ledger": {"core", "ledger"},
     "cfb": {"cfb", "core"},
     "ingestion": {"cfb", "core", "ingestion"},
+    "auth": {"auth", "core", "ledger"},
     "wagering": {"cfb", "core", "ledger", "wagering"},
     "analytics": {"analytics", "cfb", "core", "ledger", "wagering"},
-    "application": {"application", "cfb", "core", "ingestion", "ledger", "wagering"},
+    "application": {
+        "application",
+        "auth",
+        "cfb",
+        "core",
+        "ingestion",
+        "ledger",
+        "wagering",
+    },
     "api": DOMAIN_PACKAGES,
 }
 COMMAND_ADAPTER_ALLOWED_IMPORTS = {

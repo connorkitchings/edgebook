@@ -1,15 +1,22 @@
-"""Server-rendered page routes for the Edgebook UI."""
-
 from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
+from typing import Any
 
-from fastapi import APIRouter, Depends, Form, Request
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from starlette.responses import HTMLResponse
 
 from edgebook.api.accounts import account_response
 from edgebook.api.cfb import game_response
 from edgebook.api.wagering import BetResponse, bet_response
+from edgebook.auth.dependencies import (
+    get_current_user,
+    get_optional_current_user,
+    require_role,
+)
+from edgebook.auth.models import AppUser, UserRole
+from edgebook.auth.services import authenticate_user, create_user, encode_jwt
 from edgebook.cfb.models import Game, Market, MarketQuote, MarketSelection, Team
 from edgebook.cfb.services import create_game, create_team, get_game, list_games
 from edgebook.core.database import get_db
@@ -21,6 +28,111 @@ from edgebook.wagering.services import list_bets, place_bet, record_game_result
 router = APIRouter(tags=["pages"])
 
 RATIONALE_CATEGORIES = list(RationaleCategory)
+
+
+@router.get("/login", response_class=HTMLResponse)
+def login_page(
+    request: Request,
+    current_user: AppUser | None = Depends(get_optional_current_user),
+) -> Any:
+    """Render the login view."""
+    if current_user:
+        return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+    return templates.TemplateResponse(request, "login.html", {"error": None})
+
+
+@router.post("/login", response_class=HTMLResponse)
+def login_post(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...),
+    db: Session = Depends(get_db),
+) -> Any:
+    """Handle login submission, setting session token cookie."""
+    user = authenticate_user(db, username=username, password=password)
+    if not user:
+        return templates.TemplateResponse(
+            request,
+            "login.html",
+            {"error": "Incorrect username or password", "username": username},
+        )
+
+    token = encode_jwt({"sub": user.username})
+    redirect_resp = RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+    redirect_resp.set_cookie(
+        key="session_token",
+        value=token,
+        httponly=True,
+        samesite="lax",
+        max_age=86400,
+    )
+    return redirect_resp
+
+
+@router.get("/register", response_class=HTMLResponse)
+def register_page(
+    request: Request,
+    current_user: AppUser | None = Depends(get_optional_current_user),
+) -> Any:
+    """Render the registration view."""
+    if current_user:
+        return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+    return templates.TemplateResponse(
+        request, "register.html", {"error": None, "starting_bankroll": "10000.00"}
+    )
+
+
+@router.post("/register", response_class=HTMLResponse)
+def register_post(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...),
+    starting_bankroll: Decimal = Form(Decimal("10000.00")),
+    db: Session = Depends(get_db),
+) -> Any:
+    """Handle user registration, creating AppUser and ledger Account."""
+    try:
+        starting_bankroll_val = validate_credit_amount(
+            starting_bankroll, allow_zero=True
+        )
+        starting_bankroll_cents = decimal_to_cents(starting_bankroll_val)
+        user = create_user(
+            db,
+            username=username,
+            password=password,
+            starting_bankroll_cents=starting_bankroll_cents,
+        )
+    except Exception as error:
+        return templates.TemplateResponse(
+            request,
+            "register.html",
+            {
+                "error": str(error),
+                "username": username,
+                "starting_bankroll": str(starting_bankroll),
+            },
+        )
+
+    token = encode_jwt({"sub": user.username})
+    redirect_resp = RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+    redirect_resp.set_cookie(
+        key="session_token",
+        value=token,
+        httponly=True,
+        samesite="lax",
+        max_age=86400,
+    )
+    return redirect_resp
+
+
+@router.get("/logout", response_class=HTMLResponse)
+def logout_page() -> Any:
+    """Clear the session token cookie and redirect to login."""
+    redirect_resp = RedirectResponse(
+        url="/login", status_code=status.HTTP_303_SEE_OTHER
+    )
+    redirect_resp.delete_cookie("session_token")
+    return redirect_resp
 
 
 def _get_first_account(db: Session):
@@ -36,8 +148,11 @@ def _get_first_account(db: Session):
 def dashboard_page(
     request: Request,
     db: Session = Depends(get_db),
-):
-    account = _get_first_account(db)
+    current_user: AppUser = Depends(get_current_user),
+) -> HTMLResponse:
+    account = current_user.account
+    if account and not account.is_active:
+        account = None
     balance_series = []
 
     if account:
@@ -56,6 +171,7 @@ def dashboard_page(
         "active_page": "dashboard",
         "account": account_response(account) if account else None,
         "balance_series": balance_series,
+        "current_user": current_user,
     }
     if account:
         context["net_pnl_cents"] = (
@@ -73,14 +189,18 @@ def dashboard_page(
 def bets_page(
     request: Request,
     db: Session = Depends(get_db),
-):
-    account = _get_first_account(db)
+    current_user: AppUser = Depends(get_current_user),
+) -> HTMLResponse:
+    account = current_user.account
+    if account and not account.is_active:
+        account = None
     return templates.TemplateResponse(
         request,
         "bets.html",
         {
             "active_page": "bets",
             "account": account_response(account) if account else None,
+            "current_user": current_user,
         },
     )
 
@@ -89,14 +209,18 @@ def bets_page(
 def bet_history_page(
     request: Request,
     db: Session = Depends(get_db),
-):
-    account = _get_first_account(db)
+    current_user: AppUser = Depends(get_current_user),
+) -> HTMLResponse:
+    account = current_user.account
+    if account and not account.is_active:
+        account = None
     return templates.TemplateResponse(
         request,
         "bets/history.html",
         {
             "active_page": "bets",
             "account": account_response(account) if account else None,
+            "current_user": current_user,
         },
     )
 
@@ -105,12 +229,16 @@ def bet_history_page(
 def analytics_page(
     request: Request,
     db: Session = Depends(get_db),
-):
-    account = _get_first_account(db)
+    current_user: AppUser = Depends(get_current_user),
+) -> HTMLResponse:
+    account = current_user.account
+    if account and not account.is_active:
+        account = None
     context: dict[str, object] = {
         "active_page": "analytics",
         "account": account_response(account) if account else None,
         "summary": None,
+        "current_user": current_user,
     }
 
     if account:
@@ -164,11 +292,15 @@ def analytics_page(
 def ingestion_page(
     request: Request,
     db: Session = Depends(get_db),
-):
+    current_user: AppUser = Depends(require_role([UserRole.ADMIN])),
+) -> HTMLResponse:
     return templates.TemplateResponse(
         request,
         "ingestion.html",
-        {"active_page": "ingestion"},
+        {
+            "active_page": "ingestion",
+            "current_user": current_user,
+        },
     )
 
 
@@ -180,10 +312,19 @@ def recent_bets_partial(
     request: Request,
     account_id: str | None = None,
     db: Session = Depends(get_db),
-):
+    current_user: AppUser = Depends(get_current_user),
+) -> HTMLResponse:
     bets: list[BetResponse] = []
     matchups: dict[str, str] = {}
     if account_id:
+        if (
+            current_user.role == UserRole.USER.value
+            and current_user.account_id != account_id
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Forbidden: Cannot view other accounts",
+            )
         try:
             bets_list, _ = list_bets(db, account_id=account_id, limit=5, offset=0)
             bets = [bet_response(b) for b in bets_list]
@@ -225,7 +366,16 @@ def bet_table_partial(
     offset: int = 0,
     limit: int = 25,
     db: Session = Depends(get_db),
-):
+    current_user: AppUser = Depends(get_current_user),
+) -> HTMLResponse:
+    if (
+        current_user.role == UserRole.USER.value
+        and current_user.account_id != account_id
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: Cannot view other accounts",
+        )
     page_size = min(max(limit, 1), 100)
     bets_list, total = list_bets(
         db,
@@ -261,7 +411,8 @@ def bet_table_partial(
 def game_select_partial(
     request: Request,
     db: Session = Depends(get_db),
-):
+    current_user: AppUser = Depends(get_current_user),
+) -> HTMLResponse:
     games, _ = list_games(db, limit=50, offset=0)
     game_responses = [game_response(g) for g in games]
     return templates.TemplateResponse(
@@ -276,7 +427,8 @@ def market_picker_partial(
     request: Request,
     game_id: str,
     db: Session = Depends(get_db),
-):
+    current_user: AppUser = Depends(get_current_user),
+) -> HTMLResponse:
     game = get_game(db, game_id)
     return templates.TemplateResponse(
         request,
@@ -293,7 +445,16 @@ def stake_form_partial(
     quote_id: str,
     account_id: str,
     db: Session = Depends(get_db),
-):
+    current_user: AppUser = Depends(get_current_user),
+) -> HTMLResponse:
+    if (
+        current_user.role == UserRole.USER.value
+        and current_user.account_id != account_id
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: Cannot view other accounts",
+        )
     from edgebook.cfb.models import Market, MarketQuote
 
     market = db.get(Market, market_id)
@@ -338,7 +499,16 @@ def place_bet_partial(
     rationale_category: str = Form(""),
     reason: str = Form(""),
     db: Session = Depends(get_db),
-):
+    current_user: AppUser = Depends(get_current_user),
+) -> HTMLResponse:
+    if (
+        current_user.role == UserRole.USER.value
+        and current_user.account_id != account_id
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: Cannot place wagers for other accounts",
+        )
     market = db.get(Market, market_id)
     if market is None:
         return templates.TemplateResponse(
@@ -426,7 +596,8 @@ def place_bet_partial(
 def games_page(
     request: Request,
     db: Session = Depends(get_db),
-):
+    current_user: AppUser = Depends(require_role([UserRole.ADMIN])),
+) -> HTMLResponse:
     teams = db.query(Team).order_by(Team.name).all()
     return templates.TemplateResponse(
         request,
@@ -434,6 +605,7 @@ def games_page(
         {
             "active_page": "games",
             "teams": teams,
+            "current_user": current_user,
         },
     )
 
@@ -442,7 +614,8 @@ def games_page(
 def game_list_partial(
     request: Request,
     db: Session = Depends(get_db),
-):
+    current_user: AppUser = Depends(require_role([UserRole.ADMIN])),
+) -> HTMLResponse:
     games, _ = list_games(db, limit=50, offset=0)
     game_responses = [game_response(g) for g in games]
     return templates.TemplateResponse(
@@ -457,7 +630,8 @@ def create_team_partial(
     request: Request,
     name: str = Form(...),
     db: Session = Depends(get_db),
-):
+    current_user: AppUser = Depends(require_role([UserRole.ADMIN])),
+) -> HTMLResponse:
     try:
         team = create_team(db, name=name)
         return templates.TemplateResponse(
@@ -480,7 +654,8 @@ def create_game_partial(
     away_team_id: str = Form(...),
     scheduled_at: str = Form(...),
     db: Session = Depends(get_db),
-):
+    current_user: AppUser = Depends(require_role([UserRole.ADMIN])),
+) -> HTMLResponse:
     try:
         dt = datetime.fromisoformat(scheduled_at).replace(tzinfo=UTC)
         game = create_game(
@@ -509,7 +684,8 @@ def record_score_partial(
     home_score: int = Form(...),
     away_score: int = Form(...),
     db: Session = Depends(get_db),
-):
+    current_user: AppUser = Depends(require_role([UserRole.ADMIN])),
+) -> HTMLResponse:
     try:
         record_game_result(
             db,
@@ -537,7 +713,8 @@ def record_score_partial(
 def run_history_partial(
     request: Request,
     db: Session = Depends(get_db),
-):
+    current_user: AppUser = Depends(require_role([UserRole.ADMIN])),
+) -> HTMLResponse:
     from edgebook.ingestion.services import list_runs
 
     runs, _ = list_runs(db, limit=20, offset=0)
@@ -552,7 +729,8 @@ def run_history_partial(
 def conflict_list_partial(
     request: Request,
     db: Session = Depends(get_db),
-):
+    current_user: AppUser = Depends(require_role([UserRole.ADMIN])),
+) -> HTMLResponse:
     from edgebook.ingestion.services import list_conflicts
 
     conflicts = list_conflicts(db)

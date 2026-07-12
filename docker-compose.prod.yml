@@ -1,0 +1,76 @@
+services:
+  migrate:
+    build: .
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  app:
+    build: .
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      - ENV=production
+      - DEBUG=false
+      - SECRET_KEY=${SECRET_KEY}
+      - ODDS_API_KEY=${ODDS_API_KEY:-}
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import json, urllib.request; assert json.load(urllib.request.urlopen('http://127.0.0.1:8000/health'))['status'] == 'ok'",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+    restart: unless-stopped
+
+  ingestion-worker:
+    build: .
+    command: ["python", "-m", "edgebook.ingestion.scheduler"]
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      - ODDS_API_KEY=${ODDS_API_KEY:-}
+      - ODDS_API_REGIONS=${ODDS_API_REGIONS:-us}
+      - ODDS_API_BOOKMAKERS=${ODDS_API_BOOKMAKERS:-draftkings,fanduel,betmgm,caesars}
+      - INGESTION_HTTP_TIMEOUT_SECONDS=${INGESTION_HTTP_TIMEOUT_SECONDS:-10}
+      - INGESTION_HTTP_MAX_RETRIES=${INGESTION_HTTP_MAX_RETRIES:-2}
+      - INGESTION_MIN_QUOTA_REMAINING=${INGESTION_MIN_QUOTA_REMAINING:-100}
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    # Exposing port is intentionally omitted to isolate the database from public network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  pgdata:

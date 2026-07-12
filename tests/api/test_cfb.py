@@ -32,6 +32,7 @@ def create_game(
 
 def test_manual_game_market_and_quote_flow_stays_outside_ledger(client, db_session):
     """Entered CFB data opens a market but creates no ledger postings."""
+    initial_txs = db_session.scalar(select(func.count()).select_from(Transaction))
     game = create_game(client, home_name="East College", away_name="West College")
     market_response = client.post(
         f"/cfb/games/{game['id']}/markets",
@@ -69,7 +70,8 @@ def test_manual_game_market_and_quote_flow_stays_outside_ledger(client, db_sessi
     assert open_game.status_code == 200
     assert open_game.json()["markets"][0]["status"] == "OPEN"
     assert len(open_game.json()["markets"][0]["quotes"]) == 2
-    assert db_session.scalar(select(func.count()).select_from(Transaction)) == 0
+    current_txs = db_session.scalar(select(func.count()).select_from(Transaction))
+    assert current_txs == initial_txs
 
 
 def test_cfb_intake_validation_and_conflicts(client):
