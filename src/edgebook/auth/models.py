@@ -4,12 +4,16 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from enum import Enum
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from sqlalchemy import DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from edgebook.core.database import Base
+
+if TYPE_CHECKING:
+    from edgebook.ledger.models import Account
 
 
 def utc_now() -> datetime:
@@ -53,6 +57,6 @@ class AppUser(Base):
     )
 
     # Use a string relationship reference to avoid circular imports.
-    account: Mapped[object] = relationship(
+    account: Mapped["Account"] = relationship(
         "Account", foreign_keys=[account_id], lazy="joined"
     )

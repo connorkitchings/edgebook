@@ -86,6 +86,20 @@
 **Example:**
 > Verify `account.is_active` in page views, and set `account.is_active = False` in "no account" test fixtures.
 
+### [Date: 2026-07-12]
+
+**Mistake:**
+> Phase 8.1 added a production SECRET_KEY validator, but session-end verification ran `mypy` only on the edited file and skipped the Docker smoke check, shipping a change that turned CI red (the validator crashed the smoke-test app, which runs under ENV=production with no SECRET_KEY).
+
+**Root Cause:**
+> Verification was scoped to the touched file instead of the project-wide gates CI actually runs (`mypy src/`, the docker smoke), and the downstream consumer (`docker-compose.yml`) was not audited when introducing a fail-fast guard.
+
+**Rule Added:**
+> Before declaring a session done, run the project's full verification suite (`uv run mypy src/`, `uv run ruff check .`, `uv run pytest`, and `scripts/docker_smoke.sh` when Docker is available) — not just the edited file. When introducing a fail-fast validator, enumerate every place the validated object is constructed under the affected condition and update them in the same change.
+
+**Example:**
+> After adding the production SECRET_KEY guard, also supply a valid SECRET_KEY in `docker-compose.yml` (smoke) and confirm both `mypy src/` and the smoke stack pass.
+
 ---
 
 ### Template for New Entries

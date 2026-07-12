@@ -1,8 +1,8 @@
 from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, status
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from starlette.responses import HTMLResponse
@@ -24,6 +24,9 @@ from edgebook.core.money import decimal_to_cents, validate_credit_amount
 from edgebook.core.templates import templates
 from edgebook.wagering.models import RationaleCategory
 from edgebook.wagering.services import list_bets, place_bet, record_game_result
+
+if TYPE_CHECKING:
+    from edgebook.ledger.models import Account
 
 router = APIRouter(tags=["pages"])
 
@@ -150,7 +153,7 @@ def dashboard_page(
     db: Session = Depends(get_db),
     current_user: AppUser = Depends(get_current_user),
 ) -> HTMLResponse:
-    account = current_user.account
+    account: Account | None = current_user.account
     if account and not account.is_active:
         account = None
     balance_series = []
@@ -191,7 +194,7 @@ def bets_page(
     db: Session = Depends(get_db),
     current_user: AppUser = Depends(get_current_user),
 ) -> HTMLResponse:
-    account = current_user.account
+    account: Account | None = current_user.account
     if account and not account.is_active:
         account = None
     return templates.TemplateResponse(
@@ -211,7 +214,7 @@ def bet_history_page(
     db: Session = Depends(get_db),
     current_user: AppUser = Depends(get_current_user),
 ) -> HTMLResponse:
-    account = current_user.account
+    account: Account | None = current_user.account
     if account and not account.is_active:
         account = None
     return templates.TemplateResponse(
@@ -231,7 +234,7 @@ def analytics_page(
     db: Session = Depends(get_db),
     current_user: AppUser = Depends(get_current_user),
 ) -> HTMLResponse:
-    account = current_user.account
+    account: Account | None = current_user.account
     if account and not account.is_active:
         account = None
     context: dict[str, object] = {
@@ -361,7 +364,7 @@ _MARKET_TYPES = ["SPREAD", "MONEYLINE", "TOTAL"]
 def bet_table_partial(
     request: Request,
     account_id: str,
-    status: str | None = None,
+    status_filter: str | None = Query(default=None, alias="status"),
     market_type: str | None = None,
     offset: int = 0,
     limit: int = 25,
@@ -382,7 +385,7 @@ def bet_table_partial(
         account_id=account_id,
         limit=page_size,
         offset=offset,
-        status=status,
+        status=status_filter,
         market_type=market_type,
     )
     bets = [bet_response(b) for b in bets_list]
@@ -394,7 +397,7 @@ def bet_table_partial(
         {
             "bets": bets,
             "account_id": account_id,
-            "current_status": status,
+            "current_status": status_filter,
             "current_market_type": market_type,
             "statuses": _BET_STATUSES,
             "market_types": _MARKET_TYPES,

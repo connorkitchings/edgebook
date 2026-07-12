@@ -47,13 +47,16 @@ def main() -> None:
             print(f"Successfully created user: {user.username} with role: {user.role}")
         elif args.command == "promote":
             username = args.username.strip().lower()
-            user = db.query(AppUser).filter(AppUser.username == username).first()
-            if not user:
+            target_user = db.query(AppUser).filter(AppUser.username == username).first()
+            if not target_user:
                 print(f"Error: User '{args.username}' not found", file=sys.stderr)
                 sys.exit(1)
-            user.role = args.role
+            target_user.role = args.role
             db.commit()
-            print(f"Successfully promoted user {user.username} to role {user.role}")
+            print(
+                f"Successfully promoted user {target_user.username} "
+                f"to role {target_user.role}"
+            )
     except Exception as error:
         print(f"Error: {error}", file=sys.stderr)
         sys.exit(1)
