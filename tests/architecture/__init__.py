@@ -1,0 +1,1 @@
+"""Architecture boundary regression tests."""

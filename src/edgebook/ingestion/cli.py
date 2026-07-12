@@ -8,6 +8,10 @@ from pathlib import Path
 
 from sqlalchemy import func, select
 
+from edgebook.application.operations import (
+    claim_pending_reviews,
+    settle_confirmed_games,
+)
 from edgebook.cfb.models import Game, ScoreSyncState
 from edgebook.core.config import settings
 from edgebook.core.database import SessionLocal
@@ -22,12 +26,10 @@ from edgebook.ingestion.services import (
     complete_backfill_checkpoint,
     fail_backfill_checkpoint,
     ingestion_lock,
-    settle_confirmed_games,
     sync_games,
     sync_quotes,
     sync_scores,
 )
-from edgebook.wagering.reviews import claim_pending_reviews
 
 NCAAF_SPORT = "americanfootball_ncaaf"
 FEATURED_MARKETS = "h2h,spreads,totals"

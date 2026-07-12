@@ -5,6 +5,10 @@ from datetime import UTC, datetime
 
 from sqlalchemy import func, select
 
+from edgebook.application.operations import (
+    resolve_score_conflict,
+    settle_confirmed_games,
+)
 from edgebook.cfb.models import (
     Game,
     GameStatus,
@@ -22,13 +26,7 @@ from edgebook.ingestion.adapters import (
     load_normalized_feed,
 )
 from edgebook.ingestion.models import IngestionRun, ProviderObservation
-from edgebook.ingestion.services import (
-    resolve_score_conflict,
-    settle_confirmed_games,
-    sync_games,
-    sync_quotes,
-    sync_scores,
-)
+from edgebook.ingestion.services import sync_games, sync_quotes, sync_scores
 
 
 def _adapter(

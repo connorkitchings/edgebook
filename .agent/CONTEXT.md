@@ -7,9 +7,9 @@ This router file contains the active branch, repository status, and quick refere
 ## 🗺️ Project Snapshot
 
 * **Product:** Edgebook (Simulated college football bankroll allocator)
-* **Current Phase:** Phase 4 planning (Phase 3 analytics complete)
-* **Architecture:** FastAPI backend, SQLAlchemy layers, modular monolith
-* **Active Branch:** `feat/manual-betting-flow`
+* **Current Phase:** Phase 4C operational verification and Phase 6 adaptability refactor
+* **Architecture:** FastAPI modular monolith with explicit application orchestration
+* **Active Branch:** `codex/phase-6-adaptability`
 
 ---
 

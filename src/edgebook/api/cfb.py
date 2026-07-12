@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
+from edgebook.application.operations import resolve_score_conflict
 from edgebook.cfb.models import (
     Game,
     Market,
@@ -32,11 +33,7 @@ from edgebook.cfb.services import (
     quote_comparison,
 )
 from edgebook.core.database import get_db
-from edgebook.ingestion.services import (
-    IngestionConflictError,
-    IngestionNotFoundError,
-    resolve_score_conflict,
-)
+from edgebook.ingestion.services import IngestionConflictError, IngestionNotFoundError
 from edgebook.wagering.services import (
     WagerConflictError,
     WagerNotFoundError,

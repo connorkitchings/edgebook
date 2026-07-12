@@ -7,6 +7,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+from edgebook.application.operations import (
+    resolve_score_conflict,
+    settle_confirmed_games,
+)
 from edgebook.core.database import get_db
 from edgebook.ingestion.adapters import load_normalized_feed
 from edgebook.ingestion.providers import provider_statuses
@@ -16,8 +20,6 @@ from edgebook.ingestion.services import (
     IngestionNotFoundError,
     list_conflicts,
     list_runs,
-    resolve_score_conflict,
-    settle_confirmed_games,
     sync_games,
     sync_quotes,
     sync_scores,

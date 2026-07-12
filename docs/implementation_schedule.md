@@ -109,5 +109,13 @@ Calculate ROI, win-loss units, bankroll drawdowns, stake-allocation calibration,
 - Operator protection: only the claiming reviewer can complete a review.
 - Model execution remains deliberately deferred behind the review workflow boundary.
 
-### Phase 6: Investment Adaptability Review ☐ NOT STARTED
-- Architecture audit of separation between ledger, CFB, and wagering boundaries.
+### Phase 6: Investment Adaptability Review ✅ COMPLETE
+- Published the investment-adaptability review and ADR-0002 application-orchestration boundary.
+- Moved score settlement, conflict resolution, and review scheduling out of ingestion-domain logic.
+- Added AST-enforced import rules; no investment schema or product abstraction was introduced.
+
+### Phase 7: Authentication and Authorization ☐ NOT STARTED
+- Add app users, account ownership, operator/admin permissions, and protected correction/review workflows before public exposure.
+
+### Phase 8: Hosted MVP Operations ☐ NOT STARTED
+- Add production deployment, secret management, backups, monitoring, and scheduler operations.
