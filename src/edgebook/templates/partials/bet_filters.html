@@ -15,12 +15,12 @@
     </div>
 
     <select name="market_type"
-            style="padding: 0.25rem 0.5rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 0.375rem; color: var(--text-primary); font-size: 0.75rem;"
+            class="form-select"
+            style="padding: 0.25rem 0.5rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 0.375rem; color: var(--text-primary); font-size: 0.75rem; width: auto;"
             hx-get="/partials/bet-table?account_id={{ account_id }}{% if current_status %}&status={{ current_status }}{% endif %}&offset=0"
             hx-target="#bet-table-container"
             hx-swap="innerHTML"
-            hx-include="this"
-            hx-vals='js:{market_type: event.target.value}'>
+            hx-include="this">
         <option value="">All Markets</option>
         {% for val in market_types %}
         <option value="{{ val }}" {% if current_market_type == val %}selected{% endif %}>{{ val }}</option>

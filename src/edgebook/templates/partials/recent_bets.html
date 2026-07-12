@@ -13,19 +13,19 @@
         <tbody>
             {% for bet in bets %}
             <tr>
-                <td>{{ bet.game_id[:8] }}...</td>
+                <td>{{ matchups.get(bet.game_id, bet.game_id[:8] ~ '...') }}</td>
                 <td>{{ bet.selection.value }}</td>
                 <td>{{ bet.american_odds }}</td>
                 <td>${{ bet.stake }}</td>
                 <td>
                     {% if bet.status.value == 'WON' %}
-                        <span class="badge badge-success">Won</span>
+                        <span class="badge badge-success">{{ bet.status.value | status_label }}</span>
                     {% elif bet.status.value == 'LOST' %}
-                        <span class="badge badge-danger">Lost</span>
+                        <span class="badge badge-danger">{{ bet.status.value | status_label }}</span>
                     {% elif bet.status.value == 'PUSH' %}
-                        <span class="badge badge-warning">Push</span>
+                        <span class="badge badge-warning">{{ bet.status.value | status_label }}</span>
                     {% else %}
-                        <span class="badge badge-info">Pending</span>
+                        <span class="badge badge-info">{{ bet.status.value | status_label }}</span>
                     {% endif %}
                 </td>
             </tr>

@@ -16,24 +16,29 @@
                     hx-post="/ingestion/sync/games"
                     hx-target="#sync-result"
                     hx-swap="innerHTML">
+                <span class="spinner htmx-indicator"></span>
                 Sync Games
             </button>
             <button class="btn btn-primary"
                     hx-post="/ingestion/sync/quotes"
                     hx-target="#sync-result"
                     hx-swap="innerHTML">
+                <span class="spinner htmx-indicator"></span>
                 Sync Quotes
             </button>
             <button class="btn btn-primary"
                     hx-post="/ingestion/sync/scores"
                     hx-target="#sync-result"
                     hx-swap="innerHTML">
+                <span class="spinner htmx-indicator"></span>
                 Sync Scores
             </button>
             <button class="btn btn-secondary"
                     hx-post="/ingestion/settle"
                     hx-target="#sync-result"
-                    hx-swap="innerHTML">
+                    hx-swap="innerHTML"
+                    hx-confirm="Settle all games with confirmed scores?">
+                <span class="spinner htmx-indicator"></span>
                 Settle Confirmed
             </button>
         </div>

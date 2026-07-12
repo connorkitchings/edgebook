@@ -42,10 +42,17 @@ def pluralize(value: int) -> str:
     return "s" if value != 1 else ""
 
 
+def status_label(value: str | None) -> str:
+    if not value:
+        return ""
+    return value.replace("_", " ").title()
+
+
 templates.env.filters["format_cents"] = format_cents
 templates.env.filters["format_pct"] = format_pct
 templates.env.filters["format_datetime"] = format_datetime
 templates.env.filters["pluralize"] = pluralize
+templates.env.filters["status_label"] = status_label
 
 
 def get_templates(request: Request) -> Jinja2Templates:

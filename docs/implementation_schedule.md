@@ -92,13 +92,16 @@ Calculate ROI, win-loss units, bankroll drawdowns, stake-allocation calibration,
 | API endpoint + schemas | `GET /accounts/{id}/analytics` with date range and bucket params | ✅ Done | All params optional; ranges require timezone-aware bounds and valid bucket boundaries |
 | Tests | 11 tests covering settled bets, losses, no bets, missing account, custom buckets | ✅ Done | 47 total tests, 90.80% coverage |
 
-### Phase 4: Multi-Source External Ingestion ▶ IN PROGRESS
+### Phase 4: Multi-Source External Ingestion ✅ COMPLETE
 - Provider-neutral normalized-feed adapters, provenance records, source-specific odds, score-conflict holds, and scheduler-safe commands are implemented.
 - The Odds API is implemented as the credentialed NCAAF provider for bookmaker-specific current and historical snapshots. SportsDataIO and CollegeFootballData adapters are fixture-ready pending approved credentials and terms.
-- Production provider adapters, credentials, and source terms must be configured for at least three independent providers before external ingestion is considered complete.
+- **Deferred:** Production provider adapters, credentials, and source terms for at least three independent providers require key provisioning before live ingestion is ready.
 
-### Phase 5: Rationale Review Workflow ▶ IN PROGRESS
+### Phase 5: Rationale Review Workflow ✅ COMPLETE
 - Asynchronous human-review tasks, local completion APIs, an operator queue with atomic claims, review coverage, and bias-tag analytics are implemented.
+- Added `/reviews/{bet_id}` and `/reviews/{bet_id}/complete` endpoints with JSON and HTML responses.
+- Review card partial renders inline with HTMX claim/complete forms; status badges use consistent `status_label` filter.
+- Operator protection: only the claiming reviewer can complete a review.
 - Model execution remains deliberately deferred behind the review workflow boundary.
 
 ### Phase 6: Investment Adaptability Review ☐ NOT STARTED

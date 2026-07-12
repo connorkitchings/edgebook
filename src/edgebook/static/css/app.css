@@ -390,3 +390,140 @@ table tr:hover td {
 .htmx-request.htmx-indicator {
     opacity: 1;
 }
+
+/* Mobile header */
+.mobile-header {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.mobile-header h1 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.mobile-header button {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    border-radius: 0.375rem;
+    padding: 0.375rem 0.625rem;
+    cursor: pointer;
+}
+
+@media (max-width: 768px) {
+    .mobile-header {
+        display: flex;
+    }
+
+    .sidebar {
+        display: none;
+        width: 100%;
+        position: fixed;
+        top: 3.25rem;
+        left: 0;
+        height: calc(100vh - 3.25rem);
+        z-index: 99;
+    }
+
+    .sidebar.open {
+        display: block;
+    }
+
+    .main-content {
+        margin-left: 0;
+        padding: 1rem;
+    }
+}
+
+/* Reusable alerts */
+.alert {
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    border: 1px solid transparent;
+}
+
+.alert-success {
+    background: rgba(34, 197, 94, 0.1);
+    border-color: var(--success);
+    color: var(--success);
+}
+
+.alert-error {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.alert-close {
+    float: right;
+    margin-left: 0.75rem;
+    background: transparent;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+}
+
+/* Loading spinner */
+.spinner {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: spin 0.75s linear infinite;
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Form helpers */
+.form-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.375rem;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+    width: 100%;
+    padding: 0.625rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+}
+
+.form-textarea {
+    resize: vertical;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+/* Game card reused across lists */
+.game-card {
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 1rem;
+}

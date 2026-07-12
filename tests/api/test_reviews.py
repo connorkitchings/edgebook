@@ -130,3 +130,149 @@ def test_operator_queue_claims_reviews_and_enforces_claiming_reviewer(client):
         ).status_code
         == 409
     )
+
+
+def test_get_review_detail_json(client):
+    """GET /reviews/{bet_id} returns review details as JSON."""
+    account = create_account(client)
+    _, market = create_open_market(client, market_type="MONEYLINE", line=None)
+    placed = client.post(
+        f"/accounts/{account['id']}/bets",
+        json={
+            "market_id": market["id"],
+            "selection": "HOME",
+            "stake": "10.00",
+            "reason": "Detail test",
+        },
+    )
+    bet_id = placed.json()["bet"]["id"]
+
+    response = client.get(f"/reviews/{bet_id}")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["bet_id"] == bet_id
+    assert data["status"] == "PENDING"
+
+
+def test_get_review_detail_html(client):
+    """GET /reviews/{bet_id} returns HTML review card when requested."""
+    account = create_account(client)
+    _, market = create_open_market(client, market_type="MONEYLINE", line=None)
+    placed = client.post(
+        f"/accounts/{account['id']}/bets",
+        json={
+            "market_id": market["id"],
+            "selection": "HOME",
+            "stake": "10.00",
+            "reason": "HTML card test",
+        },
+    )
+    bet_id = placed.json()["bet"]["id"]
+
+    response = client.get(f"/reviews/{bet_id}", headers={"accept": "text/html"})
+    assert response.status_code == 200
+    assert "text/html" in response.headers["content-type"]
+    assert "review-card" in response.text
+    assert bet_id in response.text
+
+
+def test_get_review_detail_not_found(client):
+    """GET /reviews/{bet_id} returns 404 for unknown bet."""
+    response = client.get("/reviews/00000000-0000-0000-0000-000000000000")
+    assert response.status_code == 404
+
+
+def test_complete_review_json(client):
+    """POST /reviews/{bet_id}/complete completes a claimed review via JSON."""
+    account = create_account(client)
+    _, market = create_open_market(client, market_type="MONEYLINE", line=None)
+    placed = client.post(
+        f"/accounts/{account['id']}/bets",
+        json={
+            "market_id": market["id"],
+            "selection": "HOME",
+            "stake": "10.00",
+            "reason": "Complete via new endpoint",
+        },
+    )
+    bet_id = placed.json()["bet"]["id"]
+    client.post(f"/reviews/{bet_id}/claim", json={"reviewer_label": "Dana"})
+
+    response = client.post(
+        f"/reviews/{bet_id}/complete",
+        json={
+            "reviewer_label": "Dana",
+            "summary": "Evidence is valid.",
+            "bias_flags": ["RECENCY_BIAS"],
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "COMPLETED"
+    assert data["summary"] == "Evidence is valid."
+    assert data["bias_flags"] == ["RECENCY_BIAS"]
+
+
+def test_complete_review_html(client):
+    """POST /reviews/{bet_id}/complete returns HTML card on success."""
+    account = create_account(client)
+    _, market = create_open_market(client, market_type="MONEYLINE", line=None)
+    placed = client.post(
+        f"/accounts/{account['id']}/bets",
+        json={
+            "market_id": market["id"],
+            "selection": "HOME",
+            "stake": "10.00",
+            "reason": "HTML complete test",
+        },
+    )
+    bet_id = placed.json()["bet"]["id"]
+    client.post(f"/reviews/{bet_id}/claim", json={"reviewer_label": "Dana"})
+
+    response = client.post(
+        f"/reviews/{bet_id}/complete",
+        json={
+            "reviewer_label": "Dana",
+            "summary": "Done.",
+        },
+        headers={"accept": "text/html"},
+    )
+    assert response.status_code == 200
+    assert "text/html" in response.headers["content-type"]
+    assert "Done." in response.text
+    assert "COMPLETED" in response.text or "Completed" in response.text
+
+
+def test_complete_review_wrong_operator(client):
+    """POST /reviews/{bet_id}/complete rejects non-claiming reviewer."""
+    account = create_account(client)
+    _, market = create_open_market(client, market_type="MONEYLINE", line=None)
+    placed = client.post(
+        f"/accounts/{account['id']}/bets",
+        json={
+            "market_id": market["id"],
+            "selection": "HOME",
+            "stake": "10.00",
+            "reason": "Wrong operator test",
+        },
+    )
+    bet_id = placed.json()["bet"]["id"]
+    client.post(f"/reviews/{bet_id}/claim", json={"reviewer_label": "Dana"})
+
+    response = client.post(
+        f"/reviews/{bet_id}/complete",
+        json={
+            "reviewer_label": "Alex",
+            "summary": "Cannot complete.",
+        },
+    )
+    assert response.status_code == 409
+
+
+def test_review_queue_page_html(client):
+    """GET /reviews with HTML accept header renders the operator queue page."""
+    response = client.get("/reviews", headers={"accept": "text/html"})
+    assert response.status_code == 200
+    assert "text/html" in response.headers["content-type"]
+    assert "Rationale Reviews" in response.text
+    assert "Operator Queue" in response.text

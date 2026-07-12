@@ -39,6 +39,10 @@ class ReviewQueueItem:
     created_at: datetime
     started_at: datetime | None
     completed_at: datetime | None
+    summary: str | None = None
+    bias_flags: list[str] | None = None
+    assessment_notes: str | None = None
+    review_version: str | None = None
 
 
 def get_review(db: Session, bet_id: str) -> BetReview:
@@ -135,6 +139,10 @@ def list_reviews(
                 created_at=review.created_at,
                 started_at=review.started_at,
                 completed_at=review.completed_at,
+                summary=review.summary,
+                bias_flags=json.loads(review.bias_flags or "[]"),
+                assessment_notes=review.assessment_notes,
+                review_version=review.review_version,
             )
             for review, bet in db.execute(query).all()
         ],
@@ -165,6 +173,10 @@ def get_review_queue_item(db: Session, bet_id: str) -> ReviewQueueItem:
         created_at=review.created_at,
         started_at=review.started_at,
         completed_at=review.completed_at,
+        summary=review.summary,
+        bias_flags=json.loads(review.bias_flags or "[]"),
+        assessment_notes=review.assessment_notes,
+        review_version=review.review_version,
     )
 
 

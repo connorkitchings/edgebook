@@ -22,7 +22,7 @@
             <select id="review-status" name="status" onchange="this.form.submit()">
                 <option value="">All statuses</option>
                 {% for status in statuses %}
-                <option value="{{ status.value }}" {% if selected_status == status.value %}selected{% endif %}>{{ status.value.replace('_', ' ').title() }}</option>
+                <option value="{{ status.value }}" {% if selected_status == status.value %}selected{% endif %}>{{ status.value | status_label }}</option>
                 {% endfor %}
             </select>
         </form>
@@ -30,83 +30,11 @@
     {% if reviews %}
     <div class="review-list">
         {% for review in reviews %}
-        <article class="review-card" id="review-{{ review.bet_id }}">
-            <div class="review-card-header">
-                <div>
-                    <span class="badge badge-info">{{ review.status.replace('_', ' ') }}</span>
-                    <strong>{{ review.rationale_category or 'Uncategorized rationale' }}</strong>
-                </div>
-                <small>Created {{ review.created_at.strftime('%Y-%m-%d %H:%M UTC') }}</small>
-            </div>
-            <dl class="review-context">
-                <dt>Reason</dt><dd>{{ review.reason or '—' }}</dd>
-                <dt>Notes</dt><dd>{{ review.notes or '—' }}</dd>
-                <dt>Quote source</dt><dd>{{ review.quote_source or 'Manual' }}</dd>
-                <dt>Reviewer</dt><dd>{{ review.reviewer_label or 'Unclaimed' }}</dd>
-            </dl>
-            {% if review.status == 'PENDING' %}
-            <form class="review-form" onsubmit="claimReview(event, '{{ review.bet_id }}')">
-                <label>Reviewer <input name="reviewer_label" required maxlength="200" placeholder="Your name"></label>
-                <button class="btn btn-primary" type="submit">Claim review</button>
-            </form>
-            {% elif review.status == 'IN_REVIEW' %}
-            <form class="review-form" onsubmit="completeReview(event, '{{ review.account_id }}', '{{ review.bet_id }}', '{{ review.reviewer_label }}')">
-                <label>Summary <textarea name="summary" required maxlength="2000" placeholder="Evidence quality, testability, and conclusion"></textarea></label>
-                <label>Bias flags <input name="bias_flags" maxlength="500" placeholder="Comma-separated, optional"></label>
-                <label>Assessment notes <textarea name="assessment_notes" maxlength="2000" placeholder="Optional follow-up"></textarea></label>
-                <button class="btn btn-primary" type="submit">Complete review</button>
-            </form>
-            {% endif %}
-        </article>
+        {% include "partials/review_card.html" %}
         {% endfor %}
     </div>
     {% else %}
     <div class="empty-state"><p>No review tasks match this filter.</p></div>
     {% endif %}
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-async function sendReviewRequest(url, payload) {
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(payload),
-    });
-    if (!response.ok) {
-        const detail = await response.json().catch(() => ({}));
-        throw new Error(detail.detail || 'Review update failed');
-    }
-    window.location.reload();
-}
-
-async function claimReview(event, betId) {
-    event.preventDefault();
-    const form = event.currentTarget;
-    try {
-        await sendReviewRequest('/reviews/' + betId + '/claim', {
-            reviewer_label: form.reviewer_label.value,
-        });
-    } catch (error) {
-        alert(error.message);
-    }
-}
-
-async function completeReview(event, accountId, betId, reviewerLabel) {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const flags = form.bias_flags.value.split(',').map(flag => flag.trim()).filter(Boolean);
-    try {
-        await sendReviewRequest('/accounts/' + accountId + '/bets/' + betId + '/review', {
-            reviewer_label: reviewerLabel,
-            summary: form.summary.value,
-            bias_flags: flags,
-            assessment_notes: form.assessment_notes.value || null,
-        });
-    } catch (error) {
-        alert(error.message);
-    }
-}
-</script>
 {% endblock %}

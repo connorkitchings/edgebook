@@ -9,8 +9,8 @@ from starlette.responses import HTMLResponse
 
 from edgebook.api.accounts import account_response
 from edgebook.api.cfb import game_response
-from edgebook.api.wagering import bet_response
-from edgebook.cfb.models import Market, MarketQuote, MarketSelection, Team
+from edgebook.api.wagering import BetResponse, bet_response
+from edgebook.cfb.models import Game, Market, MarketQuote, MarketSelection, Team
 from edgebook.cfb.services import create_game, create_team, get_game, list_games
 from edgebook.core.database import get_db
 from edgebook.core.money import decimal_to_cents, validate_credit_amount
@@ -52,14 +52,20 @@ def dashboard_page(
         except Exception:
             balance_series = []
 
+    context: dict[str, object] = {
+        "active_page": "dashboard",
+        "account": account_response(account) if account else None,
+        "balance_series": balance_series,
+    }
+    if account:
+        context["net_pnl_cents"] = (
+            account.current_balance_cents - account.starting_bankroll_cents
+        )
+
     return templates.TemplateResponse(
         request,
         "dashboard.html",
-        {
-            "active_page": "dashboard",
-            "account": account_response(account) if account else None,
-            "balance_series": balance_series,
-        },
+        context,
     )
 
 
@@ -175,18 +181,26 @@ def recent_bets_partial(
     account_id: str | None = None,
     db: Session = Depends(get_db),
 ):
-    bets = []
+    bets: list[BetResponse] = []
+    matchups: dict[str, str] = {}
     if account_id:
         try:
             bets_list, _ = list_bets(db, account_id=account_id, limit=5, offset=0)
             bets = [bet_response(b) for b in bets_list]
+            game_ids = {b.game_id for b in bets_list}
+            if game_ids:
+                games = db.query(Game).filter(Game.id.in_(game_ids)).all()
+                matchups = {
+                    g.id: f"{g.home_team.name} vs {g.away_team.name}" for g in games
+                }
         except Exception:
             bets = []
+            matchups = {}
 
     return templates.TemplateResponse(
         request,
         "partials/recent_bets.html",
-        {"bets": bets},
+        {"bets": bets, "matchups": matchups},
     )
 
 

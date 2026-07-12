@@ -2,7 +2,7 @@
     {% if games %}
     <div style="display: flex; flex-direction: column; gap: 1rem;">
         {% for game in games %}
-        <div style="border: 1px solid var(--border); border-radius: 0.5rem; padding: 1rem;">
+        <div class="game-card">
             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
                 <div>
                     <strong>{{ game.home_team.name }}</strong>
@@ -24,7 +24,9 @@
             <div id="score-form-{{ game.id }}" style="display: none; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border);">
                 <form hx-post="/partials/record-score"
                       hx-target="#score-result-{{ game.id }}"
-                      hx-swap="innerHTML">
+                      hx-swap="innerHTML"
+                      hx-confirm="Record this final score? Pending bets on this game will be settled."
+                      hx-on::after-request="if(event.detail.successful) { htmx.ajax('GET', '/partials/game-list', {target: '#game-list', swap: 'innerHTML'}); }">
                     <input type="hidden" name="game_id" value="{{ game.id }}">
                     <div style="display: flex; gap: 0.5rem; align-items: end; flex-wrap: wrap;">
                         <div>
@@ -37,7 +39,10 @@
                             <input type="number" name="away_score" min="0" required placeholder="0"
                                    style="width: 80px; padding: 0.375rem; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 0.375rem; color: var(--text-primary); font-size: 0.875rem;">
                         </div>
-                        <button type="submit" class="btn btn-primary" style="font-size: 0.75rem; padding: 0.375rem 0.75rem;">Settle</button>
+                        <button type="submit" class="btn btn-primary" style="font-size: 0.75rem; padding: 0.375rem 0.75rem;">
+                            <span class="spinner htmx-indicator"></span>
+                            Settle
+                        </button>
                     </div>
                 </form>
                 <div id="score-result-{{ game.id }}" style="margin-top: 0.5rem;"></div>

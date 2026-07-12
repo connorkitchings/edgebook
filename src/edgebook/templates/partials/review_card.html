@@ -1,0 +1,73 @@
+<article class="review-card" id="review-{{ review.bet_id }}">
+    <div class="review-card-header">
+        <div>
+            <span class="badge {% if review.status == 'COMPLETED' %}badge-success{% elif review.status == 'PENDING' %}badge-info{% elif review.status == 'IN_REVIEW' %}badge-warning{% elif review.status == 'FAILED' %}badge-danger{% else %}badge-neutral{% endif %}">
+                {{ review.status | status_label }}
+            </span>
+            <strong>{{ review.rationale_category | status_label if review.rationale_category else 'Uncategorized rationale' }}</strong>
+        </div>
+        <small>Created {{ review.created_at.strftime('%Y-%m-%d %H:%M UTC') }}</small>
+    </div>
+
+    <dl class="review-context">
+        <dt>Reason</dt><dd>{{ review.reason or '—' }}</dd>
+        <dt>Notes</dt><dd>{{ review.notes or '—' }}</dd>
+        <dt>Quote source</dt><dd>{{ review.quote_source or 'Manual' }}</dd>
+        <dt>Reviewer</dt><dd>{{ review.reviewer_label or 'Unclaimed' }}</dd>
+    </dl>
+
+    {% if review.status == 'PENDING' %}
+    <form class="review-form" hx-post="/reviews/{{ review.bet_id }}/claim"
+          hx-target="#review-{{ review.bet_id }}" hx-swap="outerHTML">
+        <label>Reviewer <input name="reviewer_label" required maxlength="200" placeholder="Your name"></label>
+        <button class="btn btn-primary" type="submit">
+            <span class="spinner htmx-indicator"></span>
+            Claim review
+        </button>
+    </form>
+    {% elif review.status == 'IN_REVIEW' %}
+    <form class="review-form" hx-post="/reviews/{{ review.bet_id }}/complete"
+          hx-target="#review-{{ review.bet_id }}" hx-swap="outerHTML">
+        <input type="hidden" name="reviewer_label" value="{{ review.reviewer_label }}">
+        <label>Summary <textarea name="summary" required maxlength="2000" placeholder="Evidence quality, testability, and conclusion"></textarea></label>
+        <label>Bias flags</label>
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            {% for flag in bias_flags %}
+            <label style="display:flex; flex-direction:row; align-items:center; gap:0.25rem; font-size:0.875rem; color:var(--text-primary);">
+                <input type="checkbox" name="bias_flags" value="{{ flag }}"> {{ flag | status_label }}
+            </label>
+            {% endfor %}
+        </div>
+        <label>Assessment notes <textarea name="assessment_notes" maxlength="2000" placeholder="Optional follow-up"></textarea></label>
+        <button class="btn btn-primary" type="submit">
+            <span class="spinner htmx-indicator"></span>
+            Complete review
+        </button>
+    </form>
+    {% elif review.status == 'COMPLETED' %}
+    <div class="review-result">
+        <p><strong>Summary:</strong> {{ review.summary }}</p>
+        {% if review.bias_flags %}
+        <p><strong>Bias flags:</strong>
+            {% for flag in review.bias_flags %}
+            <span class="badge badge-warning" style="margin-left:0.25rem;">{{ flag | status_label }}</span>
+            {% endfor %}
+        </p>
+        {% endif %}
+        {% if review.assessment_notes %}
+        <p><strong>Notes:</strong> {{ review.assessment_notes }}</p>
+        {% endif %}
+        <p style="color:var(--text-muted);font-size:0.75rem;margin-top:0.5rem;">
+            Completed by {{ review.reviewer_label }} at {{ review.completed_at.strftime('%Y-%m-%d %H:%M UTC') if review.completed_at else '' }}
+        </p>
+    </div>
+    {% elif review.status == 'NOT_APPLICABLE' %}
+    <div class="review-result">
+        <p style="color:var(--text-muted);">This bet review is marked as not applicable.</p>
+    </div>
+    {% elif review.status == 'FAILED' %}
+    <div class="review-result">
+        <p style="color:var(--text-danger);">Review processing failed.</p>
+    </div>
+    {% endif %}
+</article>

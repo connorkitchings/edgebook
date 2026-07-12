@@ -27,13 +27,13 @@
                     <td>{{ '$' ~ bet.payout if bet.payout else '—' }}</td>
                     <td>
                         {% if bet.status.value == 'WON' %}
-                            <span class="badge badge-success">Won</span>
+                            <span class="badge badge-success">{{ bet.status.value | status_label }}</span>
                         {% elif bet.status.value == 'LOST' %}
-                            <span class="badge badge-danger">Lost</span>
+                            <span class="badge badge-danger">{{ bet.status.value | status_label }}</span>
                         {% elif bet.status.value == 'PUSH' %}
-                            <span class="badge badge-warning">Push</span>
+                            <span class="badge badge-warning">{{ bet.status.value | status_label }}</span>
                         {% else %}
-                            <span class="badge badge-info">Pending</span>
+                            <span class="badge badge-info">{{ bet.status.value | status_label }}</span>
                         {% endif %}
                     </td>
                     <td style="color: var(--text-muted); font-size: 0.75rem;">
@@ -51,6 +51,7 @@
                 hx-get="/partials/bet-table?account_id={{ account_id }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_market_type %}&market_type={{ current_market_type }}{% endif %}&offset={{ next_offset }}"
                 hx-target="this"
                 hx-swap="outerHTML">
+            <span class="spinner htmx-indicator"></span>
             Load More
         </button>
     </div>

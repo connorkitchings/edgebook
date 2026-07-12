@@ -20,9 +20,8 @@
         </div>
         <div class="stat-card">
             <div class="label">Net P&L</div>
-            {% set net = (account.current_balance | float) - (account.starting_bankroll | float) %}
-            <div class="value {% if net >= 0 %}positive{% else %}negative{% endif %}">
-                {% if net >= 0 %}+{% endif %}${{ "%.2f" | format(net) }}
+            <div class="value {% if net_pnl_cents >= 0 %}positive{% else %}negative{% endif %}">
+                {% if net_pnl_cents >= 0 %}+{% endif %}{{ net_pnl_cents | format_cents }}
             </div>
         </div>
         <div class="stat-card">
