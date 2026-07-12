@@ -79,6 +79,12 @@ class RunResponse(BaseModel):
     records_created: int
     records_skipped: int
     conflict_count: int
+    retry_count: int
+    requested_snapshot_at: datetime | None
+    provider_snapshot_at: datetime | None
+    quota_used: int | None
+    quota_remaining: int | None
+    error_message: str | None
     started_at: datetime
     finished_at: datetime | None
 

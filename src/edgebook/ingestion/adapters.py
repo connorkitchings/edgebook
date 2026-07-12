@@ -84,7 +84,8 @@ class RemoteProviderAdapter(ABC):
     def __init__(self, *, timeout_seconds: float = 10, max_retries: int = 2) -> None:
         self.timeout_seconds = timeout_seconds
         self.max_retries = max_retries
-        self.quota_remaining: str | None = None
+        self.quota_remaining: int | None = None
+        self.quota_used: int | None = None
 
     async def _get_json(
         self, url: str, *, params: dict[str, str], headers: dict[str, str]
@@ -93,9 +94,10 @@ class RemoteProviderAdapter(ABC):
             for attempt in range(self.max_retries + 1):
                 try:
                     response = await client.get(url, params=params, headers=headers)
-                    self.quota_remaining = response.headers.get(
-                        "x-requests-remaining", self.quota_remaining
-                    )
+                    remaining = response.headers.get("x-requests-remaining")
+                    used = response.headers.get("x-requests-used")
+                    self.quota_remaining = int(remaining) if remaining else None
+                    self.quota_used = int(used) if used else None
                     if response.status_code == 429 and attempt < self.max_retries:
                         continue
                     response.raise_for_status()

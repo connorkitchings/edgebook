@@ -44,6 +44,20 @@
 **Example:**
 > Snapshot `bankroll_before_cents` and analyze stake allocation instead of asking for a separate confidence rating.
 
+### [Date: 2026-07-12]
+
+**Mistake:**
+> Accepted Alembic autogeneration's index-renaming output without first reconciling model metadata with the repository's existing explicit index names.
+
+**Root Cause:**
+> Several older migrations used custom index names while their ORM columns used `index=True`, which made Alembic interpret equivalent indexes as schema changes.
+
+**Rule Added:**
+> Review autogen output before applying it; when prior migrations use named indexes, express those same names explicitly in ORM metadata and keep new migrations limited to intended schema changes.
+
+**Example:**
+> Preserve `ix_provider_observation_game` and add only the new run index instead of dropping and recreating unrelated indexes.
+
 ### [Date: YYYY-MM-DD]
 
 **Mistake:**

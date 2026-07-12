@@ -181,3 +181,37 @@ def quote_comparison(db: Session, game_id: str) -> list[dict]:
                 }
             )
     return rows
+
+
+def odds_history(
+    db: Session,
+    *,
+    game_id: str,
+    source: str | None = None,
+    market_type: MarketType | None = None,
+    selection: MarketSelection | None = None,
+    start: datetime | None = None,
+    end: datetime | None = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> list[MarketQuote]:
+    """Return chronological immutable odds observations for one canonical game."""
+    if db.get(Game, game_id) is None:
+        raise CfbNotFoundError(f"Game {game_id} was not found")
+    query = select(MarketQuote).join(Market).where(Market.game_id == game_id)
+    if source is not None:
+        query = query.where(MarketQuote.source == source)
+    if market_type is not None:
+        query = query.where(Market.market_type == market_type.value)
+    if selection is not None:
+        query = query.where(MarketQuote.selection == selection.value)
+    if start is not None:
+        query = query.where(MarketQuote.observed_at >= start.astimezone(UTC))
+    if end is not None:
+        query = query.where(MarketQuote.observed_at <= end.astimezone(UTC))
+    query = query.order_by(
+        MarketQuote.observed_at.asc(),
+        MarketQuote.created_at.asc(),
+        MarketQuote.id.asc(),
+    )
+    return list(db.scalars(query.limit(limit).offset(offset)))

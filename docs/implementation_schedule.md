@@ -97,6 +97,11 @@ Calculate ROI, win-loss units, bankroll drawdowns, stake-allocation calibration,
 - The Odds API is implemented as the credentialed NCAAF provider for bookmaker-specific current and historical snapshots. SportsDataIO and CollegeFootballData adapters are fixture-ready pending approved credentials and terms.
 - **Deferred:** Production provider adapters, credentials, and source terms for at least three independent providers require key provisioning before live ingestion is ready.
 
+### Phase 4C: Production Odds Data Pilot ▶ IN PROGRESS
+- The Odds API is the first licensed NCAAF provider for daily pregame snapshots from DraftKings, FanDuel, BetMGM, and Caesars.
+- Durable provider-event links, historical backfill checkpoints, quota-aware runs, and bookmaker-specific odds-history reads support a resumable June 6, 2020-present research load.
+- A separate Docker scheduler runs at 08:00 America/New_York; live verification remains blocked until an `ODDS_API_KEY` is provisioned.
+
 ### Phase 5: Rationale Review Workflow ✅ COMPLETE
 - Asynchronous human-review tasks, local completion APIs, an operator queue with atomic claims, review coverage, and bias-tag analytics are implemented.
 - Added `/reviews/{bet_id}` and `/reviews/{bet_id}/complete` endpoints with JSON and HTML responses.

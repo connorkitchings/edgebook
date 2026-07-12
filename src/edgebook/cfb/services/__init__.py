@@ -15,6 +15,7 @@ from edgebook.cfb.services.markets import (
     EXPECTED_SELECTIONS,
     create_market,
     create_quote,
+    odds_history,
     quote_comparison,
 )
 
@@ -31,5 +32,6 @@ __all__ = [
     "EXPECTED_SELECTIONS",
     "create_market",
     "create_quote",
+    "odds_history",
     "quote_comparison",
 ]

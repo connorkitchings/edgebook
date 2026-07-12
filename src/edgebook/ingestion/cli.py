@@ -9,6 +9,7 @@ from pathlib import Path
 from sqlalchemy import func, select
 
 from edgebook.cfb.models import Game, ScoreSyncState
+from edgebook.core.config import settings
 from edgebook.core.database import SessionLocal
 from edgebook.ingestion.adapters import ProviderConfigurationError, load_normalized_feed
 from edgebook.ingestion.providers import (
@@ -17,12 +18,51 @@ from edgebook.ingestion.providers import (
     provider_statuses,
 )
 from edgebook.ingestion.services import (
+    begin_backfill_checkpoint,
+    complete_backfill_checkpoint,
+    fail_backfill_checkpoint,
+    ingestion_lock,
     settle_confirmed_games,
     sync_games,
     sync_quotes,
     sync_scores,
 )
 from edgebook.wagering.reviews import claim_pending_reviews
+
+NCAAF_SPORT = "americanfootball_ncaaf"
+FEATURED_MARKETS = "h2h,spreads,totals"
+BACKFILL_SNAPSHOT_HOUR_UTC = 12
+
+
+def _snapshot_at(value: str) -> datetime:
+    """Parse an ISO date or datetime into the standard daily UTC snapshot time."""
+    parsed = datetime.fromisoformat(value)
+    if parsed.tzinfo is None:
+        return parsed.replace(
+            hour=BACKFILL_SNAPSHOT_HOUR_UTC,
+            minute=0,
+            second=0,
+            microsecond=0,
+            tzinfo=UTC,
+        )
+    return parsed.astimezone(UTC).replace(
+        hour=BACKFILL_SNAPSHOT_HOUR_UTC,
+        minute=0,
+        second=0,
+        microsecond=0,
+    )
+
+
+def run_current_sync(db, provider_name: str) -> dict:
+    """Fetch and persist one provider snapshot while holding the scheduler lock."""
+    with ingestion_lock(db):
+        adapter = configured_provider(provider_name)
+        if hasattr(adapter, "fetch_current_sync"):
+            adapter.fetch_current_sync()
+        games = sync_games(db, adapter)
+        quotes = sync_quotes(db, adapter)
+        scores = sync_scores(db, adapter)
+    return {"games": games, "quotes": quotes, "scores": scores}
 
 
 def main() -> None:  # pragma: no cover
@@ -44,28 +84,59 @@ def main() -> None:  # pragma: no cover
     db = SessionLocal()
     try:
         if args.command == "sync":
-            adapter = (
-                load_normalized_feed(args.feed, args.provider)
-                if args.feed
-                else configured_provider(args.provider)
-            )
-            if not args.feed and hasattr(adapter, "fetch_current_sync"):
-                adapter.fetch_current_sync()
-            print(sync_games(db, adapter))
-            print(sync_quotes(db, adapter))
-            print(sync_scores(db, adapter))
+            if args.feed:
+                adapter = load_normalized_feed(args.feed, args.provider)
+                with ingestion_lock(db):
+                    print(sync_games(db, adapter))
+                    print(sync_quotes(db, adapter))
+                    print(sync_scores(db, adapter))
+            else:
+                print(run_current_sync(db, args.provider))
         elif args.command == "backfill-odds":
-            start = datetime.fromisoformat(args.from_date).replace(tzinfo=UTC)
-            end = datetime.fromisoformat(args.to_date).replace(tzinfo=UTC)
+            start = _snapshot_at(args.from_date)
+            end = _snapshot_at(args.to_date)
             if end < start:
                 raise ProviderConfigurationError("--to must be on or after --from")
             cursor = start
             results = []
-            while cursor <= end:
-                adapter = historical_provider(args.provider, cursor)
-                sync_games(db, adapter)
-                results.append(sync_quotes(db, adapter))
-                cursor += timedelta(days=1)
+            with ingestion_lock(db):
+                while cursor <= end:
+                    checkpoint = begin_backfill_checkpoint(
+                        db,
+                        provider=args.provider,
+                        sport=NCAAF_SPORT,
+                        markets=FEATURED_MARKETS,
+                        bookmakers=settings.ODDS_API_BOOKMAKERS,
+                        requested_snapshot_at=cursor,
+                    )
+                    if checkpoint is None:
+                        results.append(
+                            {"snapshot_at": cursor.isoformat(), "skipped": True}
+                        )
+                        cursor += timedelta(days=1)
+                        continue
+                    try:
+                        historical_adapter = historical_provider(args.provider, cursor)
+                        sync_games(db, historical_adapter, requested_snapshot_at=cursor)
+                        quote_result = sync_quotes(
+                            db, historical_adapter, requested_snapshot_at=cursor
+                        )
+                        complete_backfill_checkpoint(
+                            db, checkpoint, run_id=quote_result["run_id"]
+                        )
+                        results.append(quote_result)
+                    except Exception as error:
+                        fail_backfill_checkpoint(db, checkpoint, error)
+                        raise
+                    if (
+                        historical_adapter.quota_remaining is not None
+                        and historical_adapter.quota_remaining
+                        < settings.INGESTION_MIN_QUOTA_REMAINING
+                    ):
+                        raise ProviderConfigurationError(
+                            "Stopping backfill before provider quota exhaustion"
+                        )
+                    cursor += timedelta(days=1)
             print({"snapshots": len(results), "runs": results})
         elif args.command == "settle-confirmed":
             print({"settled": settle_confirmed_games(db)})

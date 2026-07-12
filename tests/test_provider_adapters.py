@@ -1,5 +1,6 @@
 """Contract tests for recurring and historical odds provider mappings."""
 
+from copy import deepcopy
 from datetime import UTC, datetime
 
 import pytest
@@ -84,6 +85,29 @@ def test_odds_api_maps_bookmakers_and_all_supported_markets(db_session):
     assert sync_games(db_session, adapter)["created"] == 1
     assert sync_quotes(db_session, adapter)["created"] == 8
     assert sync_quotes(db_session, adapter)["skipped"] == 8
+
+
+def test_odds_api_maps_the_production_bookmaker_set_for_all_featured_markets():
+    """The daily feed keeps every requested book and featured market distinct."""
+    payload = deepcopy(ODDS_PAYLOAD)
+    template = payload[0]["bookmakers"][0]
+    for bookmaker in ("fanduel", "betmgm", "caesars"):
+        copied = deepcopy(template)
+        copied["key"] = bookmaker
+        payload[0]["bookmakers"].append(copied)
+
+    quotes = TheOddsApiAdapter("", payload=payload).quotes()
+    for bookmaker in ("draftkings", "fanduel", "betmgm", "caesars"):
+        market_types = {
+            quote.market_type
+            for quote in quotes
+            if quote.source == f"the-odds-api:{bookmaker}"
+        }
+        assert market_types == {
+            MarketType.MONEYLINE,
+            MarketType.SPREAD,
+            MarketType.TOTAL,
+        }
 
 
 def test_odds_api_requires_key_for_live_calls():

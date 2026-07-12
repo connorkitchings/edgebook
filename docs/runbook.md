@@ -85,10 +85,17 @@ ODDS_API_KEY=... uv run python scripts/odds_api_smoke.py
 ODDS_API_KEY=... uv run python scripts/odds_api_smoke.py --historical-date 2025-09-01
 ```
 
-The conservative research schedule is one current sync per day outside game week, hourly during
-game week, and every 10 minutes in the six pregame hours. Historical backfills request one daily
-snapshot at a time and can safely be rerun because provider observations are immutable and
-idempotent.
+The production pregame worker runs once daily at 08:00 America/New_York and requests the
+DraftKings, FanDuel, BetMGM, and Caesars featured markets (`h2h`, `spreads`, and `totals`). It
+is a separate Docker service, not part of the FastAPI process. Ingestion runs record the requested
+and provider snapshot times plus remaining provider quota.
+
+Historical backfills request one daily 12:00 UTC snapshot at a time. Each request receives a
+durable checkpoint keyed by provider, sport, markets, bookmaker set, and requested timestamp;
+rerunning the same range skips completed days and resumes failed ones. Start the full research
+load at the provider's supported date (`2020-06-06`) only after a small three-day smoke backfill.
+The worker stops future requests once the configured `INGESTION_MIN_QUOTA_REMAINING` reserve is
+reached.
 
 Fixture and settlement commands remain available:
 

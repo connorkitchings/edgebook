@@ -26,8 +26,9 @@ class Settings(BaseSettings):
     COLLEGE_FOOTBALL_DATA_API_KEY: str = ""
     INGESTION_HTTP_TIMEOUT_SECONDS: float = Field(default=10.0, gt=0, le=60)
     INGESTION_HTTP_MAX_RETRIES: int = Field(default=2, ge=0, le=5)
+    INGESTION_MIN_QUOTA_REMAINING: int = Field(default=100, ge=0)
     ODDS_API_REGIONS: str = "us"
-    ODDS_API_BOOKMAKERS: str = ""
+    ODDS_API_BOOKMAKERS: str = "draftkings,fanduel,betmgm,caesars"
 
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"

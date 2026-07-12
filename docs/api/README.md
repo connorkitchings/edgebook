@@ -85,6 +85,7 @@ derived from stake divided by the placement bankroll rather than a subjective sc
 - **POST /ingestion/conflicts/{game_id}/resolve:** Record a local operator score decision and
   make the game eligible for settlement.
 - **GET /cfb/games/{game_id}/quote-comparison:** Returns best and worst provider quote IDs for each market selection without creating a canonical line. Place bets with a specific `quote_id` whenever multiple source quotes exist.
+- **GET /cfb/games/{game_id}/odds-history:** Returns chronological immutable odds observations for one game. Filter by `source`, `market_type`, `selection`, `start`, `end`, `limit`, and `offset`; each item retains its bookmaker source and provider event ID.
 - **PUT /cfb/games/{game_id}/resolve-score-conflict:** Locally resolves a held provider-score conflict, records an audit decision, and settles the game atomically.
 - **GET /accounts/{account_id}/bets/{bet_id}/review:** Returns the asynchronous human-review task for a bet.
 - **PUT /accounts/{account_id}/bets/{bet_id}/review:** Completes a local human review with summary and cognitive-bias flags.
@@ -92,7 +93,7 @@ derived from stake divided by the placement bankroll rather than a subjective sc
 - **POST /reviews/{bet_id}/claim:** Atomically claims a pending review for a named local operator.
 
 The scheduler-neutral command surface is `python -m edgebook.ingestion.cli`: use `sync` with a
-normalized feed or `--provider the-odds-api`, `backfill-odds` for daily historical snapshots,
+normalized feed or `--provider the-odds-api`, `backfill-odds` for resumable daily historical snapshots,
 `providers`, `settle-confirmed`, `claim-reviews`, and `report`. Production scheduling must invoke
 these idempotent commands outside the API process.
 

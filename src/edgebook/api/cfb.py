@@ -28,6 +28,7 @@ from edgebook.cfb.services import (
     create_team,
     get_game,
     list_games,
+    odds_history,
     quote_comparison,
 )
 from edgebook.core.database import get_db
@@ -355,6 +356,35 @@ class QuoteComparisonResponse(BaseModel):
     worst_quote_id: str
 
 
+class OddsHistoryResponse(BaseModel):
+    """One immutable provider quote observation for charting line movement."""
+
+    quote_id: str
+    market_id: str
+    market_type: MarketType
+    selection: MarketSelection
+    line: str | None
+    american_odds: int
+    source: str | None
+    source_event_id: str | None
+    observed_at: str | None
+
+
+def odds_history_response(quote: MarketQuote) -> OddsHistoryResponse:
+    """Render source-specific historical odds with its market context."""
+    return OddsHistoryResponse(
+        quote_id=quote.id,
+        market_id=quote.market_id,
+        market_type=MarketType(quote.market.market_type),
+        selection=MarketSelection(quote.selection),
+        line=millipoints_to_string(quote.market.line_millipoints),
+        american_odds=quote.american_odds,
+        source=quote.source,
+        source_event_id=quote.source_event_id,
+        observed_at=quote.observed_at.isoformat() if quote.observed_at else None,
+    )
+
+
 @router.get(
     "/games/{game_id}/quote-comparison", response_model=list[QuoteComparisonResponse]
 )
@@ -367,6 +397,42 @@ def quote_comparison_endpoint(
     except Exception as error:
         raise_cfb_http_error(error)
     return [QuoteComparisonResponse(**row) for row in rows]
+
+
+@router.get("/games/{game_id}/odds-history", response_model=list[OddsHistoryResponse])
+def odds_history_endpoint(
+    game_id: str,
+    source: str | None = Query(default=None, max_length=100),
+    market_type: MarketType | None = Query(default=None),
+    selection: MarketSelection | None = Query(default=None),
+    start: datetime | None = Query(default=None),
+    end: datetime | None = Query(default=None),
+    limit: int = Query(default=50, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
+    db: Session = Depends(get_db),
+) -> list[OddsHistoryResponse]:
+    """Read chronological, bookmaker-specific pregame odds observations."""
+    if start is not None and (start.tzinfo is None or start.utcoffset() is None):
+        raise HTTPException(status_code=422, detail="start must include a timezone")
+    if end is not None and (end.tzinfo is None or end.utcoffset() is None):
+        raise HTTPException(status_code=422, detail="end must include a timezone")
+    if start is not None and end is not None and start > end:
+        raise HTTPException(status_code=422, detail="start cannot be after end")
+    try:
+        quotes = odds_history(
+            db,
+            game_id=game_id,
+            source=source,
+            market_type=market_type,
+            selection=selection,
+            start=start,
+            end=end,
+            limit=limit,
+            offset=offset,
+        )
+    except Exception as error:
+        raise_cfb_http_error(error)
+    return [odds_history_response(quote) for quote in quotes]
 
 
 class GameResultCreate(BaseModel):

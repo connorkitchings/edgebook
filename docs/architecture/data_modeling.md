@@ -47,6 +47,19 @@ Edgebook uses PostgreSQL (SQLite for local development) with SQLAlchemy 2.0 ORM.
 - `selection`: `HOME`, `AWAY`, `OVER`, or `UNDER`
 - `american_odds`: Signed integer with magnitude >= 100
 - UNIQUE constraint: `(market_id, selection)` — one quote per selection per market
+- Provider quotes retain `source`, `source_event_id`, `source_quote_id`, and `observed_at`; a
+  quote is append-only so its source-specific history remains available for research.
+
+### Ingestion Operations Boundary
+
+**ProviderEventLink** (`ingestion_provider_event_links`)
+- Maps a provider event identifier to one canonical CFB game and survives provider schedule changes.
+
+**BackfillCheckpoint** (`ingestion_backfill_checkpoints`)
+- Records completion or failure for one requested historical snapshot and makes backfills resumable.
+
+**IngestionRun** (`ingestion_runs`)
+- Stores source scope, requested/provider snapshot times, record counts, failure detail, and provider quota metadata.
 
 ### Wagering Boundary
 

@@ -10,6 +10,7 @@ from sqlalchemy import (
     CheckConstraint,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     String,
     Text,
@@ -179,6 +180,8 @@ class MarketQuote(Base):
             "source_quote_id",
             name="uq_quote_market_selection_source",
         ),
+        Index("ix_cfb_market_quotes_market_observed", "market_id", "observed_at"),
+        Index("ix_cfb_market_quotes_source_observed", "source", "observed_at"),
     )
 
     id: Mapped[str] = mapped_column(
@@ -191,6 +194,7 @@ class MarketQuote(Base):
     american_odds: Mapped[int] = mapped_column(Integer, nullable=False)
     source: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
     source_quote_id: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    source_event_id: Mapped[str | None] = mapped_column(String(200), nullable=True)
     observed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utc_now
@@ -212,13 +216,14 @@ class ScoreObservation(Base):
             "away_score",
             name="uq_score_observation_identity",
         ),
+        Index("ix_score_observations_game", "game_id"),
     )
 
     id: Mapped[str] = mapped_column(
         String(36), primary_key=True, default=lambda: str(uuid4())
     )
     game_id: Mapped[str] = mapped_column(
-        ForeignKey("cfb_games.id", ondelete="RESTRICT"), nullable=False, index=True
+        ForeignKey("cfb_games.id", ondelete="RESTRICT"), nullable=False
     )
     source: Mapped[str] = mapped_column(String(100), nullable=False)
     source_event_id: Mapped[str] = mapped_column(String(200), nullable=False)
@@ -234,12 +239,13 @@ class ScoreResolution(Base):
     """Operator decision that resolves a held external-score conflict."""
 
     __tablename__ = "cfb_score_resolutions"
+    __table_args__ = (Index("ix_score_resolutions_game", "game_id"),)
 
     id: Mapped[str] = mapped_column(
         String(36), primary_key=True, default=lambda: str(uuid4())
     )
     game_id: Mapped[str] = mapped_column(
-        ForeignKey("cfb_games.id", ondelete="RESTRICT"), nullable=False, index=True
+        ForeignKey("cfb_games.id", ondelete="RESTRICT"), nullable=False
     )
     home_score: Mapped[int] = mapped_column(Integer, nullable=False)
     away_score: Mapped[int] = mapped_column(Integer, nullable=False)

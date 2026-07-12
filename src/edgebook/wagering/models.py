@@ -6,7 +6,15 @@ from datetime import UTC, datetime
 from enum import Enum
 from uuid import uuid4
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import (
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from edgebook.core.database import Base
@@ -111,6 +119,7 @@ class BetReview(Base):
     """Human-review task and result for a placed simulated bet rationale."""
 
     __tablename__ = "wagering_bet_reviews"
+    __table_args__ = (Index("ix_wagering_bet_reviews_bet", "bet_id"),)
 
     id: Mapped[str] = mapped_column(
         String(36), primary_key=True, default=lambda: str(uuid4())
@@ -119,7 +128,6 @@ class BetReview(Base):
         ForeignKey("wagering_bets.id", ondelete="RESTRICT"),
         nullable=False,
         unique=True,
-        index=True,
     )
     status: Mapped[str] = mapped_column(
         String(32), nullable=False, default=ReviewStatus.PENDING.value

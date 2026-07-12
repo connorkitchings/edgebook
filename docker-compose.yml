@@ -35,6 +35,22 @@ services:
       start_period: 5s
     restart: unless-stopped
 
+  ingestion-worker:
+    build: .
+    command: ["python", "-m", "edgebook.ingestion.scheduler"]
+    environment:
+      - DATABASE_URL=postgresql://edgebook:edgebook@db:5432/edgebook
+      - ODDS_API_KEY=${ODDS_API_KEY:-}
+      - ODDS_API_REGIONS=${ODDS_API_REGIONS:-us}
+      - ODDS_API_BOOKMAKERS=${ODDS_API_BOOKMAKERS:-draftkings,fanduel,betmgm,caesars}
+      - INGESTION_HTTP_TIMEOUT_SECONDS=${INGESTION_HTTP_TIMEOUT_SECONDS:-10}
+      - INGESTION_HTTP_MAX_RETRIES=${INGESTION_HTTP_MAX_RETRIES:-2}
+      - INGESTION_MIN_QUOTA_REMAINING=${INGESTION_MIN_QUOTA_REMAINING:-100}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
   db:
     image: postgres:16-alpine
     environment:

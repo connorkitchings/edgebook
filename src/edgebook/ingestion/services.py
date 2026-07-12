@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+from contextlib import contextmanager
 from datetime import UTC, datetime
+from typing import Iterator
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
 from edgebook.cfb.models import (
@@ -22,7 +24,12 @@ from edgebook.cfb.models import (
 )
 from edgebook.cfb.services import EXPECTED_SELECTIONS, normalize_team_name
 from edgebook.ingestion.adapters import ProviderAdapter
-from edgebook.ingestion.models import IngestionRun, ProviderObservation
+from edgebook.ingestion.models import (
+    BackfillCheckpoint,
+    IngestionRun,
+    ProviderEventLink,
+    ProviderObservation,
+)
 from edgebook.wagering.services import record_game_result
 
 
@@ -38,13 +45,60 @@ class IngestionConflictError(IngestionError):
     pass
 
 
+class IngestionLockedError(IngestionConflictError):
+    """Raised when another ingestion job currently owns the production lock."""
+
+
+INGESTION_ADVISORY_LOCK_ID = 1_043_207_691
+
+
+@contextmanager
+def ingestion_lock(db: Session) -> Iterator[None]:
+    """Serialize scheduler jobs with a PostgreSQL advisory lock.
+
+    SQLite deliberately remains lock-free so the same services can run in the
+    local development and test environment.
+    """
+    if db.bind is None or db.bind.dialect.name != "postgresql":
+        yield
+        return
+    acquired = db.scalar(
+        text("SELECT pg_try_advisory_lock(:lock_id)"),
+        {"lock_id": INGESTION_ADVISORY_LOCK_ID},
+    )
+    if not acquired:
+        raise IngestionLockedError("Another ingestion job is already running")
+    try:
+        yield
+    finally:
+        db.execute(
+            text("SELECT pg_advisory_unlock(:lock_id)"),
+            {"lock_id": INGESTION_ADVISORY_LOCK_ID},
+        )
+
+
 def _payload_hash(payload: dict) -> tuple[str, str]:
     raw = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
     return raw, hashlib.sha256(raw.encode()).hexdigest()
 
 
-def _run(db: Session, provider: str, scope: str) -> IngestionRun:
-    run = IngestionRun(provider=provider, scope=scope, status="RUNNING")
+def _run(
+    db: Session,
+    provider: str,
+    scope: str,
+    *,
+    adapter: ProviderAdapter | None = None,
+    requested_snapshot_at: datetime | None = None,
+) -> IngestionRun:
+    run = IngestionRun(
+        provider=provider,
+        scope=scope,
+        status="RUNNING",
+        requested_snapshot_at=requested_snapshot_at,
+        provider_snapshot_at=getattr(adapter, "snapshot_at", None),
+        quota_used=getattr(adapter, "quota_used", None),
+        quota_remaining=getattr(adapter, "quota_remaining", None),
+    )
     db.add(run)
     db.flush()
     return run
@@ -62,6 +116,34 @@ def _finish(db: Session, run: IngestionRun, status: str = "COMPLETED") -> dict:
         "skipped": run.records_skipped,
         "conflicts": run.conflict_count,
     }
+
+
+def _fail(db: Session, run: IngestionRun, error: Exception) -> None:
+    """Persist a durable failed-run record after rolling back partial domain writes."""
+    run_values = {
+        "provider": run.provider,
+        "scope": run.scope,
+        "records_seen": run.records_seen,
+        "records_created": run.records_created,
+        "records_skipped": run.records_skipped,
+        "conflict_count": run.conflict_count,
+        "retry_count": run.retry_count,
+        "requested_snapshot_at": run.requested_snapshot_at,
+        "provider_snapshot_at": run.provider_snapshot_at,
+        "quota_used": run.quota_used,
+        "quota_remaining": run.quota_remaining,
+        "started_at": run.started_at,
+    }
+    db.rollback()
+    db.add(
+        IngestionRun(
+            **run_values,
+            status="FAILED",
+            error_message=f"{type(error).__name__}: {error}"[:1000],
+            finished_at=datetime.now(UTC),
+        )
+    )
+    db.commit()
 
 
 def _existing_observation(
@@ -116,6 +198,22 @@ def _team(db: Session, name: str) -> Team:
 
 def _game_for_external_id(db: Session, provider: str, external_id: str) -> Game | None:
     game_id = db.scalar(
+        select(ProviderEventLink.game_id).where(
+            ProviderEventLink.provider == provider,
+            ProviderEventLink.external_event_id == external_id,
+        )
+    )
+    return db.get(Game, game_id) if game_id else None
+
+
+def _link_existing_provider_event(
+    db: Session, provider: str, external_id: str
+) -> Game | None:
+    """Create an explicit link for observations written before this migration."""
+    game = _game_for_external_id(db, provider, external_id)
+    if game is not None:
+        return game
+    legacy_game_id = db.scalar(
         select(ProviderObservation.game_id)
         .where(
             ProviderObservation.provider == provider,
@@ -125,12 +223,35 @@ def _game_for_external_id(db: Session, provider: str, external_id: str) -> Game 
         )
         .order_by(ProviderObservation.observed_at.desc())
     )
-    return db.get(Game, game_id) if game_id else None
+    if legacy_game_id is None:
+        return None
+    game = db.get(Game, legacy_game_id)
+    if game is not None:
+        db.add(
+            ProviderEventLink(
+                provider=provider,
+                external_event_id=external_id,
+                game_id=game.id,
+            )
+        )
+        db.flush()
+    return game
 
 
-def sync_games(db: Session, adapter: ProviderAdapter) -> dict:
+def sync_games(
+    db: Session,
+    adapter: ProviderAdapter,
+    *,
+    requested_snapshot_at: datetime | None = None,
+) -> dict:
     """Persist games and schedule changes without duplicating provider observations."""
-    run = _run(db, adapter.name, "GAMES")
+    run = _run(
+        db,
+        adapter.name,
+        "GAMES",
+        adapter=adapter,
+        requested_snapshot_at=requested_snapshot_at,
+    )
     try:
         for record in adapter.games():
             run.records_seen += 1
@@ -143,6 +264,7 @@ def sync_games(db: Session, adapter: ProviderAdapter) -> dict:
             if _existing_observation(
                 db, adapter.name, "GAMES", record.external_id, digest
             ):
+                _link_existing_provider_event(db, adapter.name, record.external_id)
                 run.records_skipped += 1
                 continue
             game = _game_for_external_id(db, adapter.name, record.external_id)
@@ -169,6 +291,22 @@ def sync_games(db: Session, adapter: ProviderAdapter) -> dict:
                     db.flush()
             elif game.status == GameStatus.SCHEDULED.value:
                 game.scheduled_at = record.scheduled_at.astimezone(UTC)
+            link = db.scalar(
+                select(ProviderEventLink).where(
+                    ProviderEventLink.provider == adapter.name,
+                    ProviderEventLink.external_event_id == record.external_id,
+                )
+            )
+            if link is None:
+                db.add(
+                    ProviderEventLink(
+                        provider=adapter.name,
+                        external_event_id=record.external_id,
+                        game_id=game.id,
+                    )
+                )
+            else:
+                link.last_seen_at = datetime.now(UTC)
             _remember(
                 db,
                 run=run,
@@ -178,13 +316,24 @@ def sync_games(db: Session, adapter: ProviderAdapter) -> dict:
             )
         return _finish(db, run)
     except Exception as error:
-        db.rollback()
+        _fail(db, run, error)
         raise IngestionError(str(error)) from error
 
 
-def sync_quotes(db: Session, adapter: ProviderAdapter) -> dict:
+def sync_quotes(
+    db: Session,
+    adapter: ProviderAdapter,
+    *,
+    requested_snapshot_at: datetime | None = None,
+) -> dict:
     """Persist every source quote observation; no provider value is overwritten."""
-    run = _run(db, adapter.name, "ODDS")
+    run = _run(
+        db,
+        adapter.name,
+        "ODDS",
+        adapter=adapter,
+        requested_snapshot_at=requested_snapshot_at,
+    )
     try:
         for record in adapter.quotes():
             run.records_seen += 1
@@ -229,6 +378,7 @@ def sync_quotes(db: Session, adapter: ProviderAdapter) -> dict:
                 american_odds=record.american_odds,
                 source=record.source or adapter.name,
                 source_quote_id=f"{record.external_id}:{digest[:12]}",
+                source_event_id=record.game_external_id,
                 observed_at=record.observed_at.astimezone(UTC),
             )
             db.add(quote)
@@ -252,13 +402,24 @@ def sync_quotes(db: Session, adapter: ProviderAdapter) -> dict:
             )
         return _finish(db, run)
     except Exception as error:
-        db.rollback()
+        _fail(db, run, error)
         raise IngestionError(str(error)) from error
 
 
-def sync_scores(db: Session, adapter: ProviderAdapter) -> dict:
+def sync_scores(
+    db: Session,
+    adapter: ProviderAdapter,
+    *,
+    requested_snapshot_at: datetime | None = None,
+) -> dict:
     """Persist score observations and hold games where sources disagree."""
-    run = _run(db, adapter.name, "SCORES")
+    run = _run(
+        db,
+        adapter.name,
+        "SCORES",
+        adapter=adapter,
+        requested_snapshot_at=requested_snapshot_at,
+    )
     try:
         touched_games: set[str] = set()
         for record in adapter.scores():
@@ -322,7 +483,7 @@ def sync_scores(db: Session, adapter: ProviderAdapter) -> dict:
                 game.score_sync_state = ScoreSyncState.UNCONFIRMED.value
         return _finish(db, run)
     except Exception as error:
-        db.rollback()
+        _fail(db, run, error)
         raise IngestionError(str(error)) from error
 
 
@@ -353,6 +514,68 @@ def settle_confirmed_games(db: Session) -> int:
         )
         settled += 1
     return settled
+
+
+def begin_backfill_checkpoint(
+    db: Session,
+    *,
+    provider: str,
+    sport: str,
+    markets: str,
+    bookmakers: str,
+    requested_snapshot_at: datetime,
+) -> BackfillCheckpoint | None:
+    """Claim a historical snapshot unless it completed during an earlier run."""
+    checkpoint = db.scalar(
+        select(BackfillCheckpoint).where(
+            BackfillCheckpoint.provider == provider,
+            BackfillCheckpoint.sport == sport,
+            BackfillCheckpoint.markets == markets,
+            BackfillCheckpoint.bookmakers == bookmakers,
+            BackfillCheckpoint.requested_snapshot_at
+            == requested_snapshot_at.astimezone(UTC),
+        )
+    )
+    if checkpoint is not None and checkpoint.status == "COMPLETED":
+        return None
+    if checkpoint is None:
+        checkpoint = BackfillCheckpoint(
+            provider=provider,
+            sport=sport,
+            markets=markets,
+            bookmakers=bookmakers,
+            requested_snapshot_at=requested_snapshot_at.astimezone(UTC),
+        )
+        db.add(checkpoint)
+    checkpoint.status = "RUNNING"
+    checkpoint.error_message = None
+    checkpoint.completed_at = None
+    db.commit()
+    db.refresh(checkpoint)
+    return checkpoint
+
+
+def complete_backfill_checkpoint(
+    db: Session,
+    checkpoint: BackfillCheckpoint,
+    *,
+    run_id: str | None,
+) -> None:
+    """Mark one requested snapshot complete, including empty provider responses."""
+    checkpoint.status = "COMPLETED"
+    checkpoint.run_id = run_id
+    checkpoint.completed_at = datetime.now(UTC)
+    checkpoint.error_message = None
+    db.commit()
+
+
+def fail_backfill_checkpoint(
+    db: Session, checkpoint: BackfillCheckpoint, error: Exception
+) -> None:
+    """Persist sanitized failure state so a later invocation can resume it."""
+    checkpoint.status = "FAILED"
+    checkpoint.error_message = f"{type(error).__name__}: {error}"[:1000]
+    db.commit()
 
 
 def resolve_score_conflict(

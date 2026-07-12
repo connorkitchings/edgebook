@@ -1158,6 +1158,86 @@
         "title": "MarketTypeBreakdown",
         "type": "object"
       },
+      "OddsHistoryResponse": {
+        "description": "One immutable provider quote observation for charting line movement.",
+        "properties": {
+          "american_odds": {
+            "title": "American Odds",
+            "type": "integer"
+          },
+          "line": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Line"
+          },
+          "market_id": {
+            "title": "Market Id",
+            "type": "string"
+          },
+          "market_type": {
+            "$ref": "#/components/schemas/MarketType"
+          },
+          "observed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed At"
+          },
+          "quote_id": {
+            "title": "Quote Id",
+            "type": "string"
+          },
+          "selection": {
+            "$ref": "#/components/schemas/MarketSelection"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "source_event_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Event Id"
+          }
+        },
+        "required": [
+          "quote_id",
+          "market_id",
+          "market_type",
+          "selection",
+          "line",
+          "american_odds",
+          "source",
+          "source_event_id",
+          "observed_at"
+        ],
+        "title": "OddsHistoryResponse",
+        "type": "object"
+      },
       "ProviderStatusResponse": {
         "properties": {
           "configured": {
@@ -1861,6 +1941,17 @@
             "title": "Conflict Count",
             "type": "integer"
           },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          },
           "finished_at": {
             "anyOf": [
               {
@@ -1881,6 +1972,40 @@
             "title": "Provider",
             "type": "string"
           },
+          "provider_snapshot_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider Snapshot At"
+          },
+          "quota_remaining": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quota Remaining"
+          },
+          "quota_used": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quota Used"
+          },
           "records_created": {
             "title": "Records Created",
             "type": "integer"
@@ -1891,6 +2016,22 @@
           },
           "records_skipped": {
             "title": "Records Skipped",
+            "type": "integer"
+          },
+          "requested_snapshot_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requested Snapshot At"
+          },
+          "retry_count": {
+            "title": "Retry Count",
             "type": "integer"
           },
           "scope": {
@@ -1916,6 +2057,12 @@
           "records_created",
           "records_skipped",
           "conflict_count",
+          "retry_count",
+          "requested_snapshot_at",
+          "provider_snapshot_at",
+          "quota_used",
+          "quota_remaining",
+          "error_message",
           "started_at",
           "finished_at"
         ],
@@ -3323,6 +3470,159 @@
           }
         },
         "summary": "Create Market Endpoint",
+        "tags": [
+          "college-football"
+        ]
+      }
+    },
+    "/cfb/games/{game_id}/odds-history": {
+      "get": {
+        "description": "Read chronological, bookmaker-specific pregame odds observations.",
+        "operationId": "odds_history_endpoint_cfb_games__game_id__odds_history_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "game_id",
+            "required": true,
+            "schema": {
+              "title": "Game Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "source",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Source"
+            }
+          },
+          {
+            "in": "query",
+            "name": "market_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/MarketType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Market Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "selection",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/MarketSelection"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Selection"
+            }
+          },
+          {
+            "in": "query",
+            "name": "start",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Start"
+            }
+          },
+          {
+            "in": "query",
+            "name": "end",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "End"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/OddsHistoryResponse"
+                  },
+                  "title": "Response Odds History Endpoint Cfb Games  Game Id  Odds History Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Odds History Endpoint",
         "tags": [
           "college-football"
         ]
