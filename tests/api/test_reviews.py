@@ -79,3 +79,54 @@ def test_source_specific_bet_and_human_review_flow(client, db_session):
     assert reviews["completed"] == 1
     assert reviews["coverage"] == 1.0
     assert reviews["bias_flags"] == [{"flag": "RECENCY_BIAS", "count": 1}]
+
+
+def test_operator_queue_claims_reviews_and_enforces_claiming_reviewer(client):
+    """Local operators can claim only pending tasks and must complete their own work."""
+    account = create_account(client)
+    _, market = create_open_market(client, market_type="MONEYLINE", line=None)
+    placed = client.post(
+        f"/accounts/{account['id']}/bets",
+        json={
+            "market_id": market["id"],
+            "selection": "HOME",
+            "stake": "10.00",
+            "reason": "Review queue coverage",
+        },
+    )
+    assert placed.status_code == 201
+    bet_id = placed.json()["bet"]["id"]
+
+    queue = client.get("/reviews?status=PENDING")
+    assert queue.status_code == 200
+    assert queue.json()["total"] == 1
+    assert queue.json()["items"][0]["bet_id"] == bet_id
+
+    claim = client.post(f"/reviews/{bet_id}/claim", json={"reviewer_label": "Dana"})
+    assert claim.status_code == 200
+    assert claim.json()["status"] == "IN_REVIEW"
+    assert claim.json()["reviewer_label"] == "Dana"
+    assert (
+        client.post(
+            f"/reviews/{bet_id}/claim", json={"reviewer_label": "Alex"}
+        ).status_code
+        == 409
+    )
+
+    wrong_operator = client.put(
+        f"/accounts/{account['id']}/bets/{bet_id}/review",
+        json={"reviewer_label": "Alex", "summary": "Cannot complete another claim."},
+    )
+    assert wrong_operator.status_code == 409
+    completed = client.put(
+        f"/accounts/{account['id']}/bets/{bet_id}/review",
+        json={"reviewer_label": "Dana", "summary": "Evidence is testable."},
+    )
+    assert completed.status_code == 200
+    assert completed.json()["status"] == "COMPLETED"
+    assert (
+        client.post(
+            f"/reviews/{bet_id}/claim", json={"reviewer_label": "Dana"}
+        ).status_code
+        == 409
+    )

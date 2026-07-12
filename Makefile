@@ -1,4 +1,4 @@
-.PHONY: help install test lint format format-check migrate docs docs-serve clean all dev docker-build docker-up docker-down session-start session-end
+.PHONY: help install test lint format format-check migrate docs docs-serve clean all dev docker-build docker-up docker-down docker-smoke session-start session-end
 
 help:	## Show this help message
 	@echo 'Usage: make [target]'
@@ -57,6 +57,9 @@ docker-up:	## Start app and Postgres via Docker Compose
 
 docker-down:	## Stop Docker Compose services
 	docker compose down
+
+docker-smoke:	## Verify a fresh Docker/Postgres deployment, then remove its volume
+	bash scripts/docker_smoke.sh
 
 session-start:	## Show session startup checklist
 	@echo "=== Session Startup ==="

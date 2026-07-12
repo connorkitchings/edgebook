@@ -53,6 +53,19 @@ def test_list_runs_empty(client: TestClient):
     assert data["total"] == 0
 
 
+def test_provider_statuses_hide_credentials(client: TestClient):
+    """Provider discovery reports capabilities but never credential values."""
+    response = client.get("/ingestion/providers")
+    assert response.status_code == 200
+    data = response.json()
+    assert {item["name"] for item in data} == {
+        "the-odds-api",
+        "sportsdataio",
+        "college-football-data",
+    }
+    assert all("key" not in item for item in data)
+
+
 def test_list_runs_after_sync(client: TestClient):
     """List runs shows sync history after a sync."""
     client.post("/ingestion/sync/games")

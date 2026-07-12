@@ -19,6 +19,20 @@
 ### [Date: 2026-07-11]
 
 **Mistake:**
+> Assumed the Alembic CLI would inherit `DATABASE_URL` from application settings during Docker deployment.
+
+**Root Cause:**
+> The migration environment used the static `alembic.ini` URL directly, so the migration container silently applied revisions to its local SQLite database instead of Postgres.
+
+**Rule Added:**
+> For every deployment target, smoke-test a fresh database and assert both the Alembic head revision and application health; ensure Alembic resolves the same database URL as the application while preserving explicit test overrides.
+
+**Example:**
+> The Compose smoke script starts an empty Postgres volume, reads `alembic_version`, compares it to `alembic heads`, then verifies `/health` before cleanup.
+
+### [Date: 2026-07-11]
+
+**Mistake:**
 > Treated the schedule's explicit confidence field as a settled requirement for simulated bets.
 
 **Root Cause:**

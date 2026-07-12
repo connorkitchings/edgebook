@@ -6,12 +6,18 @@ from sqlalchemy import engine_from_config, pool
 
 from alembic import context
 from edgebook.cfb import models as cfb_models  # noqa: F401
+from edgebook.core.config import settings
 from edgebook.core.database import Base
 from edgebook.ingestion import models as ingestion_models  # noqa: F401
 from edgebook.ledger import models as ledger_models  # noqa: F401
 from edgebook.wagering import models as wagering_models  # noqa: F401
 
 config = context.config
+
+# Keep explicit Alembic overrides (such as isolated test databases) intact, while
+# allowing the default local URL to follow the application's DATABASE_URL setting.
+if config.get_main_option("sqlalchemy.url") == "sqlite:///./edgebook.db":
+    config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)

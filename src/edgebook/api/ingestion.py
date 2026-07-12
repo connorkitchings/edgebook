@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from edgebook.core.database import get_db
 from edgebook.ingestion.adapters import load_normalized_feed
+from edgebook.ingestion.providers import provider_statuses
 from edgebook.ingestion.services import (
     IngestionConflictError,
     IngestionError,
@@ -46,6 +47,13 @@ class SyncResponse(BaseModel):
     created: int
     skipped: int
     conflicts: int
+
+
+class ProviderStatusResponse(BaseModel):
+    name: str
+    configured: bool
+    live_enabled: bool
+    supports_historical: bool
 
 
 class SettleResponse(BaseModel):
@@ -108,6 +116,12 @@ def raise_ingestion_http_error(error: Exception) -> None:
     if isinstance(error, IngestionError):
         raise HTTPException(status_code=422, detail=str(error)) from error
     raise error
+
+
+@router.get("/providers", response_model=list[ProviderStatusResponse])
+def list_provider_statuses() -> list[ProviderStatusResponse]:
+    """List configured ingestion providers without disclosing credentials."""
+    return [ProviderStatusResponse(**status.__dict__) for status in provider_statuses()]
 
 
 @router.post("/sync/games", response_model=SyncResponse)

@@ -1,6 +1,6 @@
 # Stage 1: Builder
-# This stage installs all dependencies, including dev dependencies, to create a build environment.
-FROM python:3.11-slim as builder
+# This stage installs the application and migration dependencies.
+FROM python:3.11-slim AS builder
 
 # Install uv, the package manager
 RUN pip install uv
@@ -12,14 +12,13 @@ WORKDIR /app
 COPY pyproject.toml uv.lock* ./
 COPY src/ src/
 
-# Install all dependencies, including development extras, into a virtual environment
-# This creates a self-contained environment that we can copy to the next stage.
+# Install runtime dependencies into a self-contained virtual environment.
 RUN uv venv
-RUN . .venv/bin/activate && uv sync --all-extras
+RUN . .venv/bin/activate && uv sync --no-dev
 
 # Stage 2: Runtime
 # This is the final, lean image for production.
-FROM python:3.11-slim as runtime
+FROM python:3.11-slim AS runtime
 
 # Set the working directory
 WORKDIR /app
@@ -32,6 +31,10 @@ COPY --from=builder /app/.venv ./.venv
 
 # Copy the application source code
 COPY src/ src/
+
+# Copy Alembic configuration and revisions for the one-shot migration service.
+COPY alembic/ alembic/
+COPY alembic.ini ./
 
 # Copy fixture data for ingestion sync triggers
 COPY data/ data/

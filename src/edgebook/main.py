@@ -11,6 +11,7 @@ from edgebook.api.analytics import router as analytics_router
 from edgebook.api.cfb import router as cfb_router
 from edgebook.api.ingestion import router as ingestion_router
 from edgebook.api.pages import router as pages_router
+from edgebook.api.reviews import router as reviews_router
 from edgebook.api.wagering import router as wagering_router
 from edgebook.core.config import settings
 from edgebook.core.database import check_db_health, get_db
@@ -25,6 +26,7 @@ app.include_router(pages_router)
 app.include_router(accounts_router)
 app.include_router(cfb_router)
 app.include_router(wagering_router)
+app.include_router(reviews_router)
 app.include_router(analytics_router)
 app.include_router(ingestion_router)
 

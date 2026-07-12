@@ -5,7 +5,9 @@ description = "A simulation-only college football paper-betting platform."
 authors = [{ name = "Connor Kitchings", email = "connor.kitchings@gmail.com" }]
 requires-python = ">=3.11"
 dependencies = [
+    "alembic>=1.16.4",
     "fastapi>=0.116.1",
+    "httpx>=0.28.1",
     "jinja2>=3.1.4",
     "pydantic>=2.11.7",
     "pydantic-settings>=2.10.1",
@@ -70,8 +72,6 @@ build-backend = "setuptools.build_meta"
 
 [dependency-groups]
 dev = [
-    "alembic>=1.16.4",
-    "httpx>=0.28.1",
     "mypy>=1.10",
     "pytest>=8.4.2",
     "pytest-cov>=7.0.0",

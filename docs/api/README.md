@@ -1,10 +1,13 @@
 # API Documentation
 
-This directory contains the OpenAPI specification and related documentation for the project's APIs.
+This directory contains the generated OpenAPI contract and related documentation for the project's APIs.
 
 ## OpenAPI Specification
 
-The `openapi.yaml` file defines the RESTful API for this project. You can use tools like [Swagger UI](https://swagger.io/tools/swagger-ui/) or [Redoc](https://github.com/Redocly/redoc) to generate interactive documentation from this file.
+`openapi.json` is generated from FastAPI's `app.openapi()` schema and is the authoritative
+checked-in API contract. Regenerate it with `uv run python scripts/generate_openapi.py`; use
+`--check` in automation to detect drift. The live interactive API documentation is available at
+`/docs` when the application is running.
 
 ## Simulation-Only Policy
 
@@ -72,12 +75,26 @@ derived from stake divided by the placement bankroll rather than a subjective sc
 
 ### Multi-Source Ingestion and Reviews
 
+- **GET /ingestion/providers:** Returns configured provider capabilities without exposing API
+  keys or other credentials.
+- **POST /ingestion/sync/games**, **/quotes**, and **/scores:** Trigger the local fixture-feed
+  synchronization stages independently.
+- **POST /ingestion/settle:** Settle games whose provider score observations are confirmed.
+- **GET /ingestion/runs:** Read paginated, newest-first ingestion-run history.
+- **GET /ingestion/conflicts:** List held score disagreements.
+- **POST /ingestion/conflicts/{game_id}/resolve:** Record a local operator score decision and
+  make the game eligible for settlement.
 - **GET /cfb/games/{game_id}/quote-comparison:** Returns best and worst provider quote IDs for each market selection without creating a canonical line. Place bets with a specific `quote_id` whenever multiple source quotes exist.
 - **PUT /cfb/games/{game_id}/resolve-score-conflict:** Locally resolves a held provider-score conflict, records an audit decision, and settles the game atomically.
 - **GET /accounts/{account_id}/bets/{bet_id}/review:** Returns the asynchronous human-review task for a bet.
 - **PUT /accounts/{account_id}/bets/{bet_id}/review:** Completes a local human review with summary and cognitive-bias flags.
+- **GET /reviews:** Lists local-operator review tasks with wager and source-quote context; supports `status`, `account_id`, `limit`, and `offset`.
+- **POST /reviews/{bet_id}/claim:** Atomically claims a pending review for a named local operator.
 
-The scheduler-neutral command surface is `python -m edgebook.ingestion.cli`: use `sync` with a normalized provider feed, `settle-confirmed`, `claim-reviews`, and `report`. Production scheduling must invoke these idempotent commands outside the API process.
+The scheduler-neutral command surface is `python -m edgebook.ingestion.cli`: use `sync` with a
+normalized feed or `--provider the-odds-api`, `backfill-odds` for daily historical snapshots,
+`providers`, `settle-confirmed`, `claim-reviews`, and `report`. Production scheduling must invoke
+these idempotent commands outside the API process.
 
 ## Error Handling
 

@@ -94,10 +94,11 @@ Calculate ROI, win-loss units, bankroll drawdowns, stake-allocation calibration,
 
 ### Phase 4: Multi-Source External Ingestion ▶ IN PROGRESS
 - Provider-neutral normalized-feed adapters, provenance records, source-specific odds, score-conflict holds, and scheduler-safe commands are implemented.
+- The Odds API is implemented as the credentialed NCAAF provider for bookmaker-specific current and historical snapshots. SportsDataIO and CollegeFootballData adapters are fixture-ready pending approved credentials and terms.
 - Production provider adapters, credentials, and source terms must be configured for at least three independent providers before external ingestion is considered complete.
 
 ### Phase 5: Rationale Review Workflow ▶ IN PROGRESS
-- Asynchronous human-review tasks, local completion APIs, review coverage, and bias-tag analytics are implemented.
+- Asynchronous human-review tasks, local completion APIs, an operator queue with atomic claims, review coverage, and bias-tag analytics are implemented.
 - Model execution remains deliberately deferred behind the review workflow boundary.
 
 ### Phase 6: Investment Adaptability Review ☐ NOT STARTED

@@ -16,14 +16,11 @@ theme:
 
 nav:
   - 'Home': 'index.md'
-  - 'Getting Started': 'getting_started.md'
   - 'Project Overview':
-    - 'Project Brief': 'project_brief.md'
-    - 'Project Charter': 'project_charter.md'
+    - 'Product Manual': 'product_manual.md'
     - 'Implementation Schedule': 'implementation_schedule.md'
   - 'Development':
-    - 'Development Standards': 'development_standards.md'
-    - 'Checklists': 'checklists.md'
+    - 'Guide': 'development_guide.md'
     - 'Troubleshooting': 'troubleshooting.md'
   - 'Architecture':
     - 'System Overview': 'architecture/system_overview.md'
@@ -35,9 +32,6 @@ nav:
     - 'Knowledge Base': 'knowledge_base.md'
   - 'API':
     - 'Reference': 'api/README.md'
-  - 'Reference':
-    - 'AI Guide': 'ai_guide.md'
-    - 'AI Session Templates': 'ai_session_templates.md'
 
 plugins:
   - search

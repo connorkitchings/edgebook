@@ -116,6 +116,15 @@ def test_ingestion_page(client: TestClient):
     assert "Sync Triggers" in response.text
 
 
+def test_reviews_page_empty(client: TestClient):
+    """Review page explains its local-operator boundary when the queue is empty."""
+    response = client.get("/reviews", headers={"accept": "text/html"})
+    assert response.status_code == 200
+    assert "Rationale Reviews" in response.text
+    assert "Authentication and multi-user authorization" in response.text
+    assert "No review tasks match this filter" in response.text
+
+
 def test_run_history_partial_empty(client: TestClient):
     """Run history partial shows empty state when no runs exist."""
     response = client.get("/partials/run-history")

@@ -227,7 +227,7 @@ def sync_quotes(db: Session, adapter: ProviderAdapter) -> dict:
                 market_id=market.id,
                 selection=record.selection.value,
                 american_odds=record.american_odds,
-                source=adapter.name,
+                source=record.source or adapter.name,
                 source_quote_id=f"{record.external_id}:{digest[:12]}",
                 observed_at=record.observed_at.astimezone(UTC),
             )

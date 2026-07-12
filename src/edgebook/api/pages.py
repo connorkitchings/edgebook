@@ -101,7 +101,7 @@ def analytics_page(
     db: Session = Depends(get_db),
 ):
     account = _get_first_account(db)
-    context = {
+    context: dict[str, object] = {
         "active_page": "analytics",
         "account": account_response(account) if account else None,
         "summary": None,

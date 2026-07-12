@@ -70,9 +70,27 @@ curl http://127.0.0.1:8000/health
 
 ## Ingestion Scheduler Hooks
 
-The ingestion worker is intentionally outside the FastAPI process. Configure at least three
-independent provider adapters and invoke the normalized-feed commands from cron or the hosting
-platform scheduler:
+The ingestion worker is intentionally outside the FastAPI process. The Odds API is the supported
+credentialed provider for current and historical NCAAF featured markets; SportsDataIO and
+CollegeFootballData adapters are fixture-ready until their terms and credentials are approved.
+Configure secrets only through the environment, never a feed file or source control.
+
+```bash
+ODDS_API_KEY=... uv run python -m edgebook.ingestion.cli providers
+ODDS_API_KEY=... uv run python -m edgebook.ingestion.cli sync --provider the-odds-api
+ODDS_API_KEY=... uv run python -m edgebook.ingestion.cli backfill-odds \
+  --provider the-odds-api --from 2026-09-01 --to 2026-09-07
+ODDS_API_KEY=... uv run python scripts/odds_api_smoke.py
+# Requires historical-data entitlement:
+ODDS_API_KEY=... uv run python scripts/odds_api_smoke.py --historical-date 2025-09-01
+```
+
+The conservative research schedule is one current sync per day outside game week, hourly during
+game week, and every 10 minutes in the six pregame hours. Historical backfills request one daily
+snapshot at a time and can safely be rerun because provider observations are immutable and
+idempotent.
+
+Fixture and settlement commands remain available:
 
 ```bash
 uv run python -m edgebook.ingestion.cli sync --provider provider-a --feed provider-a.json
@@ -82,8 +100,7 @@ uv run python -m edgebook.ingestion.cli report
 ```
 
 Score disagreements remain held in `CONFLICTED` state and must be resolved through the local
-score-resolution API before settlement. Never put provider keys or raw credentials in a feed file
-or source control.
+score-resolution API before settlement.
 
 ---
 

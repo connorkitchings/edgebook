@@ -103,10 +103,19 @@
                 <div class="value">{{ review_summary.completed }}</div>
             </div>
             <div class="stat-card">
+                <div class="label">Pending</div>
+                <div class="value">{{ review_summary.status_counts.PENDING }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">In Review</div>
+                <div class="value">{{ review_summary.status_counts.IN_REVIEW }}</div>
+            </div>
+            <div class="stat-card">
                 <div class="label">Coverage</div>
                 <div class="value">{{ "%.1f" | format(review_summary.coverage * 100) }}%</div>
             </div>
         </div>
+        <a class="btn btn-secondary" href="/reviews">Open operator queue</a>
         {% if review_summary.bias_flags %}
         <div style="margin-top: 1rem;">
             <strong style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Bias Flags</strong>
