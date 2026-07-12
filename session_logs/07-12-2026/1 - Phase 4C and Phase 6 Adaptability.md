@@ -21,7 +21,7 @@
 * `uv run alembic check` — passed.
 * `uv run python scripts/generate_openapi.py --check` — passed.
 * `uv run mkdocs build --strict` — passed.
-* `uv run pytest` — 120 passed; 86.37% coverage.
+* `uv run pytest` — 121 passed; 86.40% coverage.
 * Docker smoke — blocked: Docker reached the image metadata stage but did not build the scheduler image or create services.
 
 ## Decisions Made
