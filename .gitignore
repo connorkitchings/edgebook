@@ -66,6 +66,9 @@ db.sqlite3-journal
 edgebook.db
 edgebook.db-journal
 
+# Local database backup artifacts (produced by scripts/backup_db.sh)
+backups/
+
 # Flask stuff:
 instance/
 .webassets-cache

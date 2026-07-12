@@ -33,6 +33,10 @@ jobs:
     - name: Run ruff linter
       run: uv run ruff check .
 
+    - name: Check shell script syntax
+      run: |
+        for f in scripts/*.sh; do bash -n "$f"; done
+
   test:
     name: Test
     runs-on: ubuntu-latest

@@ -68,6 +68,48 @@ curl http://127.0.0.1:8000/health
 }
 ```
 
+## Backups
+
+The production stack stores data in the `pgdata` Docker volume backing the
+Postgres service in `docker-compose.prod.yml`. `scripts/backup_db.sh` and
+`scripts/restore_db.sh` dump and restore that database through the running `db`
+service, so the stack must be up when either script is executed.
+
+### Back up
+
+```bash
+# Default: dump via docker-compose.prod.yml into ./backups, keep the 7 newest.
+scripts/backup_db.sh
+
+# Override the compose target or retention:
+COMPOSE_FILE=docker-compose.yml RETENTION=14 scripts/backup_db.sh
+```
+
+Backups are written as compressed `pg_dump` custom-format files named
+`edgebook-<UTC-timestamp>.dump` under `./backups/` (git-ignored). Only the
+`RETENTION` most recent files are retained; older backups are pruned
+automatically.
+
+### Restore
+
+```bash
+scripts/restore_db.sh backups/edgebook-20260712T180000Z.dump
+```
+
+Restore drops and recreates the `public` schema, then loads the backup with
+`pg_restore --no-owner --no-acl`. To guard against accidental production
+overwrites, the script prompts you to type the target database name before
+proceeding.
+
+### Scheduled backups
+
+On the production host, run a daily backup via cron shortly before any intake
+or maintenance jobs:
+
+```cron
+15 8 * * *  cd /opt/edgebook && ./scripts/backup_db.sh >> logs/backup.log 2>&1
+```
+
 ## Ingestion Scheduler Hooks
 
 The ingestion worker is intentionally outside the FastAPI process. The Odds API is the supported
