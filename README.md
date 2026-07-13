@@ -150,9 +150,12 @@ Edgebook is developed in phases. See [`docs/implementation_schedule.md`](docs/im
 - **Phase 1 — Manual End-to-End Betting Flow** ✅ Complete
 - **Phase 2 — Product Hardening** ✅ Complete — ledger controls, alternative lines, and score corrections
 - **Phase 3 — Analytics** ✅ Complete — ROI, unit stats, and stake-allocation calibration
-- **Phase 4 — Multi-Source External Ingestion** ▶ In Progress — provenance, quote comparison, and conflict-safe settlement
-- **Phase 5 — Rationale Review Workflow** ▶ In Progress — asynchronous human review and bias-tag analytics
-- **Phase 6 — Investment Adaptability Review**
+- **Phase 4 — Multi-Source External Ingestion** ✅ Complete — provider-neutral ingestion, provenance, quote comparison, and conflict-safe settlement
+- **Phase 4C — Production Odds Data Pilot** ▶ In Progress — implementation complete; live verification awaits provider credentials
+- **Phase 5 — Rationale Review Workflow** ✅ Complete — asynchronous human review and bias-tag analytics
+- **Phase 6 — Investment Adaptability Review** ✅ Complete — orchestration boundary and import rules
+- **Phase 7 — Authentication and Authorization** ✅ Complete — JWT sessions and role-gated operations
+- **Phase 8 — Hosted MVP Operations** ✅ Code Complete — hardened deployment, backups, monitoring, scheduler operations, and release workflow; live VM/TLS provisioning remains external
 
 ---
 
