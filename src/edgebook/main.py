@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from prometheus_client import make_asgi_app
 from sqlalchemy.orm import Session
 
+from edgebook import __version__
 from edgebook.api.accounts import router as accounts_router
 from edgebook.api.analytics import router as analytics_router
 from edgebook.api.auth import router as auth_router
@@ -30,7 +31,7 @@ setup_logging(
 app = FastAPI(
     title=settings.PROJECT_NAME,
     description="College Football Paper-Betting Platform API",
-    version="0.1.0",
+    version=__version__,
 )
 
 

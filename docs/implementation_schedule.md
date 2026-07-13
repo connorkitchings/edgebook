@@ -130,4 +130,4 @@ Calculate ROI, win-loss units, bankroll drawdowns, stake-allocation calibration,
 | 8.2 | Database backup strategy | Documented backup/restore runbook plus a `pg_dump` script for the production Compose volume | ✅ Done | `scripts/backup_db.sh` + `restore_db.sh`; 7-backup retention; CI syntax-checked. |
 | 8.3 | Monitoring & metrics | Liveness/readiness split and a Prometheus-compatible `/metrics` endpoint | ✅ Done | `/healthz`, `/readyz`, `/metrics`; HTTP + ingestion metrics; `/health` preserved. |
 | 8.4 | Scheduler operations | Operator visibility into ingestion run history, quota, and failure alerting | ✅ Done | Summary card + API, status/provider filters, enriched run table, webhook notifier, alerting docs. |
-| 8.5 | Release & deployment pipeline | Version tagging, CHANGELOG, and CI deploy workflow | ☐ Not Started | Aligns with `.agent/workflows/release-checklist.md`. |
+| 8.5 | Release & deployment pipeline | Version tagging, CHANGELOG, and CI deploy workflow | ▶ In Progress | CHANGELOG + single-sourced version + tagging runbook done; deploy workflow pending a hosting-target decision. |

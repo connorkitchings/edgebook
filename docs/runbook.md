@@ -201,6 +201,33 @@ alert rules:
 
 ---
 
+## Releases
+
+The canonical version lives in `pyproject.toml`; `edgebook.__version__` and the
+FastAPI app version read it at runtime via `importlib.metadata`, so bumping the
+`pyproject.toml` version updates everything. The full pre-release checklist
+lives in `.agent/workflows/release-checklist.md`; the routine cut-a-tag flow is:
+
+1. Update the version in `pyproject.toml`.
+2. Move `[Unreleased]` notes into a dated section in `CHANGELOG.md` and add a
+   new empty `[Unreleased]` heading.
+3. `uv sync` (so the installed metadata reflects the new version), then run the
+   full quality gate: `uv run ruff format . && uv run ruff check . &&
+   uv run pytest`.
+4. Commit, tag, and push:
+
+   ```bash
+   git add pyproject.toml CHANGELOG.md
+   git commit -m "chore: release vX.Y.Z"
+   git tag -a vX.Y.Z -m "Release vX.Y.Z"
+   git push origin main --tags
+   ```
+
+The production deploy workflow is pending a hosting-target decision; until then,
+a release is a versioned git tag plus the published container image build.
+
+---
+
 ## Troubleshooting
 
 ### Issue: PyO3 Compilation Error on Python 3.14+

@@ -7,7 +7,7 @@ This router file contains the active branch, repository status, and quick refere
 ## 🗺️ Project Snapshot
 
 * **Product:** Edgebook (Simulated college football bankroll allocator)
-* **Current Phase:** Phase 8 — Hosted MVP Operations (8.1–8.4 complete; 8.5 release pipeline pending)
+* **Current Phase:** Phase 8 — Hosted MVP Operations (8.1–8.4 complete; 8.5 CHANGELOG/versioning done, deploy workflow pending host decision)
 * **Architecture:** FastAPI modular monolith with explicit application orchestration
 * **Active Branch:** `main`
 

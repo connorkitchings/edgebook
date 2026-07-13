@@ -100,6 +100,20 @@
 **Example:**
 > After adding the production SECRET_KEY guard, also supply a valid SECRET_KEY in `docker-compose.yml` (smoke) and confirm both `mypy src/` and the smoke stack pass.
 
+### [Date: 2026-07-13]
+
+**Mistake:**
+> Claimed "no CHANGELOG.md exists currently" in the Phase 8.5 plan and overwrote the file with `Write`; a CHANGELOG.md already existed in HEAD (initial foundation entry dated 2026-07-10).
+
+**Root Cause:**
+> Relied on memory of an earlier skim instead of verifying with `git ls-files`/`glob`. The `Write` tool's read-before-write guard did not catch it because the file had not been read in the session.
+
+**Rule Added:**
+> Before asserting a file does or does not exist (especially before creating or overwriting it), verify with `git ls-files '<path>'` or `glob`. When planning a new artifact, check the index, not just the working tree. Prefer `edit` over `write` for any file that might already be tracked.
+
+**Example:**
+> `git ls-files 'CHANGELOG.md'` returned the path, showing it was tracked; the new content should have been merged into `[Unreleased]` with the original `[0.1.0]` entry preserved verbatim.
+
 ---
 
 ### Template for New Entries
