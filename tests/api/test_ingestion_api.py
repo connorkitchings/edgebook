@@ -77,6 +77,42 @@ def test_list_runs_after_sync(client: TestClient):
     assert data["items"][0]["scope"] == "GAMES"
 
 
+def test_list_runs_status_filter(client: TestClient):
+    """The status query param narrows run history."""
+    client.post("/ingestion/sync/games")
+
+    completed = client.get("/ingestion/runs?status=COMPLETED")
+    assert completed.status_code == 200
+    assert completed.json()["total"] >= 1
+    assert all(item["status"] == "COMPLETED" for item in completed.json()["items"])
+
+    failed = client.get("/ingestion/runs?status=FAILED")
+    assert failed.status_code == 200
+    assert failed.json()["total"] == 0
+
+
+def test_runs_summary_empty(client: TestClient):
+    """Summary reports zero totals before any run exists."""
+    response = client.get("/ingestion/runs/summary")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["total_runs"] == 0
+    assert data["status_counts"] == {}
+    assert data["last_run_at"] is None
+
+
+def test_runs_summary_after_sync(client: TestClient):
+    """Summary reflects a completed run after a sync."""
+    client.post("/ingestion/sync/games")
+    response = client.get("/ingestion/runs/summary?window_hours=24")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["window_hours"] == 24
+    assert data["total_runs"] >= 1
+    assert data["status_counts"]["COMPLETED"] >= 1
+    assert data["last_run_at"] is not None
+
+
 def test_list_conflicts_empty(client: TestClient):
     """List conflicts returns empty when none exist."""
     response = client.get("/ingestion/conflicts")

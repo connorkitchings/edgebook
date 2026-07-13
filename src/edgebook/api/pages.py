@@ -712,19 +712,43 @@ def record_score_partial(
 # --- HTMX Partials: Ingestion Monitoring ---
 
 
+@router.get("/partials/run-summary", response_class=HTMLResponse)
+def run_summary_partial(
+    request: Request,
+    window_hours: int = Query(default=24, ge=1, le=168),
+    db: Session = Depends(get_db),
+    current_user: AppUser = Depends(require_role([UserRole.ADMIN])),
+) -> HTMLResponse:
+    from edgebook.ingestion.services import summarize_runs
+
+    summary = summarize_runs(db, window_hours=window_hours)
+    return templates.TemplateResponse(
+        request,
+        "partials/run_summary.html",
+        summary,
+    )
+
+
 @router.get("/partials/run-history", response_class=HTMLResponse)
 def run_history_partial(
     request: Request,
+    status: str | None = None,
+    provider: str | None = None,
     db: Session = Depends(get_db),
     current_user: AppUser = Depends(require_role([UserRole.ADMIN])),
 ) -> HTMLResponse:
     from edgebook.ingestion.services import list_runs
 
-    runs, _ = list_runs(db, limit=20, offset=0)
+    runs, total = list_runs(db, limit=20, status=status, provider=provider)
     return templates.TemplateResponse(
         request,
         "partials/run_history.html",
-        {"runs": runs},
+        {
+            "runs": runs,
+            "current_status": status,
+            "current_provider": provider,
+            "total": total,
+        },
     )
 
 

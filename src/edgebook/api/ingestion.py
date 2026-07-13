@@ -22,6 +22,7 @@ from edgebook.ingestion.services import (
     IngestionNotFoundError,
     list_conflicts,
     list_runs,
+    summarize_runs,
     sync_games,
     sync_quotes,
     sync_scores,
@@ -106,6 +107,14 @@ class RunPage(BaseModel):
     offset: int
 
 
+class RunSummaryResponse(BaseModel):
+    window_hours: int
+    total_runs: int
+    status_counts: dict[str, int]
+    last_run_at: str | None
+    quota_remaining_by_provider: dict[str, int]
+
+
 class ConflictResolutionCreate(BaseModel):
     home_score: int = Field(ge=0)
     away_score: int = Field(ge=0)
@@ -185,16 +194,30 @@ def settle_endpoint(db: Session = Depends(get_db)) -> SettleResponse:
 def list_runs_endpoint(
     limit: int = Query(default=50, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
+    status: str | None = Query(default=None),
+    provider: str | None = Query(default=None),
     db: Session = Depends(get_db),
 ) -> RunPage:
-    """List ingestion run history newest-first."""
-    runs, total = list_runs(db, limit=limit, offset=offset)
+    """List ingestion run history newest-first, optionally filtered."""
+    runs, total = list_runs(
+        db, limit=limit, offset=offset, status=status, provider=provider
+    )
     return RunPage(
         items=[RunResponse.model_validate(r) for r in runs],
         total=total,
         limit=limit,
         offset=offset,
     )
+
+
+@router.get("/runs/summary", response_model=RunSummaryResponse)
+def summarize_runs_endpoint(
+    window_hours: int = Query(default=24, ge=1, le=168),
+    db: Session = Depends(get_db),
+) -> RunSummaryResponse:
+    """Summarize ingestion run outcomes over a trailing time window."""
+    summary = summarize_runs(db, window_hours=window_hours)
+    return RunSummaryResponse(**summary)
 
 
 @router.get("/conflicts", response_model=list[ConflictGameResponse])

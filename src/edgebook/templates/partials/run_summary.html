@@ -1,0 +1,30 @@
+<div id="run-summary-content" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: stretch;">
+    <div class="card" style="flex: 1; min-width: 220px;">
+        <div class="card-header"><h3>Run Health ({{ window_hours }}h)</h3></div>
+        <div style="display: flex; gap: 1.25rem; flex-wrap: wrap; padding: 0.75rem; align-items: center;">
+            <div>
+                <div style="font-size: 1.5rem; font-weight: 600;">{{ total_runs }}</div>
+                <div style="color: var(--text-muted); font-size: 0.75rem;">total runs</div>
+            </div>
+            <span class="badge badge-success">{{ status_counts.COMPLETED | default(0) }} completed</span>
+            <span class="badge badge-danger">{{ status_counts.FAILED | default(0) }} failed</span>
+            <span class="badge badge-info">{{ status_counts.RUNNING | default(0) }} running</span>
+        </div>
+        <div style="padding: 0 0.75rem 0.75rem; color: var(--text-muted); font-size: 0.75rem;">
+            Last run: {{ last_run_at | format_datetime if last_run_at else 'never' }}
+        </div>
+    </div>
+    {% if quota_remaining_by_provider %}
+    <div class="card" style="flex: 1; min-width: 220px;">
+        <div class="card-header"><h3>Provider Quota (latest)</h3></div>
+        <div style="padding: 0.75rem;">
+            {% for provider, quota in quota_remaining_by_provider.items() %}
+            <div style="display: flex; justify-content: space-between; padding: 0.25rem 0; gap: 1rem;">
+                <span>{{ provider }}</span>
+                <strong>{{ quota }} remaining</strong>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>

@@ -153,6 +153,54 @@ score-resolution API before settlement.
 
 ---
 
+## Ingestion Alerting
+
+Operator visibility into ingestion health is surfaced in three layers.
+
+### In-app
+
+The `/ingestion` page renders a run-health summary card (last 24h by default),
+per-provider quota, and a filterable run-history table. Failed runs show a red
+badge plus the error message inline; `status` and `provider` filters narrow the
+history. The `/ingestion/runs` and `/ingestion/runs/summary` JSON endpoints
+back the same data for automation.
+
+### Webhook notifier
+
+Set `ALERT_WEBHOOK_URL` to `POST` a JSON alert whenever an ingestion run fails
+(best-effort, one-shot — there is no retry queue):
+
+```json
+{
+  "event": "ingestion.run_failed",
+  "run_id": "...",
+  "provider": "the-odds-api",
+  "scope": "games",
+  "error": "ValueError: ...",
+  "started_at": "2026-07-13T12:00:00+00:00",
+  "quota_remaining": 123,
+  "notified_at": "2026-07-13T12:00:05+00:00"
+}
+```
+
+Delivery uses a bounded timeout (`ALERT_WEBHOOK_TIMEOUT_SECONDS`, default 5) and
+swallows transport errors, so alerting can never break ingestion. Leave
+`ALERT_WEBHOOK_URL` empty to disable. The payload contains no credentials.
+
+### Prometheus metrics
+
+The `/metrics` endpoint (see Phase 8.3) exports ingestion signals suitable for
+alert rules:
+
+- `edgebook_ingestion_runs_total{provider,scope,status}` — counter; alert on a
+  non-zero failed-run rate, e.g.
+  `sum(increase(edgebook_ingestion_runs_total{status="FAILED"}[15m])) > 0`.
+- `edgebook_ingestion_quota_remaining{provider}` — gauge; alert when a provider
+  nears its reserve, e.g.
+  `edgebook_ingestion_quota_remaining{provider="the-odds-api"} < 100`.
+
+---
+
 ## Troubleshooting
 
 ### Issue: PyO3 Compilation Error on Python 3.14+

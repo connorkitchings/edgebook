@@ -2160,6 +2160,52 @@
         "title": "RunResponse",
         "type": "object"
       },
+      "RunSummaryResponse": {
+        "properties": {
+          "last_run_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Run At"
+          },
+          "quota_remaining_by_provider": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Quota Remaining By Provider",
+            "type": "object"
+          },
+          "status_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Status Counts",
+            "type": "object"
+          },
+          "total_runs": {
+            "title": "Total Runs",
+            "type": "integer"
+          },
+          "window_hours": {
+            "title": "Window Hours",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "window_hours",
+          "total_runs",
+          "status_counts",
+          "last_run_at",
+          "quota_remaining_by_provider"
+        ],
+        "title": "RunSummaryResponse",
+        "type": "object"
+      },
       "ScoreCorrectionCreate": {
         "description": "Payload for correcting a finalized game score.",
         "properties": {
@@ -4295,7 +4341,7 @@
     },
     "/ingestion/runs": {
       "get": {
-        "description": "List ingestion run history newest-first.",
+        "description": "List ingestion run history newest-first, optionally filtered.",
         "operationId": "list_runs_endpoint_ingestion_runs_get",
         "parameters": [
           {
@@ -4319,6 +4365,38 @@
               "minimum": 0,
               "title": "Offset",
               "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "provider",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Provider"
             }
           }
         ],
@@ -4345,6 +4423,52 @@
           }
         },
         "summary": "List Runs Endpoint",
+        "tags": [
+          "ingestion"
+        ]
+      }
+    },
+    "/ingestion/runs/summary": {
+      "get": {
+        "description": "Summarize ingestion run outcomes over a trailing time window.",
+        "operationId": "summarize_runs_endpoint_ingestion_runs_summary_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "window_hours",
+            "required": false,
+            "schema": {
+              "default": 24,
+              "maximum": 168,
+              "minimum": 1,
+              "title": "Window Hours",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunSummaryResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Summarize Runs Endpoint",
         "tags": [
           "ingestion"
         ]
@@ -4937,6 +5061,40 @@
     "/partials/run-history": {
       "get": {
         "operationId": "run_history_partial_partials_run_history_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "provider",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Provider"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -4947,9 +5105,64 @@
               }
             },
             "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
           }
         },
         "summary": "Run History Partial",
+        "tags": [
+          "pages"
+        ]
+      }
+    },
+    "/partials/run-summary": {
+      "get": {
+        "operationId": "run_summary_partial_partials_run_summary_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "window_hours",
+            "required": false,
+            "schema": {
+              "default": 24,
+              "maximum": 168,
+              "minimum": 1,
+              "title": "Window Hours",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Run Summary Partial",
         "tags": [
           "pages"
         ]

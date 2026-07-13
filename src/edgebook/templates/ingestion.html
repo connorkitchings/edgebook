@@ -8,6 +8,15 @@
     <p>Sync fixture data, monitor runs, and resolve conflicts</p>
 </div>
 
+<div class="card" style="margin-bottom: 1.5rem;">
+    <div id="run-summary"
+         hx-get="/partials/run-summary"
+         hx-trigger="load"
+         hx-swap="innerHTML">
+        <div class="empty-state"><p>Loading...</p></div>
+    </div>
+</div>
+
 <div class="grid-2" style="margin-bottom: 1.5rem;">
     <div class="card">
         <div class="card-header"><h3>Sync Triggers</h3></div>
@@ -58,6 +67,24 @@
 
 <div class="card">
     <div class="card-header"><h3>Run History</h3></div>
+    <div style="display: flex; gap: 0.25rem; margin: 0.75rem; flex-wrap: wrap;">
+        <button class="btn btn-primary" style="font-size: 0.75rem; padding: 0.25rem 0.625rem;"
+                hx-get="/partials/run-history"
+                hx-target="#run-history"
+                hx-swap="innerHTML">All</button>
+        <button class="btn btn-secondary" style="font-size: 0.75rem; padding: 0.25rem 0.625rem;"
+                hx-get="/partials/run-history?status=COMPLETED"
+                hx-target="#run-history"
+                hx-swap="innerHTML">Completed</button>
+        <button class="btn btn-secondary" style="font-size: 0.75rem; padding: 0.25rem 0.625rem;"
+                hx-get="/partials/run-history?status=FAILED"
+                hx-target="#run-history"
+                hx-swap="innerHTML">Failed</button>
+        <button class="btn btn-secondary" style="font-size: 0.75rem; padding: 0.25rem 0.625rem;"
+                hx-get="/partials/run-history?status=RUNNING"
+                hx-target="#run-history"
+                hx-swap="innerHTML">Running</button>
+    </div>
     <div id="run-history"
          hx-get="/partials/run-history"
          hx-trigger="load"

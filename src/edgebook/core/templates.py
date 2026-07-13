@@ -48,9 +48,31 @@ def status_label(value: str | None) -> str:
     return value.replace("_", " ").title()
 
 
+def format_duration(value: object) -> str:
+    if value is None:
+        return ""
+    from datetime import timedelta
+
+    if not isinstance(value, timedelta):
+        return ""
+    total_seconds = value.total_seconds()
+    if total_seconds < 0:
+        return ""
+    if total_seconds < 60:
+        return f"{total_seconds:.1f}s"
+    minutes = int(total_seconds // 60)
+    seconds = int(total_seconds % 60)
+    if minutes < 60:
+        return f"{minutes}m {seconds}s"
+    hours = minutes // 60
+    minutes = minutes % 60
+    return f"{hours}h {minutes}m"
+
+
 templates.env.filters["format_cents"] = format_cents
 templates.env.filters["format_pct"] = format_pct
 templates.env.filters["format_datetime"] = format_datetime
+templates.env.filters["format_duration"] = format_duration
 templates.env.filters["pluralize"] = pluralize
 templates.env.filters["status_label"] = status_label
 

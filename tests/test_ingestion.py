@@ -135,3 +135,149 @@ def test_confirmed_scores_settle_and_normalized_feeds_load(db_session, tmp_path)
     loaded = load_normalized_feed(feed, "source-d")
     assert loaded.games()[0].external_id == "g2"
     assert loaded.quotes() == []
+
+
+def _seed_run(
+    db_session,
+    *,
+    provider: str,
+    scope: str,
+    status: str,
+    quota_remaining: int | None,
+    started_at: datetime,
+    finished: bool = True,
+) -> IngestionRun:
+    run = IngestionRun(
+        provider=provider,
+        scope=scope,
+        status=status,
+        quota_remaining=quota_remaining,
+        started_at=started_at,
+        finished_at=started_at if finished else None,
+    )
+    db_session.add(run)
+    db_session.flush()
+    return run
+
+
+def test_list_runs_filters_by_status_and_provider(db_session):
+    """list_runs narrows by status and provider independently."""
+    from edgebook.ingestion.services import list_runs
+
+    now = datetime.now(UTC)
+    _seed_run(
+        db_session,
+        provider="alpha",
+        scope="games",
+        status="COMPLETED",
+        quota_remaining=10,
+        started_at=now,
+    )
+    _seed_run(
+        db_session,
+        provider="alpha",
+        scope="games",
+        status="FAILED",
+        quota_remaining=9,
+        started_at=now,
+    )
+    _seed_run(
+        db_session,
+        provider="beta",
+        scope="games",
+        status="COMPLETED",
+        quota_remaining=5,
+        started_at=now,
+    )
+
+    completed, total_completed = list_runs(db_session, status="COMPLETED")
+    assert total_completed == 2
+    assert all(r.status == "COMPLETED" for r in completed)
+
+    alpha_only, total_alpha = list_runs(db_session, provider="alpha")
+    assert total_alpha == 2
+    assert all(r.provider == "alpha" for r in alpha_only)
+
+    failed_alpha, total_failed_alpha = list_runs(
+        db_session, status="FAILED", provider="alpha"
+    )
+    assert total_failed_alpha == 1
+    assert failed_alpha[0].status == "FAILED"
+
+
+def test_summarize_runs_counts_window_and_quota(db_session):
+    """summarize_runs reports status counts within the window and per-provider quota."""
+    from edgebook.ingestion.services import summarize_runs
+
+    now = datetime.now(UTC)
+    old = datetime(2020, 1, 1, tzinfo=UTC)
+    _seed_run(
+        db_session,
+        provider="alpha",
+        scope="games",
+        status="COMPLETED",
+        quota_remaining=100,
+        started_at=now,
+    )
+    _seed_run(
+        db_session,
+        provider="alpha",
+        scope="games",
+        status="FAILED",
+        quota_remaining=80,
+        started_at=now,
+    )
+    _seed_run(
+        db_session,
+        provider="beta",
+        scope="games",
+        status="COMPLETED",
+        quota_remaining=50,
+        started_at=now,
+    )
+    # Outside the default 24h window: must be excluded from totals.
+    _seed_run(
+        db_session,
+        provider="alpha",
+        scope="games",
+        status="COMPLETED",
+        quota_remaining=200,
+        started_at=old,
+    )
+
+    summary = summarize_runs(db_session, window_hours=24)
+
+    assert summary["window_hours"] == 24
+    assert summary["total_runs"] == 3
+    assert summary["status_counts"]["COMPLETED"] == 2
+    assert summary["status_counts"]["FAILED"] == 1
+    assert summary["last_run_at"] is not None
+    # Latest quota per provider uses the newest run that reported quota.
+    assert summary["quota_remaining_by_provider"]["alpha"] in (100, 80)
+    assert summary["quota_remaining_by_provider"]["beta"] == 50
+
+
+def test_fail_triggers_notifier(db_session, monkeypatch):
+    """_fail persists the failed run and fires the webhook notifier."""
+    from edgebook.ingestion import services
+
+    run = _seed_run(
+        db_session,
+        provider="alpha",
+        scope="games",
+        status="RUNNING",
+        quota_remaining=12,
+        started_at=datetime.now(UTC),
+        finished=False,
+    )
+
+    called: dict = {}
+    monkeypatch.setattr(
+        services, "notify_ingestion_failure", lambda **kw: called.update(kw)
+    )
+
+    services._fail(db_session, run, ValueError("boom"))
+
+    assert called["provider"] == "alpha"
+    assert "boom" in called["error"]
+    assert called["quota_remaining"] == 12

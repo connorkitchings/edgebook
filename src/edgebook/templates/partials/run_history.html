@@ -11,6 +11,8 @@
                     <th>Created</th>
                     <th>Skipped</th>
                     <th>Conflicts</th>
+                    <th>Quota</th>
+                    <th>Duration</th>
                     <th>Started</th>
                 </tr>
             </thead>
@@ -22,8 +24,15 @@
                     <td>
                         {% if run.status == 'COMPLETED' %}
                         <span class="badge badge-success">{{ run.status }}</span>
-                        {% else %}
+                        {% elif run.status == 'FAILED' %}
+                        <span class="badge badge-danger"
+                              {% if run.error_message %}title="{{ run.error_message }}"{% endif %}>
+                            {{ run.status }}
+                        </span>
+                        {% elif run.status == 'RUNNING' %}
                         <span class="badge badge-info">{{ run.status }}</span>
+                        {% else %}
+                        <span class="badge badge-neutral">{{ run.status }}</span>
                         {% endif %}
                     </td>
                     <td>{{ run.records_seen }}</td>
@@ -33,9 +42,25 @@
                         <span class="badge badge-warning">{{ run.conflict_count }}</span>
                         {% else %}0{% endif %}</td>
                     <td style="color: var(--text-muted); font-size: 0.75rem;">
+                        {% if run.quota_remaining is not none %}
+                        {{ run.quota_remaining }}{% if run.quota_used is not none %} / {{ run.quota_used }} used{% endif %}
+                        {% else %}—{% endif %}
+                    </td>
+                    <td style="color: var(--text-muted); font-size: 0.75rem;">
+                        {{ ((run.finished_at - run.started_at) if run.finished_at else none) | format_duration }}
+                        {% if run.retry_count > 0 %}<span class="badge badge-warning">{{ run.retry_count }} retry</span>{% endif %}
+                    </td>
+                    <td style="color: var(--text-muted); font-size: 0.75rem;">
                         {{ run.started_at | format_datetime }}
                     </td>
                 </tr>
+                {% if run.status == 'FAILED' and run.error_message %}
+                <tr style="background: var(--bg-secondary);">
+                    <td colspan="10" style="color: var(--text-muted); font-size: 0.75rem;">
+                        <strong>Error:</strong> {{ run.error_message }}
+                    </td>
+                </tr>
+                {% endif %}
                 {% endfor %}
             </tbody>
         </table>

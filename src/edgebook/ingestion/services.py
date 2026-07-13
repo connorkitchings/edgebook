@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from contextlib import contextmanager
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Iterator
 
 from sqlalchemy import func, select, text
@@ -33,6 +33,7 @@ from edgebook.observability.metrics import (
     INGESTION_QUOTA_REMAINING,
     INGESTION_RUNS,
 )
+from edgebook.observability.notifications import notify_ingestion_failure
 
 
 class IngestionError(Exception):
@@ -125,9 +126,13 @@ def _finish(db: Session, run: IngestionRun, status: str = "COMPLETED") -> dict:
 
 def _fail(db: Session, run: IngestionRun, error: Exception) -> None:
     """Persist a durable failed-run record after rolling back partial domain writes."""
+    provider = run.provider
+    scope = run.scope
+    started_at = run.started_at
+    quota_remaining = run.quota_remaining
     run_values = {
-        "provider": run.provider,
-        "scope": run.scope,
+        "provider": provider,
+        "scope": scope,
         "records_seen": run.records_seen,
         "records_created": run.records_created,
         "records_skipped": run.records_skipped,
@@ -136,27 +141,34 @@ def _fail(db: Session, run: IngestionRun, error: Exception) -> None:
         "requested_snapshot_at": run.requested_snapshot_at,
         "provider_snapshot_at": run.provider_snapshot_at,
         "quota_used": run.quota_used,
-        "quota_remaining": run.quota_remaining,
-        "started_at": run.started_at,
+        "quota_remaining": quota_remaining,
+        "started_at": started_at,
     }
     db.rollback()
-    db.add(
-        IngestionRun(
-            **run_values,
-            status="FAILED",
-            error_message=f"{type(error).__name__}: {error}"[:1000],
-            finished_at=datetime.now(UTC),
-        )
+    error_message = f"{type(error).__name__}: {error}"[:1000]
+    failed_run = IngestionRun(
+        **run_values,
+        status="FAILED",
+        error_message=error_message,
+        finished_at=datetime.now(UTC),
     )
+    db.add(failed_run)
     db.commit()
-    quota_remaining = run.quota_remaining
     INGESTION_RUNS.labels(
-        provider=run.provider,
-        scope=run.scope,
+        provider=provider,
+        scope=scope,
         status="FAILED",
     ).inc()
     if quota_remaining is not None:
-        INGESTION_QUOTA_REMAINING.labels(provider=run.provider).set(quota_remaining)
+        INGESTION_QUOTA_REMAINING.labels(provider=provider).set(quota_remaining)
+    notify_ingestion_failure(
+        run_id=failed_run.id,
+        provider=provider,
+        scope=scope,
+        error=error_message,
+        started_at=started_at,
+        quota_remaining=quota_remaining,
+    )
 
 
 def _existing_observation(
@@ -567,17 +579,65 @@ def list_runs(
     *,
     limit: int = 50,
     offset: int = 0,
+    status: str | None = None,
+    provider: str | None = None,
 ) -> tuple[list[IngestionRun], int]:
-    """Return paginated ingestion runs newest-first."""
+    """Return paginated ingestion runs newest-first, optionally filtered."""
     query = (
         select(IngestionRun)
         .order_by(IngestionRun.started_at.desc(), IngestionRun.id.desc())
         .limit(limit)
         .offset(offset)
     )
-    total = db.scalar(select(func.count()).select_from(IngestionRun)) or 0
+    count_query = select(func.count()).select_from(IngestionRun)
+    if status is not None:
+        query = query.where(IngestionRun.status == status)
+        count_query = count_query.where(IngestionRun.status == status)
+    if provider is not None:
+        query = query.where(IngestionRun.provider == provider)
+        count_query = count_query.where(IngestionRun.provider == provider)
+
+    total = db.scalar(count_query) or 0
     runs = db.scalars(query).all()
     return list(runs), int(total)
+
+
+def summarize_runs(db: Session, *, window_hours: int = 24) -> dict:
+    """Aggregate ingestion outcomes over a trailing window.
+
+    Returns counts grouped by status within ``window_hours``, the most recent
+    run timestamp overall, and the latest remaining quota reported per provider.
+    """
+    since = datetime.now(UTC) - timedelta(hours=window_hours)
+
+    status_rows = db.execute(
+        select(IngestionRun.status, func.count())
+        .where(IngestionRun.started_at >= since)
+        .group_by(IngestionRun.status)
+    ).all()
+    status_counts = {
+        str(status_value): int(count) for status_value, count in status_rows
+    }
+
+    last_run_at = db.scalar(select(func.max(IngestionRun.started_at)))
+
+    quota_rows = db.execute(
+        select(IngestionRun.provider, IngestionRun.quota_remaining)
+        .where(IngestionRun.quota_remaining.is_not(None))
+        .order_by(IngestionRun.started_at.desc())
+    ).all()
+    quota_by_provider: dict[str, int] = {}
+    for provider_value, quota in quota_rows:
+        if provider_value not in quota_by_provider:
+            quota_by_provider[provider_value] = int(quota)
+
+    return {
+        "window_hours": window_hours,
+        "total_runs": sum(status_counts.values()),
+        "status_counts": status_counts,
+        "last_run_at": last_run_at.isoformat() if last_run_at else None,
+        "quota_remaining_by_provider": quota_by_provider,
+    }
 
 
 def list_conflicts(db: Session) -> list[Game]:

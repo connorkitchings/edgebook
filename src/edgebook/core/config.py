@@ -36,6 +36,8 @@ class Settings(BaseSettings):
     INGESTION_MIN_QUOTA_REMAINING: int = Field(default=100, ge=0)
     ODDS_API_REGIONS: str = "us"
     ODDS_API_BOOKMAKERS: str = "draftkings,fanduel,betmgm,caesars"
+    ALERT_WEBHOOK_URL: str = ""
+    ALERT_WEBHOOK_TIMEOUT_SECONDS: float = Field(default=5.0, gt=0, le=30)
 
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
