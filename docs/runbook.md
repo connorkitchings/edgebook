@@ -4,6 +4,10 @@ This runbook documents how to run, test, and troubleshoot the Edgebook college f
 
 ## Getting Started
 
+> **Hosting:** see [Deployment](deployment.md) for the full Oracle Always-Free
+> walkthrough (VM provisioning, secrets, cron ingestion, CI/CD, and the HTTPS
+> upgrade path).
+
 ### 1. Prerequisites
 - **Python 3.11**: Ensure you have Python 3.11 installed.
 - **uv**: Project package manager. Install via `pip install uv`.

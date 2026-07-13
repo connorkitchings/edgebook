@@ -19,6 +19,7 @@ from edgebook.auth.models import AppUser, UserRole
 from edgebook.auth.services import authenticate_user, create_user, encode_jwt
 from edgebook.cfb.models import Game, Market, MarketQuote, MarketSelection, Team
 from edgebook.cfb.services import create_game, create_team, get_game, list_games
+from edgebook.core.config import settings
 from edgebook.core.database import get_db
 from edgebook.core.money import decimal_to_cents, validate_credit_amount
 from edgebook.core.templates import templates
@@ -67,6 +68,7 @@ def login_post(
         value=token,
         httponly=True,
         samesite="lax",
+        secure=settings.SESSION_COOKIE_SECURE,
         max_age=86400,
     )
     return redirect_resp
@@ -123,6 +125,7 @@ def register_post(
         value=token,
         httponly=True,
         samesite="lax",
+        secure=settings.SESSION_COOKIE_SECURE,
         max_age=86400,
     )
     return redirect_resp

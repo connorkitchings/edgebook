@@ -1,4 +1,10 @@
-"""Dedicated daily pregame scheduler, intentionally outside FastAPI."""
+"""Dedicated daily pregame scheduler, intentionally outside FastAPI.
+
+For production, prefer triggering the one-shot sync via host cron calling
+``python -m edgebook.ingestion.cli sync --provider the-odds-api`` (see
+``scripts/cron_ingest.sh`` and the deployment guide). The ``main()`` loop below
+remains available for deployments that prefer an in-process scheduler.
+"""
 
 from __future__ import annotations
 

@@ -38,6 +38,7 @@ class Settings(BaseSettings):
     ODDS_API_BOOKMAKERS: str = "draftkings,fanduel,betmgm,caesars"
     ALERT_WEBHOOK_URL: str = ""
     ALERT_WEBHOOK_TIMEOUT_SECONDS: float = Field(default=5.0, gt=0, le=30)
+    SESSION_COOKIE_SECURE: bool = False
 
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"

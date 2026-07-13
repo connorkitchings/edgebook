@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from edgebook.auth.services import authenticate_user, create_user, encode_jwt
+from edgebook.core.config import settings
 from edgebook.core.database import get_db
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -64,6 +65,7 @@ def register_user_json(
         value=token,
         httponly=True,
         samesite="lax",
+        secure=settings.SESSION_COOKIE_SECURE,
         max_age=86400,
     )
     return TokenResponse(
@@ -93,6 +95,7 @@ def login_user_json(
         value=token,
         httponly=True,
         samesite="lax",
+        secure=settings.SESSION_COOKIE_SECURE,
         max_age=86400,
     )
     return TokenResponse(

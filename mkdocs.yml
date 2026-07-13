@@ -38,6 +38,7 @@ nav:
     - 'Decision Template': 'architecture/decisions/template.md'
   - 'Operations':
     - 'Runbook': 'runbook.md'
+    - 'Deployment': 'deployment.md'
     - 'Security & Responsible Use': 'security.md'
     - 'Knowledge Base': 'knowledge_base.md'
   - 'API':

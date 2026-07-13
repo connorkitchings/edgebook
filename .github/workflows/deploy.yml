@@ -1,0 +1,50 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+# Deploy builds natively on the (ARM) VM, so no registry or multi-arch build is
+# required. Configure VM_HOST, VM_USER, SSH_PRIVATE_KEY, DEPLOY_PATH in
+# repository secrets (see docs/deployment.md). The job skips (green) until the
+# secrets are present.
+jobs:
+  check-secrets:
+    runs-on: ubuntu-latest
+    outputs:
+      configured: ${{ steps.check.outputs.configured }}
+    steps:
+      - id: check
+        run: |
+          if [ -n "${{ secrets.VM_HOST }}" ] && [ -n "${{ secrets.VM_USER }}" ] \
+             && [ -n "${{ secrets.SSH_PRIVATE_KEY }}" ] && [ -n "${{ secrets.DEPLOY_PATH }}" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Deploy secrets not configured; skipping deploy until the VM is provisioned (see docs/deployment.md)."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy:
+    needs: check-secrets
+    if: needs.check-secrets.outputs.configured == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          # Trust-on-first-use; for stronger auth, replace with a known_hosts secret.
+          ssh-keyscan -H ${{ secrets.VM_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Deploy over SSH
+        run: |
+          ssh -o StrictHostKeyChecking=accept-new ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }} "
+            set -euo pipefail
+            cd ${{ secrets.DEPLOY_PATH }}
+            git fetch --prune origin
+            git reset --hard origin/main
+            docker compose -f docker-compose.prod.yml build
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+          "

@@ -12,13 +12,15 @@ services:
   app:
     build: .
     ports:
-      - "${PORT:-8000}:8000"
+      - "${PORT:-80}:8000"
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       - ENV=production
       - DEBUG=false
       - SECRET_KEY=${SECRET_KEY}
       - ODDS_API_KEY=${ODDS_API_KEY:-}
+      - ALERT_WEBHOOK_URL=${ALERT_WEBHOOK_URL:-}
+      - SESSION_COOKIE_SECURE=${SESSION_COOKIE_SECURE:-false}
     volumes:
       - ./logs:/app/logs
     depends_on:
@@ -36,24 +38,6 @@ services:
       timeout: 5s
       retries: 6
       start_period: 10s
-    restart: unless-stopped
-
-  ingestion-worker:
-    build: .
-    command: ["python", "-m", "edgebook.ingestion.scheduler"]
-    environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
-      - ODDS_API_KEY=${ODDS_API_KEY:-}
-      - ODDS_API_REGIONS=${ODDS_API_REGIONS:-us}
-      - ODDS_API_BOOKMAKERS=${ODDS_API_BOOKMAKERS:-draftkings,fanduel,betmgm,caesars}
-      - INGESTION_HTTP_TIMEOUT_SECONDS=${INGESTION_HTTP_TIMEOUT_SECONDS:-10}
-      - INGESTION_HTTP_MAX_RETRIES=${INGESTION_HTTP_MAX_RETRIES:-2}
-      - INGESTION_MIN_QUOTA_REMAINING=${INGESTION_MIN_QUOTA_REMAINING:-100}
-    volumes:
-      - ./logs:/app/logs
-    depends_on:
-      migrate:
-        condition: service_completed_successfully
     restart: unless-stopped
 
   db:
