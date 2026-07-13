@@ -29,6 +29,10 @@ from edgebook.ingestion.models import (
     ProviderEventLink,
     ProviderObservation,
 )
+from edgebook.observability.metrics import (
+    INGESTION_QUOTA_REMAINING,
+    INGESTION_RUNS,
+)
 
 
 class IngestionError(Exception):
@@ -106,6 +110,9 @@ def _finish(db: Session, run: IngestionRun, status: str = "COMPLETED") -> dict:
     run.status = status
     run.finished_at = datetime.now(UTC)
     db.commit()
+    INGESTION_RUNS.labels(provider=run.provider, scope=run.scope, status=status).inc()
+    if run.quota_remaining is not None:
+        INGESTION_QUOTA_REMAINING.labels(provider=run.provider).set(run.quota_remaining)
     return {
         "run_id": run.id,
         "status": run.status,
@@ -142,6 +149,14 @@ def _fail(db: Session, run: IngestionRun, error: Exception) -> None:
         )
     )
     db.commit()
+    quota_remaining = run.quota_remaining
+    INGESTION_RUNS.labels(
+        provider=run.provider,
+        scope=run.scope,
+        status="FAILED",
+    ).inc()
+    if quota_remaining is not None:
+        INGESTION_QUOTA_REMAINING.labels(provider=run.provider).set(quota_remaining)
 
 
 def _existing_observation(

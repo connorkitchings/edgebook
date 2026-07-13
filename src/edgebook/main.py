@@ -5,6 +5,7 @@ from pathlib import Path
 from fastapi import Depends, FastAPI, Request, Response, status
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from prometheus_client import make_asgi_app
 from sqlalchemy.orm import Session
 
 from edgebook.api.accounts import router as accounts_router
@@ -17,6 +18,7 @@ from edgebook.api.reviews import router as reviews_router
 from edgebook.api.wagering import router as wagering_router
 from edgebook.core.config import settings
 from edgebook.core.database import check_db_health, get_db
+from edgebook.observability.metrics import DB_UP, HTTP_REQUESTS
 from edgebook.utils.logging import setup_logging
 
 # Configure logging at application startup
@@ -51,6 +53,31 @@ def custom_unauthorized_handler(
     )
 
 
+@app.middleware("http")
+async def record_http_request(request: Request, call_next):  # type: ignore[no-untyped-def]
+    """Count every HTTP request so /metrics can expose traffic by route."""
+    try:
+        response = await call_next(request)
+    except Exception:
+        route = request.scope.get("route")
+        path = getattr(route, "path", None) or "unmatched"
+        HTTP_REQUESTS.labels(
+            method=request.method,
+            path_template=path,
+            status="500",
+        ).inc()
+        raise
+
+    route = request.scope.get("route")
+    path = getattr(route, "path", None) or "unmatched"
+    HTTP_REQUESTS.labels(
+        method=request.method,
+        path_template=path,
+        status=str(response.status_code),
+    ).inc()
+    return response
+
+
 app.include_router(auth_router)
 app.include_router(pages_router)
 app.include_router(accounts_router)
@@ -62,6 +89,10 @@ app.include_router(ingestion_router)
 
 static_dir = Path(__file__).resolve().parent / "static"
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
+# Prometheus metrics endpoint. Mounted sub-apps are excluded from the OpenAPI
+# schema, so /metrics does not appear in /docs.
+app.mount("/metrics", make_asgi_app())
 
 
 @app.get("/health")
@@ -83,4 +114,24 @@ def health_check(db: Session = Depends(get_db)):
             "api": "ok",
             "database": "ok" if db_ok else "down",
         },
+    }
+
+
+@app.get("/healthz")
+def liveness() -> dict[str, str]:
+    """Liveness probe: the process is up and serving requests."""
+    return {"status": "alive"}
+
+
+@app.get("/readyz")
+def readiness(db: Session = Depends(get_db)) -> dict[str, str]:
+    """Readiness probe: the application database is reachable.
+
+    Updates the ``edgebook_db_up`` gauge so scrapes reflect the latest check.
+    """
+    db_ok = check_db_health(db)
+    DB_UP.set(1 if db_ok else 0)
+    return {
+        "status": "ok" if db_ok else "unhealthy",
+        "database": "ok" if db_ok else "down",
     }

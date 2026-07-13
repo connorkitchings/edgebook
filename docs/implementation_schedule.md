@@ -126,8 +126,8 @@ Calculate ROI, win-loss units, bankroll drawdowns, stake-allocation calibration,
 
 | Phase | Task | Deliverable | Status | Notes |
 |-------|------|-------------|--------|-------|
-| 8.1 | Production settings hardening | Fail-fast validation rejecting default/empty `SECRET_KEY` when `ENV=production` | ▶ In Progress | Kickoff slice for this session. |
-| 8.2 | Database backup strategy | Documented backup/restore runbook plus a `pg_dump` script for the production Compose volume | ☐ Not Started | Postgres only; SQLite dev path remains manual. |
-| 8.3 | Monitoring & metrics | Liveness/readiness split and a Prometheus-compatible `/metrics` endpoint | ☐ Not Started | Build on the existing `/health` check. |
+| 8.1 | Production settings hardening | Fail-fast validation rejecting default/empty `SECRET_KEY` when `ENV=production` | ✅ Done | Validator on `Settings`; smoke compose supplies a valid key. |
+| 8.2 | Database backup strategy | Documented backup/restore runbook plus a `pg_dump` script for the production Compose volume | ✅ Done | `scripts/backup_db.sh` + `restore_db.sh`; 7-backup retention; CI syntax-checked. |
+| 8.3 | Monitoring & metrics | Liveness/readiness split and a Prometheus-compatible `/metrics` endpoint | ✅ Done | `/healthz`, `/readyz`, `/metrics`; HTTP + ingestion metrics; `/health` preserved. |
 | 8.4 | Scheduler operations | Operator visibility into ingestion run history, quota, and failure alerting | ☐ Not Started | Surfaces the existing `ingestion_runs` records. |
 | 8.5 | Release & deployment pipeline | Version tagging, CHANGELOG, and CI deploy workflow | ☐ Not Started | Aligns with `.agent/workflows/release-checklist.md`. |
