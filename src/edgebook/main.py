@@ -124,14 +124,21 @@ def liveness() -> dict[str, str]:
     return {"status": "alive"}
 
 
-@app.get("/readyz")
-def readiness(db: Session = Depends(get_db)) -> dict[str, str]:
+@app.get(
+    "/readyz",
+    responses={
+        status.HTTP_503_SERVICE_UNAVAILABLE: {"description": "Database unavailable"}
+    },
+)
+def readiness(response: Response, db: Session = Depends(get_db)) -> dict[str, str]:
     """Readiness probe: the application database is reachable.
 
     Updates the ``edgebook_db_up`` gauge so scrapes reflect the latest check.
     """
     db_ok = check_db_health(db)
     DB_UP.set(1 if db_ok else 0)
+    if not db_ok:
+        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
     return {
         "status": "ok" if db_ok else "unhealthy",
         "database": "ok" if db_ok else "down",

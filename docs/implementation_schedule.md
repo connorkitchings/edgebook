@@ -121,8 +121,8 @@ Calculate ROI, win-loss units, bankroll drawdowns, stake-allocation calibration,
 - Added an auth management CLI (`edgebook.auth.cli`) for seeding operator/admin accounts and structured JSON production logging (`utils/logging.py`) plus a production Compose stack with healthchecks.
 - Coverage: added `tests/auth/test_endpoints.py` and `tests/auth/test_services.py`; `tests/api/test_pages.py` extended for authenticated page flows.
 
-### Phase 8: Hosted MVP Operations ▶ IN PROGRESS
-- Harden production deployment, secret management, backups, monitoring, and scheduler operations before public exposure.
+### Phase 8: Hosted MVP Operations ✅ CODE COMPLETE
+- Production hardening, backups, monitoring, scheduler operations, and the deployment workflow are implemented and locally verified. Live Oracle VM provisioning, provider credentials, and HTTPS remain external deployment steps.
 
 | Phase | Task | Deliverable | Status | Notes |
 |-------|------|-------------|--------|-------|

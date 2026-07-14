@@ -20,6 +20,18 @@ def test_readyz_reports_database_status(client):
     body = response.json()
     assert body["status"] == "ok"
     assert body["database"] == "ok"
+    assert "edgebook_db_up 1.0" in generate_latest().decode()
+
+
+def test_readyz_returns_503_when_database_is_unavailable(client, monkeypatch):
+    """/readyz must fail HTTP readiness when the database cannot be reached."""
+    monkeypatch.setattr("edgebook.main.check_db_health", lambda db: False)
+
+    response = client.get("/readyz")
+
+    assert response.status_code == 503
+    assert response.json() == {"status": "unhealthy", "database": "down"}
+    assert "edgebook_db_up 0.0" in generate_latest().decode()
 
 
 def test_health_backward_compatible(client):

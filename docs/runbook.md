@@ -131,10 +131,11 @@ ODDS_API_KEY=... uv run python scripts/odds_api_smoke.py
 ODDS_API_KEY=... uv run python scripts/odds_api_smoke.py --historical-date 2025-09-01
 ```
 
-The production pregame worker runs once daily at 08:00 America/New_York and requests the
-DraftKings, FanDuel, BetMGM, and Caesars featured markets (`h2h`, `spreads`, and `totals`). It
-is a separate Docker service, not part of the FastAPI process. Ingestion runs record the requested
-and provider snapshot times plus remaining provider quota.
+Host cron runs `scripts/cron_ingest.sh` once daily at 08:00 America/New_York.
+The script starts a one-shot application container that requests DraftKings,
+FanDuel, BetMGM, and Caesars featured markets (`h2h`, `spreads`, and `totals`),
+then removes the container. Ingestion runs record the requested and provider
+snapshot times plus remaining provider quota.
 
 Historical backfills request one daily 12:00 UTC snapshot at a time. Each request receives a
 durable checkpoint keyed by provider, sport, markets, bookmaker set, and requested timestamp;
@@ -227,8 +228,10 @@ lives in `.agent/workflows/release-checklist.md`; the routine cut-a-tag flow is:
    git push origin main --tags
    ```
 
-The production deploy workflow is pending a hosting-target decision; until then,
-a release is a versioned git tag plus the published container image build.
+The production deploy workflow targets an Oracle Always-Free ARM VM and builds
+natively over SSH on pushes to `main`. It skips successfully until the four VM
+secrets are configured. Defer the `v0.2.0` tag until the first real VM deploy
+validates the stack; see [Deployment](deployment.md) for provisioning details.
 
 ---
 
