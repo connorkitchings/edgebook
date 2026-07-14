@@ -1,0 +1,1910 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A simulation-only college football paper-betting platform.">
+      
+      
+      
+      
+        <link rel="prev" href="../product_manual/">
+      
+      
+        <link rel="next" href="../development_guide/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.23">
+    
+    
+      
+        <title>Implementation Schedule - Edgebook</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.84d31ad4.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#edgebook-implementation-schedule" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Edgebook" class="md-header__button md-logo" aria-label="Edgebook" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Edgebook
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Implementation Schedule
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../product_manual/" class="md-tabs__link">
+          
+  
+  
+  Project Overview
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../development_guide/" class="md-tabs__link">
+          
+  
+  
+  Development
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../architecture/system_overview/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../data/contracts/" class="md-tabs__link">
+          
+  
+  
+  Data Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../architecture/adr/adr-0001-template/" class="md-tabs__link">
+          
+  
+  
+  Templates
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../runbook/" class="md-tabs__link">
+          
+  
+  
+  Operations
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../api/" class="md-tabs__link">
+          
+  
+  
+  API
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Edgebook" class="md-nav__button md-logo" aria-label="Edgebook" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Edgebook
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Project Overview
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Project Overview
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../product_manual/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Product Manual
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Implementation Schedule
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Implementation Schedule
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#roadmap-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Roadmap Overview
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Roadmap Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-0-project-foundation-this-session-complete" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 0: Project Foundation (THIS SESSION) ✅ COMPLETE
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#upcoming-phases" class="md-nav__link">
+    <span class="md-ellipsis">
+      Upcoming Phases
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Upcoming Phases">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-1-manual-end-to-end-betting-flow-complete" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 1: Manual End-to-End Betting Flow ✅ COMPLETE
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2-product-hardening-complete" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 2: Product Hardening ✅ COMPLETE
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 2: Product Hardening ✅ COMPLETE">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-2a-ledger-hardening-structured-reasoning" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 2A: Ledger Hardening &amp; Structured Reasoning
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2b-alternative-market-lines" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 2B: Alternative Market Lines
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2c-score-correction-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 2C: Score Correction Workflow
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deferred-to-later-phases" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deferred to Later Phases
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-3-analytics-complete" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 3: Analytics ✅ COMPLETE
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-4-multi-source-external-ingestion-complete" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 4: Multi-Source External Ingestion ✅ COMPLETE
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-4c-production-odds-data-pilot-in-progress" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 4C: Production Odds Data Pilot ▶ IN PROGRESS
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-5-rationale-review-workflow-complete" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 5: Rationale Review Workflow ✅ COMPLETE
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-6-investment-adaptability-review-complete" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 6: Investment Adaptability Review ✅ COMPLETE
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-7-authentication-and-authorization-complete" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 7: Authentication and Authorization ✅ COMPLETE
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-8-hosted-mvp-operations-code-complete" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 8: Hosted MVP Operations ✅ CODE COMPLETE
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Development
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Development
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/web_architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Web Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/ai_docs_organization_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AI Docs Organization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Architecture
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/system_overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    System Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/data_modeling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Modeling
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/investment_adaptability_review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Investment Adaptability
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/adr/adr-0001-initial-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Initial Architecture (ADR)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/adr/adr-0002-application-orchestration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Application Orchestration (ADR)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Data Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Data Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data/contracts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Contracts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data/dictionary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dictionary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Templates
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Templates
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/adr/adr-0001-template/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ADR Template
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/decisions/template/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Decision Template
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Operations
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Runbook
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Security & Responsible Use
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../knowledge_base/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Knowledge Base
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="edgebook-implementation-schedule">Edgebook - Implementation Schedule</h1>
+<p>This schedule tracks the progress of the Edgebook simulation platform development phases.</p>
+<p><strong>Status Legend:</strong> ☐ Not Started · ▶ In Progress · ✅ Done · ⚠ Risk/Blocked</p>
+<hr />
+<h2 id="roadmap-overview">Roadmap Overview</h2>
+<h3 id="phase-0-project-foundation-this-session-complete">Phase 0: Project Foundation (THIS SESSION) ✅ COMPLETE</h3>
+<p>Initialize the python environment, database configurations, and testing foundations.</p>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Task</th>
+<th>Deliverable</th>
+<th>Status</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.1</td>
+<td>Rename python package to edgebook</td>
+<td>Package folder renamed to <code>edgebook</code></td>
+<td>✅ Done</td>
+<td>Completed</td>
+</tr>
+<tr>
+<td>0.2</td>
+<td>Pin python version and setup uv</td>
+<td><code>.python-version</code> pinned to 3.11</td>
+<td>✅ Done</td>
+<td>Completed</td>
+</tr>
+<tr>
+<td>0.3</td>
+<td>Add FastAPI, Pydantic, SQLAlchemy</td>
+<td>Virtual environment synced with dependencies</td>
+<td>✅ Done</td>
+<td>Completed</td>
+</tr>
+<tr>
+<td>0.4</td>
+<td>Implement core database session setup</td>
+<td><code>src/edgebook/core/database.py</code> created</td>
+<td>✅ Done</td>
+<td>Completed</td>
+</tr>
+<tr>
+<td>0.5</td>
+<td>Setup initial FastAPI app &amp; health check</td>
+<td><code>src/edgebook/main.py</code> created</td>
+<td>✅ Done</td>
+<td>Completed</td>
+</tr>
+<tr>
+<td>0.6</td>
+<td>Establish tests and pass health check</td>
+<td>53 unit tests passing successfully</td>
+<td>✅ Done</td>
+<td>Completed</td>
+</tr>
+<tr>
+<td>0.7</td>
+<td>Update documentation</td>
+<td>Project charter, brief, schedules updated</td>
+<td>✅ Done</td>
+<td>Completed</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="upcoming-phases">Upcoming Phases</h2>
+<h3 id="phase-1-manual-end-to-end-betting-flow-complete">Phase 1: Manual End-to-End Betting Flow ✅ COMPLETE</h3>
+<p>Implement manual creation of fictional accounts, game data entry, bet placement, score recording, and automated ledger adjustments.</p>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Task</th>
+<th>Deliverable</th>
+<th>Status</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1.1</td>
+<td>Fictional Account Creation</td>
+<td>Generic double-entry ledger, account API, and statement history</td>
+<td>✅ Done</td>
+<td>Includes Alembic schema and append-only ledger records.</td>
+</tr>
+<tr>
+<td>1.2</td>
+<td>Manual Game &amp; Odds Input</td>
+<td>Team catalog plus manual game, market, and American-odds intake APIs</td>
+<td>✅ Done</td>
+<td>CFB module remains isolated from the ledger.</td>
+</tr>
+<tr>
+<td>1.3</td>
+<td>Place Simulated Bet</td>
+<td>Record stake, locked odds, bankroll snapshot, and optional reason</td>
+<td>✅ Done</td>
+<td>Conviction is derived from stake relative to pre-bet bankroll.</td>
+</tr>
+<tr>
+<td>1.4</td>
+<td>Settlement Engine</td>
+<td>Evaluate final scores and credit ledger</td>
+<td>✅ Done</td>
+<td>Atomic win/loss/push settlement with immutable payout postings.</td>
+</tr>
+<tr>
+<td>1.5</td>
+<td>Bet History View</td>
+<td>Display statements and past bets</td>
+<td>✅ Done</td>
+<td>Paginated account history and bet detail APIs.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="phase-2-product-hardening-complete">Phase 2: Product Hardening ✅ COMPLETE</h3>
+<p>Strengthen ledger integrity, add structured reasoning for analytics, support alternative market lines, and implement score correction workflows with full audit trails.</p>
+<h4 id="phase-2a-ledger-hardening-structured-reasoning">Phase 2A: Ledger Hardening &amp; Structured Reasoning</h4>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Deliverable</th>
+<th>Status</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Add reconciliation service</td>
+<td><code>reconcile_account_balance()</code> verifies materialized balance</td>
+<td>✅ Done</td>
+<td>Compares <code>current_balance_cents</code> to sum of postings</td>
+</tr>
+<tr>
+<td>Add reconciliation API endpoint</td>
+<td><code>POST /accounts/{id}/reconcile</code></td>
+<td>✅ Done</td>
+<td>Returns balance status and discrepancy if any</td>
+</tr>
+<tr>
+<td>Add <code>rationale_category</code> enum to Bet model</td>
+<td>Typed rationale field (nullable)</td>
+<td>✅ Done</td>
+<td>Categories: MATCHUP_ANALYSIS, STATISTICAL_EDGE, LINE_VALUE, INJURY_IMPACT, SITUATIONAL, CONTRARIAN, OTHER</td>
+</tr>
+<tr>
+<td>Add <code>notes</code> field to Bet model</td>
+<td>Backward-compatible with legacy <code>reason</code></td>
+<td>✅ Done</td>
+<td>Both fields coexist; new bets use <code>notes</code></td>
+</tr>
+<tr>
+<td>Update API schemas for reasoning</td>
+<td>Accept/return <code>rationale_category</code> and <code>notes</code></td>
+<td>✅ Done</td>
+<td>BetCreate and BetResponse updated</td>
+</tr>
+</tbody>
+</table>
+<h4 id="phase-2b-alternative-market-lines">Phase 2B: Alternative Market Lines</h4>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Deliverable</th>
+<th>Status</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Relax market uniqueness constraint</td>
+<td>Dropped <code>UNIQUE(game_id, market_type)</code></td>
+<td>✅ Done</td>
+<td>Service layer enforces: one moneyline per game; spread/total unique per line</td>
+</tr>
+<tr>
+<td>Update market creation service</td>
+<td>Allow multiple spread/total markets with different lines</td>
+<td>✅ Done</td>
+<td>Duplicate line still rejected with 409</td>
+</tr>
+<tr>
+<td>Update tests</td>
+<td>Verify alternative lines and duplicate detection</td>
+<td>✅ Done</td>
+<td>New test for multi-line betting flow</td>
+</tr>
+</tbody>
+</table>
+<h4 id="phase-2c-score-correction-workflow">Phase 2C: Score Correction Workflow</h4>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Deliverable</th>
+<th>Status</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Add <code>ScoreCorrection</code> model</td>
+<td>Track original/corrected scores with reason</td>
+<td>✅ Done</td>
+<td>Table: <code>cfb_score_corrections</code></td>
+</tr>
+<tr>
+<td>Implement score correction service</td>
+<td><code>correct_game_result()</code> with full audit trail</td>
+<td>✅ Done</td>
+<td>Offsetting ADJUSTMENT entries reverse payouts; re-settlement creates new WAGER_PAYOUT entries</td>
+</tr>
+<tr>
+<td>Add correction API endpoint</td>
+<td><code>PUT /cfb/games/{id}/correction</code></td>
+<td>✅ Done</td>
+<td>Local simulation endpoint; authorization required before external exposure</td>
+</tr>
+<tr>
+<td>Preserve append-only invariant</td>
+<td>All corrections via offsetting entries</td>
+<td>✅ Done</td>
+<td>No deletions; original payouts and reversals remain in ledger</td>
+</tr>
+</tbody>
+</table>
+<h4 id="deferred-to-later-phases">Deferred to Later Phases</h4>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Reason</th>
+<th>Target Phase</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Parlays</td>
+<td>Requires real market odds data</td>
+<td>After Phase 4 (External Ingestion)</td>
+</tr>
+<tr>
+<td>Teasers</td>
+<td>Complex line adjustment logic; needs real odds</td>
+<td>After Phase 4 (External Ingestion)</td>
+</tr>
+<tr>
+<td>Authentication</td>
+<td>Not required for the local simulation workflow; required before external exposure</td>
+<td>Before public deployment</td>
+</tr>
+</tbody>
+</table>
+<h3 id="phase-3-analytics-complete">Phase 3: Analytics ✅ COMPLETE</h3>
+<p>Calculate ROI, win-loss units, bankroll drawdowns, stake-allocation calibration, Sharpe ratio, and analytics by rationale category, sport, and market type.</p>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Deliverable</th>
+<th>Status</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Add <code>sport</code> column to <code>cfb_games</code></td>
+<td>Migration, model, API update; defaults to <code>"CFB"</code></td>
+<td>✅ Done</td>
+<td>Future-proofs analytics for multi-sport expansion</td>
+</tr>
+<tr>
+<td>Summary metrics service</td>
+<td>ROI, win rate, net profit, Sharpe ratio, max drawdown</td>
+<td>✅ Done</td>
+<td>Sharpe uses per-bet returns with population std dev</td>
+</tr>
+<tr>
+<td>Per-sport breakdown</td>
+<td>GROUP BY <code>cfb_games.sport</code></td>
+<td>✅ Done</td>
+<td>Currently only CFB; ready for expansion</td>
+</tr>
+<tr>
+<td>Per-market-type breakdown</td>
+<td>GROUP BY <code>bet.market_type</code></td>
+<td>✅ Done</td>
+<td>SPREAD, MONEYLINE, TOTAL</td>
+</tr>
+<tr>
+<td>Per-rationale-category breakdown</td>
+<td>GROUP BY <code>bet.rationale_category</code></td>
+<td>✅ Done</td>
+<td>Null category grouped explicitly</td>
+</tr>
+<tr>
+<td>Allocation calibration</td>
+<td>Bucket by conviction %, configurable boundaries</td>
+<td>✅ Done</td>
+<td>Default buckets: &lt;1%, 1-2%, 2-5%, 5-10%, 10-25%, 25%+</td>
+</tr>
+<tr>
+<td>Drawdown series</td>
+<td>Per-transaction drawdown from chronological replay</td>
+<td>✅ Done</td>
+<td>Chart-ready: timestamp, balance, peak, drawdown_pct, event</td>
+</tr>
+<tr>
+<td>Balance series</td>
+<td>Daily balance from transaction replay</td>
+<td>✅ Done</td>
+<td>Chart-ready: date, balance</td>
+</tr>
+<tr>
+<td>API endpoint + schemas</td>
+<td><code>GET /accounts/{id}/analytics</code> with date range and bucket params</td>
+<td>✅ Done</td>
+<td>All params optional; ranges require timezone-aware bounds and valid bucket boundaries</td>
+</tr>
+<tr>
+<td>Tests</td>
+<td>11 tests covering settled bets, losses, no bets, missing account, custom buckets</td>
+<td>✅ Done</td>
+<td>47 total tests, 90.80% coverage</td>
+</tr>
+</tbody>
+</table>
+<h3 id="phase-4-multi-source-external-ingestion-complete">Phase 4: Multi-Source External Ingestion ✅ COMPLETE</h3>
+<ul>
+<li>Provider-neutral normalized-feed adapters, provenance records, source-specific odds, score-conflict holds, and scheduler-safe commands are implemented.</li>
+<li>The Odds API is implemented as the credentialed NCAAF provider for bookmaker-specific current and historical snapshots. SportsDataIO and CollegeFootballData adapters are fixture-ready pending approved credentials and terms.</li>
+<li><strong>Deferred:</strong> Production provider adapters, credentials, and source terms for at least three independent providers require key provisioning before live ingestion is ready.</li>
+</ul>
+<h3 id="phase-4c-production-odds-data-pilot-in-progress">Phase 4C: Production Odds Data Pilot ▶ IN PROGRESS</h3>
+<ul>
+<li>The Odds API is the first licensed NCAAF provider for daily pregame snapshots from DraftKings, FanDuel, BetMGM, and Caesars.</li>
+<li>Durable provider-event links, historical backfill checkpoints, quota-aware runs, and bookmaker-specific odds-history reads support a resumable June 6, 2020-present research load.</li>
+<li>A separate Docker scheduler runs at 08:00 America/New_York; live verification remains blocked until an <code>ODDS_API_KEY</code> is provisioned.</li>
+</ul>
+<h3 id="phase-5-rationale-review-workflow-complete">Phase 5: Rationale Review Workflow ✅ COMPLETE</h3>
+<ul>
+<li>Asynchronous human-review tasks, local completion APIs, an operator queue with atomic claims, review coverage, and bias-tag analytics are implemented.</li>
+<li>Added <code>/reviews/{bet_id}</code> and <code>/reviews/{bet_id}/complete</code> endpoints with JSON and HTML responses.</li>
+<li>Review card partial renders inline with HTMX claim/complete forms; status badges use consistent <code>status_label</code> filter.</li>
+<li>Operator protection: only the claiming reviewer can complete a review.</li>
+<li>Model execution remains deliberately deferred behind the review workflow boundary.</li>
+</ul>
+<h3 id="phase-6-investment-adaptability-review-complete">Phase 6: Investment Adaptability Review ✅ COMPLETE</h3>
+<ul>
+<li>Published the investment-adaptability review and ADR-0002 application-orchestration boundary.</li>
+<li>Moved score settlement, conflict resolution, and review scheduling out of ingestion-domain logic.</li>
+<li>Added AST-enforced import rules; no investment schema or product abstraction was introduced.</li>
+</ul>
+<h3 id="phase-7-authentication-and-authorization-complete">Phase 7: Authentication and Authorization ✅ COMPLETE</h3>
+<ul>
+<li>Added the <code>auth_users</code> table (Alembic revision <code>337ec2aab671</code>) with role-based <code>AppUser</code> records (<code>USER</code>, <code>OPERATOR</code>, <code>ADMIN</code>) linked one-to-one to ledger accounts through a non-null foreign key, preserving ledger atomic integration.</li>
+<li>Implemented JWT-backed auth services and FastAPI dependencies (<code>get_current_user</code>, <code>get_optional_current_user</code>, <code>RoleChecker</code>, <code>require_role</code>) that read the session token from cookies or the <code>Authorization: Bearer</code> header.</li>
+<li>Shipped <code>/login</code> and <code>/register</code> page routes with templates, a global 401 handler that redirects HTML requests to login, and operator/admin-gated correction and review workflows.</li>
+<li>Added an auth management CLI (<code>edgebook.auth.cli</code>) for seeding operator/admin accounts and structured JSON production logging (<code>utils/logging.py</code>) plus a production Compose stack with healthchecks.</li>
+<li>Coverage: added <code>tests/auth/test_endpoints.py</code> and <code>tests/auth/test_services.py</code>; <code>tests/api/test_pages.py</code> extended for authenticated page flows.</li>
+</ul>
+<h3 id="phase-8-hosted-mvp-operations-code-complete">Phase 8: Hosted MVP Operations ✅ CODE COMPLETE</h3>
+<ul>
+<li>Production hardening, backups, monitoring, scheduler operations, and the deployment workflow are implemented and locally verified. Live Oracle VM provisioning, provider credentials, and HTTPS remain external deployment steps.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Task</th>
+<th>Deliverable</th>
+<th>Status</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>8.1</td>
+<td>Production settings hardening</td>
+<td>Fail-fast validation rejecting default/empty <code>SECRET_KEY</code> when <code>ENV=production</code></td>
+<td>✅ Done</td>
+<td>Validator on <code>Settings</code>; smoke compose supplies a valid key.</td>
+</tr>
+<tr>
+<td>8.2</td>
+<td>Database backup strategy</td>
+<td>Documented backup/restore runbook plus a <code>pg_dump</code> script for the production Compose volume</td>
+<td>✅ Done</td>
+<td><code>scripts/backup_db.sh</code> + <code>restore_db.sh</code>; 7-backup retention; CI syntax-checked.</td>
+</tr>
+<tr>
+<td>8.3</td>
+<td>Monitoring &amp; metrics</td>
+<td>Liveness/readiness split and a Prometheus-compatible <code>/metrics</code> endpoint</td>
+<td>✅ Done</td>
+<td><code>/healthz</code>, <code>/readyz</code>, <code>/metrics</code>; HTTP + ingestion metrics; <code>/health</code> preserved.</td>
+</tr>
+<tr>
+<td>8.4</td>
+<td>Scheduler operations</td>
+<td>Operator visibility into ingestion run history, quota, and failure alerting</td>
+<td>✅ Done</td>
+<td>Summary card + API, status/provider filters, enriched run table, webhook notifier, alerting docs.</td>
+</tr>
+<tr>
+<td>8.5</td>
+<td>Release &amp; deployment pipeline</td>
+<td>Version tagging, CHANGELOG, and CI deploy workflow</td>
+<td>✅ Done</td>
+<td>CHANGELOG + single-sourced version + tagging runbook; Oracle Always-Free deployment guide + cron ingestion + SSH deploy-on-push workflow (HTTPS pending a domain).</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.sections", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "content.tabs.link", "content.code.annotation", "content.code.copy"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+    
+  </body>
+</html>

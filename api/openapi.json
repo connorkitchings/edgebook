@@ -1,0 +1,5567 @@
+{
+  "components": {
+    "schemas": {
+      "AccountCreate": {
+        "description": "Payload for creating a fictional simulation-credit account.",
+        "properties": {
+          "owner_name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Owner Name",
+            "type": "string"
+          },
+          "starting_bankroll": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "default": "0.00",
+            "title": "Starting Bankroll"
+          }
+        },
+        "required": [
+          "owner_name"
+        ],
+        "title": "AccountCreate",
+        "type": "object"
+      },
+      "AccountResponse": {
+        "description": "Public representation of a fictional account.",
+        "properties": {
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "current_balance": {
+            "title": "Current Balance",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "owner_name": {
+            "title": "Owner Name",
+            "type": "string"
+          },
+          "starting_bankroll": {
+            "title": "Starting Bankroll",
+            "type": "string"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "owner_name",
+          "is_active",
+          "starting_bankroll",
+          "current_balance",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "AccountResponse",
+        "type": "object"
+      },
+      "AnalyticsResponse": {
+        "properties": {
+          "account_id": {
+            "title": "Account Id",
+            "type": "string"
+          },
+          "allocation_calibration": {
+            "items": {
+              "$ref": "#/components/schemas/CalibrationBucket"
+            },
+            "title": "Allocation Calibration",
+            "type": "array"
+          },
+          "balance_series": {
+            "items": {
+              "$ref": "#/components/schemas/BalancePoint"
+            },
+            "title": "Balance Series",
+            "type": "array"
+          },
+          "by_market_type": {
+            "items": {
+              "$ref": "#/components/schemas/MarketTypeBreakdown"
+            },
+            "title": "By Market Type",
+            "type": "array"
+          },
+          "by_rationale_category": {
+            "items": {
+              "$ref": "#/components/schemas/RationaleBreakdown"
+            },
+            "title": "By Rationale Category",
+            "type": "array"
+          },
+          "by_sport": {
+            "items": {
+              "$ref": "#/components/schemas/SportBreakdown"
+            },
+            "title": "By Sport",
+            "type": "array"
+          },
+          "drawdown_series": {
+            "items": {
+              "$ref": "#/components/schemas/DrawdownPoint"
+            },
+            "title": "Drawdown Series",
+            "type": "array"
+          },
+          "period": {
+            "additionalProperties": true,
+            "title": "Period",
+            "type": "object"
+          },
+          "review_summary": {
+            "$ref": "#/components/schemas/ReviewSummary"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/AnalyticsSummary"
+          }
+        },
+        "required": [
+          "account_id",
+          "period",
+          "summary",
+          "by_sport",
+          "by_market_type",
+          "by_rationale_category",
+          "allocation_calibration",
+          "drawdown_series",
+          "balance_series",
+          "review_summary"
+        ],
+        "title": "AnalyticsResponse",
+        "type": "object"
+      },
+      "AnalyticsSummary": {
+        "properties": {
+          "current_balance": {
+            "title": "Current Balance",
+            "type": "string"
+          },
+          "losses": {
+            "title": "Losses",
+            "type": "integer"
+          },
+          "max_drawdown": {
+            "title": "Max Drawdown",
+            "type": "string"
+          },
+          "max_drawdown_pct": {
+            "title": "Max Drawdown Pct",
+            "type": "number"
+          },
+          "net_profit": {
+            "title": "Net Profit",
+            "type": "string"
+          },
+          "pushes": {
+            "title": "Pushes",
+            "type": "integer"
+          },
+          "roi": {
+            "title": "Roi",
+            "type": "number"
+          },
+          "sharpe_ratio": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sharpe Ratio"
+          },
+          "total_bets": {
+            "title": "Total Bets",
+            "type": "integer"
+          },
+          "total_payout": {
+            "title": "Total Payout",
+            "type": "string"
+          },
+          "total_staked": {
+            "title": "Total Staked",
+            "type": "string"
+          },
+          "win_rate": {
+            "title": "Win Rate",
+            "type": "number"
+          },
+          "wins": {
+            "title": "Wins",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total_bets",
+          "wins",
+          "losses",
+          "pushes",
+          "win_rate",
+          "total_staked",
+          "total_payout",
+          "net_profit",
+          "roi",
+          "sharpe_ratio",
+          "current_balance",
+          "max_drawdown",
+          "max_drawdown_pct"
+        ],
+        "title": "AnalyticsSummary",
+        "type": "object"
+      },
+      "BalancePoint": {
+        "properties": {
+          "balance": {
+            "title": "Balance",
+            "type": "string"
+          },
+          "date": {
+            "title": "Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "balance"
+        ],
+        "title": "BalancePoint",
+        "type": "object"
+      },
+      "BetCreate": {
+        "properties": {
+          "market_id": {
+            "title": "Market Id",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "quote_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quote Id"
+          },
+          "rationale_category": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RationaleCategory"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "selection": {
+            "$ref": "#/components/schemas/MarketSelection"
+          },
+          "stake": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Stake"
+          }
+        },
+        "required": [
+          "market_id",
+          "selection",
+          "stake"
+        ],
+        "title": "BetCreate",
+        "type": "object"
+      },
+      "BetPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/BetResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "BetPage",
+        "type": "object"
+      },
+      "BetPlacementResponse": {
+        "properties": {
+          "bet": {
+            "$ref": "#/components/schemas/BetResponse"
+          },
+          "current_balance": {
+            "title": "Current Balance",
+            "type": "string"
+          }
+        },
+        "required": [
+          "bet",
+          "current_balance"
+        ],
+        "title": "BetPlacementResponse",
+        "type": "object"
+      },
+      "BetResponse": {
+        "properties": {
+          "account_id": {
+            "title": "Account Id",
+            "type": "string"
+          },
+          "american_odds": {
+            "title": "American Odds",
+            "type": "integer"
+          },
+          "bankroll_before": {
+            "title": "Bankroll Before",
+            "type": "string"
+          },
+          "game_id": {
+            "title": "Game Id",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "line": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Line"
+          },
+          "market_id": {
+            "title": "Market Id",
+            "type": "string"
+          },
+          "market_type": {
+            "$ref": "#/components/schemas/MarketType"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "payout": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payout"
+          },
+          "payout_transaction_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payout Transaction Id"
+          },
+          "placed_at": {
+            "title": "Placed At",
+            "type": "string"
+          },
+          "quote_id": {
+            "title": "Quote Id",
+            "type": "string"
+          },
+          "quote_observed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quote Observed At"
+          },
+          "quote_source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quote Source"
+          },
+          "quote_source_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quote Source Id"
+          },
+          "rationale_category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rationale Category"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "selection": {
+            "$ref": "#/components/schemas/MarketSelection"
+          },
+          "settled_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Settled At"
+          },
+          "stake": {
+            "title": "Stake",
+            "type": "string"
+          },
+          "stake_transaction_id": {
+            "title": "Stake Transaction Id",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/BetStatus"
+          }
+        },
+        "required": [
+          "id",
+          "account_id",
+          "game_id",
+          "market_id",
+          "quote_id",
+          "stake_transaction_id",
+          "payout_transaction_id",
+          "selection",
+          "market_type",
+          "line",
+          "american_odds",
+          "quote_source",
+          "quote_source_id",
+          "quote_observed_at",
+          "stake",
+          "bankroll_before",
+          "payout",
+          "reason",
+          "rationale_category",
+          "notes",
+          "status",
+          "placed_at",
+          "settled_at"
+        ],
+        "title": "BetResponse",
+        "type": "object"
+      },
+      "BetStatus": {
+        "enum": [
+          "PENDING",
+          "WON",
+          "LOST",
+          "PUSH"
+        ],
+        "title": "BetStatus",
+        "type": "string"
+      },
+      "BiasFlagCount": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "flag": {
+            "title": "Flag",
+            "type": "string"
+          }
+        },
+        "required": [
+          "flag",
+          "count"
+        ],
+        "title": "BiasFlagCount",
+        "type": "object"
+      },
+      "Body_create_game_partial_partials_create_game_post": {
+        "properties": {
+          "away_team_id": {
+            "title": "Away Team Id",
+            "type": "string"
+          },
+          "home_team_id": {
+            "title": "Home Team Id",
+            "type": "string"
+          },
+          "scheduled_at": {
+            "title": "Scheduled At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "home_team_id",
+          "away_team_id",
+          "scheduled_at"
+        ],
+        "title": "Body_create_game_partial_partials_create_game_post",
+        "type": "object"
+      },
+      "Body_create_team_partial_partials_create_team_post": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "Body_create_team_partial_partials_create_team_post",
+        "type": "object"
+      },
+      "Body_login_post_login_post": {
+        "properties": {
+          "password": {
+            "title": "Password",
+            "type": "string"
+          },
+          "username": {
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "Body_login_post_login_post",
+        "type": "object"
+      },
+      "Body_place_bet_partial_partials_place_bet_post": {
+        "properties": {
+          "account_id": {
+            "title": "Account Id",
+            "type": "string"
+          },
+          "market_id": {
+            "title": "Market Id",
+            "type": "string"
+          },
+          "quote_id": {
+            "title": "Quote Id",
+            "type": "string"
+          },
+          "rationale_category": {
+            "default": "",
+            "title": "Rationale Category",
+            "type": "string"
+          },
+          "reason": {
+            "default": "",
+            "title": "Reason",
+            "type": "string"
+          },
+          "selection": {
+            "title": "Selection",
+            "type": "string"
+          },
+          "stake": {
+            "title": "Stake",
+            "type": "string"
+          }
+        },
+        "required": [
+          "account_id",
+          "market_id",
+          "selection",
+          "quote_id",
+          "stake"
+        ],
+        "title": "Body_place_bet_partial_partials_place_bet_post",
+        "type": "object"
+      },
+      "Body_record_score_partial_partials_record_score_post": {
+        "properties": {
+          "away_score": {
+            "title": "Away Score",
+            "type": "integer"
+          },
+          "game_id": {
+            "title": "Game Id",
+            "type": "string"
+          },
+          "home_score": {
+            "title": "Home Score",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "game_id",
+          "home_score",
+          "away_score"
+        ],
+        "title": "Body_record_score_partial_partials_record_score_post",
+        "type": "object"
+      },
+      "Body_register_post_register_post": {
+        "properties": {
+          "password": {
+            "title": "Password",
+            "type": "string"
+          },
+          "starting_bankroll": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "default": "10000.00",
+            "title": "Starting Bankroll"
+          },
+          "username": {
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "Body_register_post_register_post",
+        "type": "object"
+      },
+      "CalibrationBucket": {
+        "properties": {
+          "bets": {
+            "title": "Bets",
+            "type": "integer"
+          },
+          "bucket": {
+            "title": "Bucket",
+            "type": "string"
+          },
+          "max_pct": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Pct"
+          },
+          "min_pct": {
+            "title": "Min Pct",
+            "type": "integer"
+          },
+          "roi": {
+            "title": "Roi",
+            "type": "number"
+          }
+        },
+        "required": [
+          "bucket",
+          "min_pct",
+          "max_pct",
+          "bets",
+          "roi"
+        ],
+        "title": "CalibrationBucket",
+        "type": "object"
+      },
+      "ConflictGameResponse": {
+        "properties": {
+          "away_team": {
+            "title": "Away Team",
+            "type": "string"
+          },
+          "game_id": {
+            "title": "Game Id",
+            "type": "string"
+          },
+          "home_team": {
+            "title": "Home Team",
+            "type": "string"
+          },
+          "scheduled_at": {
+            "title": "Scheduled At",
+            "type": "string"
+          },
+          "score_sync_state": {
+            "title": "Score Sync State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "game_id",
+          "home_team",
+          "away_team",
+          "scheduled_at",
+          "score_sync_state"
+        ],
+        "title": "ConflictGameResponse",
+        "type": "object"
+      },
+      "ConflictResolutionCreate": {
+        "properties": {
+          "away_score": {
+            "minimum": 0.0,
+            "title": "Away Score",
+            "type": "integer"
+          },
+          "home_score": {
+            "minimum": 0.0,
+            "title": "Home Score",
+            "type": "integer"
+          },
+          "reason": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          },
+          "resolved_by": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Resolved By",
+            "type": "string"
+          }
+        },
+        "required": [
+          "home_score",
+          "away_score",
+          "reason",
+          "resolved_by"
+        ],
+        "title": "ConflictResolutionCreate",
+        "type": "object"
+      },
+      "ConflictResolutionResponse": {
+        "properties": {
+          "away_score": {
+            "title": "Away Score",
+            "type": "integer"
+          },
+          "game_id": {
+            "title": "Game Id",
+            "type": "string"
+          },
+          "home_score": {
+            "title": "Home Score",
+            "type": "integer"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "resolved_at": {
+            "title": "Resolved At",
+            "type": "string"
+          },
+          "resolved_by": {
+            "title": "Resolved By",
+            "type": "string"
+          }
+        },
+        "required": [
+          "game_id",
+          "home_score",
+          "away_score",
+          "reason",
+          "resolved_by",
+          "resolved_at"
+        ],
+        "title": "ConflictResolutionResponse",
+        "type": "object"
+      },
+      "DrawdownPoint": {
+        "properties": {
+          "balance": {
+            "title": "Balance",
+            "type": "string"
+          },
+          "drawdown_pct": {
+            "title": "Drawdown Pct",
+            "type": "number"
+          },
+          "event": {
+            "title": "Event",
+            "type": "string"
+          },
+          "peak": {
+            "title": "Peak",
+            "type": "string"
+          },
+          "timestamp": {
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "required": [
+          "timestamp",
+          "balance",
+          "peak",
+          "drawdown_pct",
+          "event"
+        ],
+        "title": "DrawdownPoint",
+        "type": "object"
+      },
+      "GameCreate": {
+        "description": "Payload for manually creating a scheduled game.",
+        "properties": {
+          "away_team_id": {
+            "title": "Away Team Id",
+            "type": "string"
+          },
+          "home_team_id": {
+            "title": "Home Team Id",
+            "type": "string"
+          },
+          "scheduled_at": {
+            "format": "date-time",
+            "title": "Scheduled At",
+            "type": "string"
+          },
+          "sport": {
+            "$ref": "#/components/schemas/SportType",
+            "default": "CFB"
+          }
+        },
+        "required": [
+          "home_team_id",
+          "away_team_id",
+          "scheduled_at"
+        ],
+        "title": "GameCreate",
+        "type": "object"
+      },
+      "GameResponse": {
+        "description": "Public representation of a game including its manual market intake.",
+        "properties": {
+          "away_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Away Score"
+          },
+          "away_team": {
+            "$ref": "#/components/schemas/TeamResponse"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "home_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Home Score"
+          },
+          "home_team": {
+            "$ref": "#/components/schemas/TeamResponse"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "markets": {
+            "items": {
+              "$ref": "#/components/schemas/MarketResponse"
+            },
+            "title": "Markets",
+            "type": "array"
+          },
+          "scheduled_at": {
+            "title": "Scheduled At",
+            "type": "string"
+          },
+          "score_sync_state": {
+            "$ref": "#/components/schemas/ScoreSyncState"
+          },
+          "sport": {
+            "title": "Sport",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "sport",
+          "home_team",
+          "away_team",
+          "scheduled_at",
+          "status",
+          "home_score",
+          "away_score",
+          "score_sync_state",
+          "markets",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "GameResponse",
+        "type": "object"
+      },
+      "GameResultCreate": {
+        "description": "A manually entered final score.",
+        "properties": {
+          "away_score": {
+            "minimum": 0.0,
+            "title": "Away Score",
+            "type": "integer"
+          },
+          "home_score": {
+            "minimum": 0.0,
+            "title": "Home Score",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "home_score",
+          "away_score"
+        ],
+        "title": "GameResultCreate",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "LoginPayload": {
+        "description": "Login payload for JSON-based requests.",
+        "properties": {
+          "password": {
+            "title": "Password",
+            "type": "string"
+          },
+          "username": {
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "LoginPayload",
+        "type": "object"
+      },
+      "ManualTransactionType": {
+        "description": "Manual cash actions that are available before wagering is implemented.",
+        "enum": [
+          "DEPOSIT",
+          "WITHDRAWAL"
+        ],
+        "title": "ManualTransactionType",
+        "type": "string"
+      },
+      "MarketCreate": {
+        "description": "Payload for a game market; quotes are created as a separate resource.",
+        "properties": {
+          "line": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Line"
+          },
+          "market_type": {
+            "$ref": "#/components/schemas/MarketType"
+          }
+        },
+        "required": [
+          "market_type"
+        ],
+        "title": "MarketCreate",
+        "type": "object"
+      },
+      "MarketResponse": {
+        "description": "Public representation of a market and any entered quotes.",
+        "properties": {
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "line": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Line"
+          },
+          "market_type": {
+            "$ref": "#/components/schemas/MarketType"
+          },
+          "quotes": {
+            "items": {
+              "$ref": "#/components/schemas/QuoteResponse"
+            },
+            "title": "Quotes",
+            "type": "array"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MarketStatus"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "market_type",
+          "line",
+          "status",
+          "quotes",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "MarketResponse",
+        "type": "object"
+      },
+      "MarketSelection": {
+        "description": "The available outcome selections across the supported market types.",
+        "enum": [
+          "HOME",
+          "AWAY",
+          "OVER",
+          "UNDER"
+        ],
+        "title": "MarketSelection",
+        "type": "string"
+      },
+      "MarketStatus": {
+        "description": "Whether a market has the quotes needed for future wagering.",
+        "enum": [
+          "DRAFT",
+          "OPEN"
+        ],
+        "title": "MarketStatus",
+        "type": "string"
+      },
+      "MarketType": {
+        "description": "Supported college-football market categories.",
+        "enum": [
+          "SPREAD",
+          "MONEYLINE",
+          "TOTAL"
+        ],
+        "title": "MarketType",
+        "type": "string"
+      },
+      "MarketTypeBreakdown": {
+        "properties": {
+          "bets": {
+            "title": "Bets",
+            "type": "integer"
+          },
+          "market_type": {
+            "title": "Market Type",
+            "type": "string"
+          },
+          "net_profit": {
+            "title": "Net Profit",
+            "type": "string"
+          },
+          "roi": {
+            "title": "Roi",
+            "type": "number"
+          }
+        },
+        "required": [
+          "market_type",
+          "bets",
+          "roi",
+          "net_profit"
+        ],
+        "title": "MarketTypeBreakdown",
+        "type": "object"
+      },
+      "OddsHistoryResponse": {
+        "description": "One immutable provider quote observation for charting line movement.",
+        "properties": {
+          "american_odds": {
+            "title": "American Odds",
+            "type": "integer"
+          },
+          "line": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Line"
+          },
+          "market_id": {
+            "title": "Market Id",
+            "type": "string"
+          },
+          "market_type": {
+            "$ref": "#/components/schemas/MarketType"
+          },
+          "observed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed At"
+          },
+          "quote_id": {
+            "title": "Quote Id",
+            "type": "string"
+          },
+          "selection": {
+            "$ref": "#/components/schemas/MarketSelection"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "source_event_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Event Id"
+          }
+        },
+        "required": [
+          "quote_id",
+          "market_id",
+          "market_type",
+          "selection",
+          "line",
+          "american_odds",
+          "source",
+          "source_event_id",
+          "observed_at"
+        ],
+        "title": "OddsHistoryResponse",
+        "type": "object"
+      },
+      "ProviderStatusResponse": {
+        "properties": {
+          "configured": {
+            "title": "Configured",
+            "type": "boolean"
+          },
+          "live_enabled": {
+            "title": "Live Enabled",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "supports_historical": {
+            "title": "Supports Historical",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "configured",
+          "live_enabled",
+          "supports_historical"
+        ],
+        "title": "ProviderStatusResponse",
+        "type": "object"
+      },
+      "QuoteComparisonResponse": {
+        "properties": {
+          "best_quote_id": {
+            "title": "Best Quote Id",
+            "type": "string"
+          },
+          "market_id": {
+            "title": "Market Id",
+            "type": "string"
+          },
+          "selection": {
+            "$ref": "#/components/schemas/MarketSelection"
+          },
+          "worst_quote_id": {
+            "title": "Worst Quote Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "market_id",
+          "selection",
+          "best_quote_id",
+          "worst_quote_id"
+        ],
+        "title": "QuoteComparisonResponse",
+        "type": "object"
+      },
+      "QuoteCreate": {
+        "description": "Payload for a manual American-odds quote.",
+        "properties": {
+          "american_odds": {
+            "title": "American Odds",
+            "type": "integer"
+          },
+          "selection": {
+            "$ref": "#/components/schemas/MarketSelection"
+          }
+        },
+        "required": [
+          "selection",
+          "american_odds"
+        ],
+        "title": "QuoteCreate",
+        "type": "object"
+      },
+      "QuoteResponse": {
+        "description": "Public representation of a market quote.",
+        "properties": {
+          "american_odds": {
+            "title": "American Odds",
+            "type": "integer"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "observed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed At"
+          },
+          "selection": {
+            "$ref": "#/components/schemas/MarketSelection"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "source_quote_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Quote Id"
+          }
+        },
+        "required": [
+          "id",
+          "selection",
+          "american_odds",
+          "source",
+          "source_quote_id",
+          "observed_at",
+          "created_at"
+        ],
+        "title": "QuoteResponse",
+        "type": "object"
+      },
+      "RationaleBreakdown": {
+        "properties": {
+          "bets": {
+            "title": "Bets",
+            "type": "integer"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "roi": {
+            "title": "Roi",
+            "type": "number"
+          }
+        },
+        "required": [
+          "category",
+          "bets",
+          "roi"
+        ],
+        "title": "RationaleBreakdown",
+        "type": "object"
+      },
+      "RationaleCategory": {
+        "description": "Typed categories for bet rationale, enabling analytics by reasoning type.",
+        "enum": [
+          "MATCHUP_ANALYSIS",
+          "STATISTICAL_EDGE",
+          "LINE_VALUE",
+          "INJURY_IMPACT",
+          "SITUATIONAL",
+          "CONTRARIAN",
+          "OTHER"
+        ],
+        "title": "RationaleCategory",
+        "type": "string"
+      },
+      "ReconciliationResponse": {
+        "description": "Result of a balance reconciliation check.",
+        "properties": {
+          "account_id": {
+            "title": "Account Id",
+            "type": "string"
+          },
+          "computed_balance": {
+            "title": "Computed Balance",
+            "type": "string"
+          },
+          "discrepancy": {
+            "title": "Discrepancy",
+            "type": "string"
+          },
+          "is_balanced": {
+            "title": "Is Balanced",
+            "type": "boolean"
+          },
+          "materialized_balance": {
+            "title": "Materialized Balance",
+            "type": "string"
+          }
+        },
+        "required": [
+          "account_id",
+          "materialized_balance",
+          "computed_balance",
+          "is_balanced",
+          "discrepancy"
+        ],
+        "title": "ReconciliationResponse",
+        "type": "object"
+      },
+      "RegisterPayload": {
+        "description": "Registration payload for JSON-based requests.",
+        "properties": {
+          "password": {
+            "title": "Password",
+            "type": "string"
+          },
+          "starting_bankroll_cents": {
+            "default": 1000000,
+            "title": "Starting Bankroll Cents",
+            "type": "integer"
+          },
+          "username": {
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "RegisterPayload",
+        "type": "object"
+      },
+      "ReviewClaim": {
+        "properties": {
+          "reviewer_label": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Reviewer Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reviewer_label"
+        ],
+        "title": "ReviewClaim",
+        "type": "object"
+      },
+      "ReviewComplete": {
+        "properties": {
+          "assessment_notes": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assessment Notes"
+          },
+          "bias_flags": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Bias Flags",
+            "type": "array"
+          },
+          "review_version": {
+            "default": "human-v1",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Review Version",
+            "type": "string"
+          },
+          "reviewer_label": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Reviewer Label",
+            "type": "string"
+          },
+          "summary": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reviewer_label",
+          "summary"
+        ],
+        "title": "ReviewComplete",
+        "type": "object"
+      },
+      "ReviewCompletePayload": {
+        "properties": {
+          "assessment_notes": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assessment Notes"
+          },
+          "bias_flags": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Bias Flags",
+            "type": "array"
+          },
+          "review_version": {
+            "default": "human-v1",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Review Version",
+            "type": "string"
+          },
+          "reviewer_label": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Reviewer Label",
+            "type": "string"
+          },
+          "summary": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reviewer_label",
+          "summary"
+        ],
+        "title": "ReviewCompletePayload",
+        "type": "object"
+      },
+      "ReviewQueuePage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewQueueResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "ReviewQueuePage",
+        "type": "object"
+      },
+      "ReviewQueueResponse": {
+        "properties": {
+          "account_id": {
+            "title": "Account Id",
+            "type": "string"
+          },
+          "assessment_notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assessment Notes"
+          },
+          "bet_id": {
+            "title": "Bet Id",
+            "type": "string"
+          },
+          "bias_flags": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bias Flags"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "quote_source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quote Source"
+          },
+          "rationale_category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rationale Category"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "review_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Version"
+          },
+          "reviewer_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewer Label"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ReviewStatus"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          }
+        },
+        "required": [
+          "bet_id",
+          "account_id",
+          "status",
+          "reviewer_label",
+          "rationale_category",
+          "reason",
+          "notes",
+          "quote_source",
+          "created_at",
+          "started_at",
+          "completed_at"
+        ],
+        "title": "ReviewQueueResponse",
+        "type": "object"
+      },
+      "ReviewResponse": {
+        "properties": {
+          "assessment_notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assessment Notes"
+          },
+          "bet_id": {
+            "title": "Bet Id",
+            "type": "string"
+          },
+          "bias_flags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Bias Flags",
+            "type": "array"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "review_version": {
+            "title": "Review Version",
+            "type": "string"
+          },
+          "reviewer_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewer Label"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ReviewStatus"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          }
+        },
+        "required": [
+          "bet_id",
+          "status",
+          "reviewer_label",
+          "summary",
+          "bias_flags",
+          "assessment_notes",
+          "review_version",
+          "created_at",
+          "started_at",
+          "completed_at"
+        ],
+        "title": "ReviewResponse",
+        "type": "object"
+      },
+      "ReviewStatus": {
+        "description": "Lifecycle for asynchronous human rationale review.",
+        "enum": [
+          "PENDING",
+          "IN_REVIEW",
+          "COMPLETED",
+          "FAILED",
+          "NOT_APPLICABLE"
+        ],
+        "title": "ReviewStatus",
+        "type": "string"
+      },
+      "ReviewSummary": {
+        "properties": {
+          "bias_flags": {
+            "items": {
+              "$ref": "#/components/schemas/BiasFlagCount"
+            },
+            "title": "Bias Flags",
+            "type": "array"
+          },
+          "completed": {
+            "title": "Completed",
+            "type": "integer"
+          },
+          "coverage": {
+            "title": "Coverage",
+            "type": "number"
+          },
+          "eligible": {
+            "title": "Eligible",
+            "type": "integer"
+          },
+          "status_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Status Counts",
+            "type": "object"
+          }
+        },
+        "required": [
+          "eligible",
+          "completed",
+          "coverage",
+          "status_counts",
+          "bias_flags"
+        ],
+        "title": "ReviewSummary",
+        "type": "object"
+      },
+      "RunPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RunResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "RunPage",
+        "type": "object"
+      },
+      "RunResponse": {
+        "properties": {
+          "conflict_count": {
+            "title": "Conflict Count",
+            "type": "integer"
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "provider_snapshot_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider Snapshot At"
+          },
+          "quota_remaining": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quota Remaining"
+          },
+          "quota_used": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quota Used"
+          },
+          "records_created": {
+            "title": "Records Created",
+            "type": "integer"
+          },
+          "records_seen": {
+            "title": "Records Seen",
+            "type": "integer"
+          },
+          "records_skipped": {
+            "title": "Records Skipped",
+            "type": "integer"
+          },
+          "requested_snapshot_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requested Snapshot At"
+          },
+          "retry_count": {
+            "title": "Retry Count",
+            "type": "integer"
+          },
+          "scope": {
+            "title": "Scope",
+            "type": "string"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "provider",
+          "scope",
+          "status",
+          "records_seen",
+          "records_created",
+          "records_skipped",
+          "conflict_count",
+          "retry_count",
+          "requested_snapshot_at",
+          "provider_snapshot_at",
+          "quota_used",
+          "quota_remaining",
+          "error_message",
+          "started_at",
+          "finished_at"
+        ],
+        "title": "RunResponse",
+        "type": "object"
+      },
+      "RunSummaryResponse": {
+        "properties": {
+          "last_run_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Run At"
+          },
+          "quota_remaining_by_provider": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Quota Remaining By Provider",
+            "type": "object"
+          },
+          "status_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Status Counts",
+            "type": "object"
+          },
+          "total_runs": {
+            "title": "Total Runs",
+            "type": "integer"
+          },
+          "window_hours": {
+            "title": "Window Hours",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "window_hours",
+          "total_runs",
+          "status_counts",
+          "last_run_at",
+          "quota_remaining_by_provider"
+        ],
+        "title": "RunSummaryResponse",
+        "type": "object"
+      },
+      "ScoreCorrectionCreate": {
+        "description": "Payload for correcting a finalized game score.",
+        "properties": {
+          "away_score": {
+            "minimum": 0.0,
+            "title": "Away Score",
+            "type": "integer"
+          },
+          "home_score": {
+            "minimum": 0.0,
+            "title": "Home Score",
+            "type": "integer"
+          },
+          "reason": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "home_score",
+          "away_score",
+          "reason"
+        ],
+        "title": "ScoreCorrectionCreate",
+        "type": "object"
+      },
+      "ScoreResolutionCreate": {
+        "description": "Local operator decision for a held provider-score conflict.",
+        "properties": {
+          "away_score": {
+            "minimum": 0.0,
+            "title": "Away Score",
+            "type": "integer"
+          },
+          "home_score": {
+            "minimum": 0.0,
+            "title": "Home Score",
+            "type": "integer"
+          },
+          "reason": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          },
+          "resolved_by": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Resolved By",
+            "type": "string"
+          }
+        },
+        "required": [
+          "home_score",
+          "away_score",
+          "reason",
+          "resolved_by"
+        ],
+        "title": "ScoreResolutionCreate",
+        "type": "object"
+      },
+      "ScoreSyncState": {
+        "description": "External-score confidence state used before automated settlement.",
+        "enum": [
+          "UNCONFIRMED",
+          "CONFIRMED",
+          "CONFLICTED",
+          "RESOLVED"
+        ],
+        "title": "ScoreSyncState",
+        "type": "string"
+      },
+      "SettleResponse": {
+        "properties": {
+          "settled_count": {
+            "title": "Settled Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "settled_count"
+        ],
+        "title": "SettleResponse",
+        "type": "object"
+      },
+      "SportBreakdown": {
+        "properties": {
+          "bets": {
+            "title": "Bets",
+            "type": "integer"
+          },
+          "net_profit": {
+            "title": "Net Profit",
+            "type": "string"
+          },
+          "roi": {
+            "title": "Roi",
+            "type": "number"
+          },
+          "sport": {
+            "title": "Sport",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sport",
+          "bets",
+          "roi",
+          "net_profit"
+        ],
+        "title": "SportBreakdown",
+        "type": "object"
+      },
+      "SportType": {
+        "description": "Supported sport categories. CFB is the initial sport; others may follow.",
+        "enum": [
+          "CFB"
+        ],
+        "title": "SportType",
+        "type": "string"
+      },
+      "SyncResponse": {
+        "properties": {
+          "conflicts": {
+            "title": "Conflicts",
+            "type": "integer"
+          },
+          "created": {
+            "title": "Created",
+            "type": "integer"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "seen": {
+            "title": "Seen",
+            "type": "integer"
+          },
+          "skipped": {
+            "title": "Skipped",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "status",
+          "seen",
+          "created",
+          "skipped",
+          "conflicts"
+        ],
+        "title": "SyncResponse",
+        "type": "object"
+      },
+      "TeamCreate": {
+        "description": "Payload for a reusable college-football team.",
+        "properties": {
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "TeamCreate",
+        "type": "object"
+      },
+      "TeamResponse": {
+        "description": "Public representation of a team catalog record.",
+        "properties": {
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "TeamResponse",
+        "type": "object"
+      },
+      "TokenResponse": {
+        "description": "Token response payload for JSON-based login/signup.",
+        "properties": {
+          "access_token": {
+            "title": "Access Token",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "token_type": {
+            "default": "bearer",
+            "title": "Token Type",
+            "type": "string"
+          },
+          "username": {
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "access_token",
+          "username",
+          "role"
+        ],
+        "title": "TokenResponse",
+        "type": "object"
+      },
+      "TransactionCreate": {
+        "description": "Payload for a manual deposit or withdrawal.",
+        "properties": {
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Amount"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ManualTransactionType"
+          }
+        },
+        "required": [
+          "type",
+          "amount"
+        ],
+        "title": "TransactionCreate",
+        "type": "object"
+      },
+      "TransactionExecutionResponse": {
+        "description": "The new account posting and balance returned after a manual action.",
+        "properties": {
+          "current_balance": {
+            "title": "Current Balance",
+            "type": "string"
+          },
+          "transaction": {
+            "$ref": "#/components/schemas/TransactionResponse"
+          }
+        },
+        "required": [
+          "transaction",
+          "current_balance"
+        ],
+        "title": "TransactionExecutionResponse",
+        "type": "object"
+      },
+      "TransactionPage": {
+        "description": "A paginated account statement.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TransactionResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "TransactionPage",
+        "type": "object"
+      },
+      "TransactionResponse": {
+        "description": "Public representation of one signed account posting.",
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "string"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "journal_entry_id": {
+            "title": "Journal Entry Id",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/TransactionType"
+          }
+        },
+        "required": [
+          "id",
+          "journal_entry_id",
+          "type",
+          "amount",
+          "description",
+          "created_at"
+        ],
+        "title": "TransactionResponse",
+        "type": "object"
+      },
+      "TransactionType": {
+        "description": "Economic event categories supported by the ledger.",
+        "enum": [
+          "DEPOSIT",
+          "WITHDRAWAL",
+          "WAGER_STAKE",
+          "WAGER_PAYOUT",
+          "ADJUSTMENT"
+        ],
+        "title": "TransactionType",
+        "type": "string"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "College Football Paper-Betting Platform API",
+    "title": "Edgebook",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "dashboard_page__get",
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Dashboard Page",
+        "tags": [
+          "pages"
+        ]
+      }
+    },
+    "/accounts": {
+      "post": {
+        "description": "Create an active fictional account and optionally credit its opening bankroll.",
+        "operationId": "create_account_endpoint_accounts_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Account Endpoint",
+        "tags": [
+          "accounts"
+        ]
+      }
+    },
+    "/accounts/{account_id}": {
+      "get": {
+        "description": "Retrieve a fictional account's current balance and status.",
+        "operationId": "get_account_endpoint_accounts__account_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "title": "Account Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Account Endpoint",
+        "tags": [
+          "accounts"
+        ]
+      }
+    },
+    "/accounts/{account_id}/analytics": {
+      "get": {
+        "description": "Retrieve comprehensive performance analytics for a fictional account.",
+        "operationId": "get_analytics_endpoint_accounts__account_id__analytics_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "title": "Account Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "buckets",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Buckets"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Analytics Endpoint",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/accounts/{account_id}/bets": {
+      "get": {
+        "operationId": "list_bets_endpoint_accounts__account_id__bets_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "title": "Account Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "market_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Market Type"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BetPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Bets Endpoint",
+        "tags": [
+          "simulated-wagers"
+        ]
+      },
+      "post": {
+        "operationId": "place_bet_endpoint_accounts__account_id__bets_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "title": "Account Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BetCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BetPlacementResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Place Bet Endpoint",
+        "tags": [
+          "simulated-wagers"
+        ]
+      }
+    },
+    "/accounts/{account_id}/bets/{bet_id}": {
+      "get": {
+        "operationId": "get_bet_endpoint_accounts__account_id__bets__bet_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "title": "Account Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "bet_id",
+            "required": true,
+            "schema": {
+              "title": "Bet Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BetResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Bet Endpoint",
+        "tags": [
+          "simulated-wagers"
+        ]
+      }
+    },
+    "/accounts/{account_id}/bets/{bet_id}/review": {
+      "get": {
+        "operationId": "get_review_endpoint_accounts__account_id__bets__bet_id__review_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "title": "Account Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "bet_id",
+            "required": true,
+            "schema": {
+              "title": "Bet Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Review Endpoint",
+        "tags": [
+          "simulated-wagers"
+        ]
+      },
+      "put": {
+        "description": "Complete a local human rationale review.",
+        "operationId": "complete_review_endpoint_accounts__account_id__bets__bet_id__review_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "title": "Account Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "bet_id",
+            "required": true,
+            "schema": {
+              "title": "Bet Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewComplete"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Complete Review Endpoint",
+        "tags": [
+          "simulated-wagers"
+        ]
+      }
+    },
+    "/accounts/{account_id}/reconcile": {
+      "post": {
+        "description": "Verify that an account's materialized balance matches its posting sum.",
+        "operationId": "reconcile_account_endpoint_accounts__account_id__reconcile_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "title": "Account Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReconciliationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Reconcile Account Endpoint",
+        "tags": [
+          "accounts"
+        ]
+      }
+    },
+    "/accounts/{account_id}/transactions": {
+      "get": {
+        "description": "List a newest-first paginated statement for one fictional account.",
+        "operationId": "list_transactions_endpoint_accounts__account_id__transactions_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "title": "Account Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Transactions Endpoint",
+        "tags": [
+          "accounts"
+        ]
+      },
+      "post": {
+        "description": "Execute one fictional deposit or withdrawal through the double-entry ledger.",
+        "operationId": "create_transaction_endpoint_accounts__account_id__transactions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "title": "Account Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransactionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionExecutionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Transaction Endpoint",
+        "tags": [
+          "accounts"
+        ]
+      }
+    },
+    "/analytics": {
+      "get": {
+        "operationId": "analytics_page_analytics_get",
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Analytics Page",
+        "tags": [
+          "pages"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "description": "Authenticate a user via JSON and set/get an auth token.",
+        "operationId": "login_user_json_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginPayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Login User Json",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "description": "Log out the current user by clearing the session cookie.",
+        "operationId": "logout_user_auth_logout_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Logout User Auth Logout Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Logout User",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "description": "Register a new user via JSON and get an auth token.",
+        "operationId": "register_user_json_auth_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterPayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Register User Json",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/bets": {
+      "get": {
+        "operationId": "bets_page_bets_get",
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Bets Page",
+        "tags": [
+          "pages"
+        ]
+      }
+    },
+    "/bets/history": {
+      "get": {
+        "operationId": "bet_history_page_bets_history_get",
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Bet History Page",
+        "tags": [
+          "pages"
+        ]
+      }
+    },
+    "/cfb/games": {
+      "get": {
+        "description": "List games newest-first with optional status filter.",
+        "operationId": "list_games_endpoint_cfb_games_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GameResponse"
+                  },
+                  "title": "Response List Games Endpoint Cfb Games Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Games Endpoint",
+        "tags": [
+          "college-football"
+        ]
+      },
+      "post": {
+        "description": "Create a scheduled game between two existing teams.",
+        "operationId": "create_game_endpoint_cfb_games_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GameCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Game Endpoint",
+        "tags": [
+          "college-football"
+        ]
+      }
+    },
+    "/cfb/games/{game_id}": {
+      "get": {
+        "description": "Retrieve a game with its manual markets and quotes.",
+        "operationId": "get_game_endpoint_cfb_games__game_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "game_id",
+            "required": true,
+            "schema": {
+              "title": "Game Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Game Endpoint",
+        "tags": [
+          "college-football"
+        ]
+      }
+    },
+    "/cfb/games/{game_id}/correction": {
+      "put": {
+        "description": "Correct a finalized score and re-settle all affected bets.\n\nCreates offsetting ledger entries to reverse prior payouts, re-settles\nbets with the corrected score, and records an audit-trail entry.",
+        "operationId": "correct_game_result_endpoint_cfb_games__game_id__correction_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "game_id",
+            "required": true,
+            "schema": {
+              "title": "Game Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScoreCorrectionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Correct Game Result Endpoint",
+        "tags": [
+          "college-football"
+        ]
+      }
+    },
+    "/cfb/games/{game_id}/markets": {
+      "post": {
+        "description": "Create a draft spread, moneyline, or total market for a game.",
+        "operationId": "create_market_endpoint_cfb_games__game_id__markets_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "game_id",
+            "required": true,
+            "schema": {
+              "title": "Game Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarketCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Market Endpoint",
+        "tags": [
+          "college-football"
+        ]
+      }
+    },
+    "/cfb/games/{game_id}/odds-history": {
+      "get": {
+        "description": "Read chronological, bookmaker-specific pregame odds observations.",
+        "operationId": "odds_history_endpoint_cfb_games__game_id__odds_history_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "game_id",
+            "required": true,
+            "schema": {
+              "title": "Game Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "source",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Source"
+            }
+          },
+          {
+            "in": "query",
+            "name": "market_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/MarketType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Market Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "selection",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/MarketSelection"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Selection"
+            }
+          },
+          {
+            "in": "query",
+            "name": "start",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Start"
+            }
+          },
+          {
+            "in": "query",
+            "name": "end",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "End"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/OddsHistoryResponse"
+                  },
+                  "title": "Response Odds History Endpoint Cfb Games  Game Id  Odds History Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Odds History Endpoint",
+        "tags": [
+          "college-football"
+        ]
+      }
+    },
+    "/cfb/games/{game_id}/quote-comparison": {
+      "get": {
+        "description": "Compare provider observations without selecting a canonical line.",
+        "operationId": "quote_comparison_endpoint_cfb_games__game_id__quote_comparison_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "game_id",
+            "required": true,
+            "schema": {
+              "title": "Game Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/QuoteComparisonResponse"
+                  },
+                  "title": "Response Quote Comparison Endpoint Cfb Games  Game Id  Quote Comparison Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Quote Comparison Endpoint",
+        "tags": [
+          "college-football"
+        ]
+      }
+    },
+    "/cfb/games/{game_id}/resolve-score-conflict": {
+      "put": {
+        "description": "Locally resolve held provider-score disagreement and settle atomically.",
+        "operationId": "resolve_score_conflict_endpoint_cfb_games__game_id__resolve_score_conflict_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "game_id",
+            "required": true,
+            "schema": {
+              "title": "Game Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScoreResolutionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Resolve Score Conflict Endpoint",
+        "tags": [
+          "college-football"
+        ]
+      }
+    },
+    "/cfb/games/{game_id}/result": {
+      "put": {
+        "description": "Finalize a game and settle its pending simulated bets atomically.",
+        "operationId": "record_game_result_endpoint_cfb_games__game_id__result_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "game_id",
+            "required": true,
+            "schema": {
+              "title": "Game Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GameResultCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Record Game Result Endpoint",
+        "tags": [
+          "college-football"
+        ]
+      }
+    },
+    "/cfb/markets/{market_id}/quotes": {
+      "post": {
+        "description": "Add a manual quote to a draft market.",
+        "operationId": "create_quote_endpoint_cfb_markets__market_id__quotes_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "market_id",
+            "required": true,
+            "schema": {
+              "title": "Market Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuoteCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Quote Endpoint",
+        "tags": [
+          "college-football"
+        ]
+      }
+    },
+    "/cfb/teams": {
+      "post": {
+        "description": "Create a reusable manually-entered college-football team.",
+        "operationId": "create_team_endpoint_cfb_teams_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Team Endpoint",
+        "tags": [
+          "college-football"
+        ]
+      }
+    },
+    "/games": {
+      "get": {
+        "operationId": "games_page_games_get",
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Games Page",
+        "tags": [
+          "pages"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "description": "Health check endpoint verifying API and database connectivity.\n\nArgs:\n    db: Database session dependency\n\nReturns:\n    Dictionary indicating status of API and database services",
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health Check"
+      }
+    },
+    "/healthz": {
+      "get": {
+        "description": "Liveness probe: the process is up and serving requests.",
+        "operationId": "liveness_healthz_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Liveness Healthz Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Liveness"
+      }
+    },
+    "/ingestion": {
+      "get": {
+        "operationId": "ingestion_page_ingestion_get",
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Ingestion Page",
+        "tags": [
+          "pages"
+        ]
+      }
+    },
+    "/ingestion/conflicts": {
+      "get": {
+        "description": "List all games with conflicted score sync state.",
+        "operationId": "list_conflicts_endpoint_ingestion_conflicts_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ConflictGameResponse"
+                  },
+                  "title": "Response List Conflicts Endpoint Ingestion Conflicts Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Conflicts Endpoint",
+        "tags": [
+          "ingestion"
+        ]
+      }
+    },
+    "/ingestion/conflicts/{game_id}/resolve": {
+      "post": {
+        "description": "Resolve a score conflict for a specific game.",
+        "operationId": "resolve_conflict_endpoint_ingestion_conflicts__game_id__resolve_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "game_id",
+            "required": true,
+            "schema": {
+              "title": "Game Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConflictResolutionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictResolutionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Resolve Conflict Endpoint",
+        "tags": [
+          "ingestion"
+        ]
+      }
+    },
+    "/ingestion/providers": {
+      "get": {
+        "description": "List configured ingestion providers without disclosing credentials.",
+        "operationId": "list_provider_statuses_ingestion_providers_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProviderStatusResponse"
+                  },
+                  "title": "Response List Provider Statuses Ingestion Providers Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Provider Statuses",
+        "tags": [
+          "ingestion"
+        ]
+      }
+    },
+    "/ingestion/runs": {
+      "get": {
+        "description": "List ingestion run history newest-first, optionally filtered.",
+        "operationId": "list_runs_endpoint_ingestion_runs_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "provider",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Provider"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Runs Endpoint",
+        "tags": [
+          "ingestion"
+        ]
+      }
+    },
+    "/ingestion/runs/summary": {
+      "get": {
+        "description": "Summarize ingestion run outcomes over a trailing time window.",
+        "operationId": "summarize_runs_endpoint_ingestion_runs_summary_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "window_hours",
+            "required": false,
+            "schema": {
+              "default": 24,
+              "maximum": 168,
+              "minimum": 1,
+              "title": "Window Hours",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunSummaryResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Summarize Runs Endpoint",
+        "tags": [
+          "ingestion"
+        ]
+      }
+    },
+    "/ingestion/settle": {
+      "post": {
+        "description": "Settle all games with confirmed score agreement.",
+        "operationId": "settle_endpoint_ingestion_settle_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettleResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Settle Endpoint",
+        "tags": [
+          "ingestion"
+        ]
+      }
+    },
+    "/ingestion/sync/games": {
+      "post": {
+        "description": "Trigger a game sync from the fixture feed.",
+        "operationId": "sync_games_endpoint_ingestion_sync_games_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Sync Games Endpoint",
+        "tags": [
+          "ingestion"
+        ]
+      }
+    },
+    "/ingestion/sync/quotes": {
+      "post": {
+        "description": "Trigger a quotes sync from the fixture feed.",
+        "operationId": "sync_quotes_endpoint_ingestion_sync_quotes_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Sync Quotes Endpoint",
+        "tags": [
+          "ingestion"
+        ]
+      }
+    },
+    "/ingestion/sync/scores": {
+      "post": {
+        "description": "Trigger a scores sync from the fixture feed.",
+        "operationId": "sync_scores_endpoint_ingestion_sync_scores_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Sync Scores Endpoint",
+        "tags": [
+          "ingestion"
+        ]
+      }
+    },
+    "/login": {
+      "get": {
+        "description": "Render the login view.",
+        "operationId": "login_page_login_get",
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Login Page",
+        "tags": [
+          "pages"
+        ]
+      },
+      "post": {
+        "description": "Handle login submission, setting session token cookie.",
+        "operationId": "login_post_login_post",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_login_post_login_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Login Post",
+        "tags": [
+          "pages"
+        ]
+      }
+    },
+    "/logout": {
+      "get": {
+        "description": "Clear the session token cookie and redirect to login.",
+        "operationId": "logout_page_logout_get",
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Logout Page",
+        "tags": [
+          "pages"
+        ]
+      }
+    },
+    "/partials/bet-table": {
+      "get": {
+        "operationId": "bet_table_partial_partials_bet_table_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "title": "Account Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "market_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Market Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Bet Table Partial",
+        "tags": [
+          "pages"
+        ]
+      }
+    },
+    "/partials/conflict-list": {
+      "get": {
+        "operationId": "conflict_list_partial_partials_conflict_list_get",
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Conflict List Partial",
+        "tags": [
+          "pages"
+        ]
+      }
+    },
+    "/partials/create-game": {
+      "post": {
+        "operationId": "create_game_partial_partials_create_game_post",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_create_game_partial_partials_create_game_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Game Partial",
+        "tags": [
+          "pages"
+        ]
+      }
+    },
+    "/partials/create-team": {
+      "post": {
+        "operationId": "create_team_partial_partials_create_team_post",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_create_team_partial_partials_create_team_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Team Partial",
+        "tags": [
+          "pages"
+        ]
+      }
+    },
+    "/partials/game-list": {
+      "get": {
+        "operationId": "game_list_partial_partials_game_list_get",
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Game List Partial",
+        "tags": [
+          "pages"
+        ]
+      }
+    },
+    "/partials/game-select": {
+      "get": {
+        "operationId": "game_select_partial_partials_game_select_get",
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Game Select Partial",
+        "tags": [
+          "pages"
+        ]
+      }
+    },
+    "/partials/market-picker": {
+      "get": {
+        "operationId": "market_picker_partial_partials_market_picker_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "game_id",
+            "required": true,
+            "schema": {
+              "title": "Game Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Market Picker Partial",
+        "tags": [
+          "pages"
+        ]
+      }
+    },
+    "/partials/place-bet": {
+      "post": {
+        "operationId": "place_bet_partial_partials_place_bet_post",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_place_bet_partial_partials_place_bet_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Place Bet Partial",
+        "tags": [
+          "pages"
+        ]
+      }
+    },
+    "/partials/recent-bets": {
+      "get": {
+        "operationId": "recent_bets_partial_partials_recent_bets_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "account_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Account Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Recent Bets Partial",
+        "tags": [
+          "pages"
+        ]
+      }
+    },
+    "/partials/record-score": {
+      "post": {
+        "operationId": "record_score_partial_partials_record_score_post",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_record_score_partial_partials_record_score_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Record Score Partial",
+        "tags": [
+          "pages"
+        ]
+      }
+    },
+    "/partials/run-history": {
+      "get": {
+        "operationId": "run_history_partial_partials_run_history_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "provider",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Provider"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Run History Partial",
+        "tags": [
+          "pages"
+        ]
+      }
+    },
+    "/partials/run-summary": {
+      "get": {
+        "operationId": "run_summary_partial_partials_run_summary_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "window_hours",
+            "required": false,
+            "schema": {
+              "default": 24,
+              "maximum": 168,
+              "minimum": 1,
+              "title": "Window Hours",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Run Summary Partial",
+        "tags": [
+          "pages"
+        ]
+      }
+    },
+    "/partials/stake-form": {
+      "get": {
+        "operationId": "stake_form_partial_partials_stake_form_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "market_id",
+            "required": true,
+            "schema": {
+              "title": "Market Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "selection",
+            "required": true,
+            "schema": {
+              "title": "Selection",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "quote_id",
+            "required": true,
+            "schema": {
+              "title": "Quote Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "title": "Account Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Stake Form Partial",
+        "tags": [
+          "pages"
+        ]
+      }
+    },
+    "/readyz": {
+      "get": {
+        "description": "Readiness probe: the application database is reachable.\n\nUpdates the ``edgebook_db_up`` gauge so scrapes reflect the latest check.",
+        "operationId": "readiness_readyz_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Readiness Readyz Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "503": {
+            "description": "Database unavailable"
+          }
+        },
+        "summary": "Readiness"
+      }
+    },
+    "/register": {
+      "get": {
+        "description": "Render the registration view.",
+        "operationId": "register_page_register_get",
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Register Page",
+        "tags": [
+          "pages"
+        ]
+      },
+      "post": {
+        "description": "Handle user registration, creating AppUser and ledger Account.",
+        "operationId": "register_post_register_post",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_register_post_register_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Register Post",
+        "tags": [
+          "pages"
+        ]
+      }
+    },
+    "/reviews": {
+      "get": {
+        "description": "List review tasks as JSON, or render the local operator queue for browsers.",
+        "operationId": "list_reviews_endpoint_reviews_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ReviewStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "account_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Account Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewQueuePage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Reviews Endpoint",
+        "tags": [
+          "review-operations"
+        ]
+      }
+    },
+    "/reviews/{bet_id}": {
+      "get": {
+        "description": "Return a single review task as JSON or as an HTML card partial.",
+        "operationId": "get_review_endpoint_reviews__bet_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bet_id",
+            "required": true,
+            "schema": {
+              "title": "Bet Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewQueueResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Review Endpoint",
+        "tags": [
+          "review-operations"
+        ]
+      }
+    },
+    "/reviews/{bet_id}/claim": {
+      "post": {
+        "description": "Claim a pending review for the named local operator.",
+        "operationId": "claim_review_endpoint_reviews__bet_id__claim_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bet_id",
+            "required": true,
+            "schema": {
+              "title": "Bet Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewClaim"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewQueueResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Claim Review Endpoint",
+        "tags": [
+          "review-operations"
+        ]
+      }
+    },
+    "/reviews/{bet_id}/complete": {
+      "post": {
+        "description": "Complete a claimed review and return the updated task.",
+        "operationId": "complete_review_endpoint_reviews__bet_id__complete_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bet_id",
+            "required": true,
+            "schema": {
+              "title": "Bet Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewCompletePayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewQueueResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Complete Review Endpoint",
+        "tags": [
+          "review-operations"
+        ]
+      }
+    }
+  }
+}

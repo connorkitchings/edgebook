@@ -1,0 +1,2034 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A simulation-only college football paper-betting platform.">
+      
+      
+      
+      
+        <link rel="prev" href="../../architecture/adr/adr-0002-application-orchestration/">
+      
+      
+        <link rel="next" href="../dictionary/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.23">
+    
+    
+      
+        <title>Contracts - Edgebook</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.84d31ad4.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#data-contracts" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Edgebook" class="md-header__button md-logo" aria-label="Edgebook" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Edgebook
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Contracts
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../product_manual/" class="md-tabs__link">
+          
+  
+  
+  Project Overview
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../development_guide/" class="md-tabs__link">
+          
+  
+  
+  Development
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../architecture/system_overview/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  Data Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../architecture/adr/adr-0001-template/" class="md-tabs__link">
+          
+  
+  
+  Templates
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../runbook/" class="md-tabs__link">
+          
+  
+  
+  Operations
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../api/" class="md-tabs__link">
+          
+  
+  
+  API
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Edgebook" class="md-nav__button md-logo" aria-label="Edgebook" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Edgebook
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Project Overview
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Project Overview
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../product_manual/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Product Manual
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../implementation_schedule/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Implementation Schedule
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Development
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Development
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/web_architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Web Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/ai_docs_organization_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AI Docs Organization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Architecture
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/system_overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    System Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/data_modeling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Modeling
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/investment_adaptability_review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Investment Adaptability
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/adr/adr-0001-initial-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Initial Architecture (ADR)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/adr/adr-0002-application-orchestration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Application Orchestration (ADR)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Data Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Data Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Contracts
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Contracts
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table of Contents
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ledger-account" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ledger Account
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Ledger Account">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#description" class="md-nav__link">
+    <span class="md-ellipsis">
+      Description
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schema
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quality-expectations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quality Expectations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ownership" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ownership
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ledger-transaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ledger Transaction
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Ledger Transaction">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#description_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Description
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schema_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schema
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quality-expectations_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quality Expectations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ownership_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ownership
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cfb-game" class="md-nav__link">
+    <span class="md-ellipsis">
+      CFB Game
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CFB Game">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#description_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Description
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schema_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schema
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quality-expectations_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quality Expectations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ownership_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ownership
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#provider-observation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Provider Observation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Provider Observation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#description_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Description
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quality-expectations_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quality Expectations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ownership_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ownership
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bet-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      Bet Review
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Bet Review">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#description_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Description
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quality-expectations_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quality Expectations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ownership_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ownership
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cfb-market" class="md-nav__link">
+    <span class="md-ellipsis">
+      CFB Market
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CFB Market">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#description_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Description
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schema_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schema
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quality-expectations_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quality Expectations
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#simulated-bet" class="md-nav__link">
+    <span class="md-ellipsis">
+      Simulated Bet
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Simulated Bet">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#description_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Description
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schema_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schema
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quality-expectations_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quality Expectations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ownership_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ownership
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cfb-market-quote" class="md-nav__link">
+    <span class="md-ellipsis">
+      CFB Market Quote
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CFB Market Quote">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#description_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Description
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schema_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schema
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quality-expectations_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quality Expectations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ownership_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ownership
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#score-correction" class="md-nav__link">
+    <span class="md-ellipsis">
+      Score Correction
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Score Correction">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#description_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Description
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schema_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schema
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quality-expectations_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quality Expectations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ownership_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ownership
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dictionary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dictionary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Templates
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Templates
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/adr/adr-0001-template/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ADR Template
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/decisions/template/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Decision Template
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Operations
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../runbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Runbook
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Security & Responsible Use
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../knowledge_base/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Knowledge Base
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="data-contracts">Data Contracts</h1>
+<p>This document outlines the data contracts for Edgebook's core data assets. Each contract
+defines the schema, quality expectations, and ownership of the data. All balances are
+fictional simulation credits.</p>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#ledger-account">Ledger Account</a></li>
+<li><a href="#ledger-transaction">Ledger Transaction</a></li>
+<li><a href="#cfb-game">CFB Game</a></li>
+<li><a href="#cfb-market">CFB Market</a></li>
+<li><a href="#cfb-market-quote">CFB Market Quote</a></li>
+<li><a href="#simulated-bet">Simulated Bet</a></li>
+<li><a href="#score-correction">Score Correction</a></li>
+<li><a href="#provider-observation">Provider Observation</a></li>
+<li><a href="#bet-review">Bet Review</a></li>
+</ul>
+<hr />
+<h2 id="ledger-account">Ledger Account</h2>
+<h3 id="description">Description</h3>
+<p>A generic ledger account holding a materialized simulation-credit balance, owned by a user.
+Separate from any sportsbook concept so the ledger can be reused for other paper-investing
+use cases.</p>
+<h3 id="schema">Schema</h3>
+<pre><code class="language-json">{
+  &quot;type&quot;: &quot;object&quot;,
+  &quot;properties&quot;: {
+    &quot;id&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;format&quot;: &quot;uuid&quot;, &quot;description&quot;: &quot;Primary key (UUID string)&quot;},
+    &quot;owner_name&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;maxLength&quot;: 200},
+    &quot;kind&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;enum&quot;: [&quot;USER_ASSET&quot;, &quot;EQUITY&quot;]},
+    &quot;is_active&quot;: {&quot;type&quot;: &quot;boolean&quot;},
+    &quot;starting_bankroll_cents&quot;: {&quot;type&quot;: &quot;integer&quot;, &quot;minimum&quot;: 0},
+    &quot;current_balance_cents&quot;: {&quot;type&quot;: &quot;integer&quot;},
+    &quot;created_at&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;format&quot;: &quot;date-time&quot;},
+    &quot;updated_at&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;format&quot;: &quot;date-time&quot;}
+  },
+  &quot;required&quot;: [&quot;id&quot;, &quot;owner_name&quot;, &quot;kind&quot;, &quot;starting_bankroll_cents&quot;, &quot;current_balance_cents&quot;]
+}
+</code></pre>
+<h3 id="quality-expectations">Quality Expectations</h3>
+<ul>
+<li><strong>Completeness:</strong> <code>owner_name</code> always populated; <code>starting_bankroll_cents &gt;= 0</code>.</li>
+<li><strong>Accuracy:</strong> <code>current_balance_cents</code> must equal the sum of signed transaction postings.</li>
+<li><strong>Uniqueness:</strong> <code>id</code> is unique.</li>
+</ul>
+<h3 id="ownership">Ownership</h3>
+<ul>
+<li><strong>Owner:</strong> Edgebook ledger module (<code>src/edgebook/ledger/</code>)</li>
+</ul>
+<hr />
+<h2 id="ledger-transaction">Ledger Transaction</h2>
+<h3 id="description_1">Description</h3>
+<p>An immutable, signed posting within a balanced journal entry. Postings are append-only and
+never mutated.</p>
+<h3 id="schema_1">Schema</h3>
+<pre><code class="language-json">{
+  &quot;type&quot;: &quot;object&quot;,
+  &quot;properties&quot;: {
+    &quot;id&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;format&quot;: &quot;uuid&quot;},
+    &quot;journal_entry_id&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;description&quot;: &quot;FK to balanced journal entry&quot;},
+    &quot;account_id&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;description&quot;: &quot;FK to ledger account&quot;},
+    &quot;transaction_type&quot;: {
+      &quot;type&quot;: &quot;string&quot;,
+      &quot;enum&quot;: [&quot;DEPOSIT&quot;, &quot;WITHDRAWAL&quot;, &quot;WAGER_STAKE&quot;, &quot;WAGER_PAYOUT&quot;, &quot;ADJUSTMENT&quot;]
+    },
+    &quot;amount_cents&quot;: {&quot;type&quot;: &quot;integer&quot;, &quot;description&quot;: &quot;Signed, non-zero&quot;},
+    &quot;description&quot;: {&quot;type&quot;: [&quot;string&quot;, &quot;null&quot;]},
+    &quot;created_at&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;format&quot;: &quot;date-time&quot;}
+  },
+  &quot;required&quot;: [&quot;id&quot;, &quot;journal_entry_id&quot;, &quot;account_id&quot;, &quot;transaction_type&quot;, &quot;amount_cents&quot;]
+}
+</code></pre>
+<h3 id="quality-expectations_1">Quality Expectations</h3>
+<ul>
+<li><strong>Integrity:</strong> <code>amount_cents != 0</code>; journal entries must balance to zero across postings.</li>
+<li><strong>Immutability:</strong> Once written, rows are never updated or deleted.</li>
+</ul>
+<h3 id="ownership_1">Ownership</h3>
+<ul>
+<li><strong>Owner:</strong> Edgebook ledger module (<code>src/edgebook/ledger/</code>)</li>
+</ul>
+<hr />
+<h2 id="cfb-game">CFB Game</h2>
+<h3 id="description_2">Description</h3>
+<p>A scheduled college-football contest between two distinct teams.</p>
+<h3 id="schema_2">Schema</h3>
+<pre><code class="language-json">{
+  &quot;type&quot;: &quot;object&quot;,
+  &quot;properties&quot;: {
+    &quot;id&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;format&quot;: &quot;uuid&quot;},
+    &quot;home_team_id&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;description&quot;: &quot;FK to cfb_teams&quot;},
+    &quot;away_team_id&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;description&quot;: &quot;FK to cfb_teams&quot;},
+    &quot;sport&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;enum&quot;: [&quot;CFB&quot;], &quot;description&quot;: &quot;Sport category (defaults to CFB)&quot;},
+    &quot;scheduled_at&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;format&quot;: &quot;date-time&quot;},
+    &quot;status&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;enum&quot;: [&quot;SCHEDULED&quot;, &quot;FINAL&quot;]},
+    &quot;home_score&quot;: {&quot;type&quot;: [&quot;integer&quot;, &quot;null&quot;], &quot;minimum&quot;: 0},
+    &quot;away_score&quot;: {&quot;type&quot;: [&quot;integer&quot;, &quot;null&quot;], &quot;minimum&quot;: 0},
+    &quot;created_at&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;format&quot;: &quot;date-time&quot;},
+    &quot;updated_at&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;format&quot;: &quot;date-time&quot;}
+  },
+  &quot;required&quot;: [&quot;id&quot;, &quot;home_team_id&quot;, &quot;away_team_id&quot;, &quot;scheduled_at&quot;]
+}
+</code></pre>
+<h3 id="quality-expectations_2">Quality Expectations</h3>
+<ul>
+<li><strong>Integrity:</strong> <code>home_team_id != away_team_id</code> (enforced by check constraint).</li>
+<li><strong>Finality:</strong> A <code>FINAL</code> game has both scores. Scores can be corrected via the score-correction workflow (Phase 2C), which creates offsetting ledger entries and an audit record.</li>
+</ul>
+<h3 id="ownership_2">Ownership</h3>
+<ul>
+<li><strong>Owner:</strong> Edgebook CFB module (<code>src/edgebook/cfb/</code>)</li>
+</ul>
+<hr />
+<h2 id="provider-observation">Provider Observation</h2>
+<h3 id="description_3">Description</h3>
+<p>An immutable normalized record from one external provider. Observations retain raw provenance and
+are never collapsed into a canonical odds line.</p>
+<h3 id="quality-expectations_3">Quality Expectations</h3>
+<ul>
+<li><strong>Idempotency:</strong> Provider, scope, external ID, and payload hash uniquely identify a replay.</li>
+<li><strong>Provenance:</strong> Every imported game, quote, and score links to a provider observation.</li>
+<li><strong>Scores:</strong> Disagreeing final-score observations hold the game in <code>CONFLICTED</code> state.</li>
+</ul>
+<h3 id="ownership_3">Ownership</h3>
+<ul>
+<li><strong>Owner:</strong> Edgebook ingestion module (<code>src/edgebook/ingestion/</code>)</li>
+</ul>
+<hr />
+<h2 id="bet-review">Bet Review</h2>
+<h3 id="description_4">Description</h3>
+<p>An asynchronous, human-operated review task linked one-to-one with a simulated bet rationale.</p>
+<h3 id="quality-expectations_4">Quality Expectations</h3>
+<ul>
+<li><strong>Lifecycle:</strong> <code>PENDING</code>, <code>IN_REVIEW</code>, <code>COMPLETED</code>, <code>FAILED</code>, or <code>NOT_APPLICABLE</code>.</li>
+<li><strong>Isolation:</strong> Review outcomes never modify odds, settlements, balances, or financial analytics.</li>
+<li><strong>Future compatibility:</strong> The review version identifies the human or future model workflow.</li>
+</ul>
+<h3 id="ownership_4">Ownership</h3>
+<ul>
+<li><strong>Owner:</strong> Edgebook wagering module (<code>src/edgebook/wagering/</code>)</li>
+</ul>
+<hr />
+<h2 id="cfb-market">CFB Market</h2>
+<h3 id="description_5">Description</h3>
+<p>A manual market line for one game and market type. Multiple markets of the same type may
+exist for a game when they have different lines (alternate spreads/totals). Moneyline is
+limited to one per game.</p>
+<h3 id="schema_3">Schema</h3>
+<pre><code class="language-json">{
+  &quot;type&quot;: &quot;object&quot;,
+  &quot;properties&quot;: {
+    &quot;id&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;format&quot;: &quot;uuid&quot;},
+    &quot;game_id&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;description&quot;: &quot;FK to cfb_games&quot;},
+    &quot;market_type&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;enum&quot;: [&quot;SPREAD&quot;, &quot;MONEYLINE&quot;, &quot;TOTAL&quot;]},
+    &quot;line_millipoints&quot;: {&quot;type&quot;: [&quot;integer&quot;, &quot;null&quot;], &quot;description&quot;: &quot;Point line in millipoints (null for moneyline)&quot;},
+    &quot;status&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;enum&quot;: [&quot;DRAFT&quot;, &quot;OPEN&quot;]},
+    &quot;created_at&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;format&quot;: &quot;date-time&quot;},
+    &quot;updated_at&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;format&quot;: &quot;date-time&quot;}
+  },
+  &quot;required&quot;: [&quot;id&quot;, &quot;game_id&quot;, &quot;market_type&quot;, &quot;status&quot;]
+}
+</code></pre>
+<h3 id="quality-expectations_5">Quality Expectations</h3>
+<ul>
+<li><strong>Uniqueness:</strong> One moneyline per game; spread/total unique per <code>(game_id, market_type, line_millipoints)</code>.</li>
+<li><strong>Lifecycle:</strong> Markets start as DRAFT and transition to OPEN when required quotes are present.</li>
+</ul>
+<hr />
+<h2 id="simulated-bet">Simulated Bet</h2>
+<h3 id="description_6">Description</h3>
+<p>A straight paper bet that links a fictional account to a CFB quote while preserving the
+exact placement terms and ledger audit references.</p>
+<h3 id="schema_4">Schema</h3>
+<pre><code class="language-json">{
+  &quot;type&quot;: &quot;object&quot;,
+  &quot;properties&quot;: {
+    &quot;id&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;format&quot;: &quot;uuid&quot;},
+    &quot;account_id&quot;: {&quot;type&quot;: &quot;string&quot;},
+    &quot;game_id&quot;: {&quot;type&quot;: &quot;string&quot;},
+    &quot;market_id&quot;: {&quot;type&quot;: &quot;string&quot;},
+    &quot;quote_id&quot;: {&quot;type&quot;: &quot;string&quot;},
+    &quot;selection&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;enum&quot;: [&quot;HOME&quot;, &quot;AWAY&quot;, &quot;OVER&quot;, &quot;UNDER&quot;]},
+    &quot;market_type&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;enum&quot;: [&quot;SPREAD&quot;, &quot;MONEYLINE&quot;, &quot;TOTAL&quot;]},
+    &quot;line_millipoints&quot;: {&quot;type&quot;: [&quot;integer&quot;, &quot;null&quot;]},
+    &quot;american_odds&quot;: {&quot;type&quot;: &quot;integer&quot;},
+    &quot;stake_cents&quot;: {&quot;type&quot;: &quot;integer&quot;, &quot;minimum&quot;: 1},
+    &quot;bankroll_before_cents&quot;: {&quot;type&quot;: &quot;integer&quot;, &quot;minimum&quot;: 1},
+    &quot;payout_cents&quot;: {&quot;type&quot;: [&quot;integer&quot;, &quot;null&quot;], &quot;minimum&quot;: 0},
+    &quot;reason&quot;: {&quot;type&quot;: [&quot;string&quot;, &quot;null&quot;], &quot;maxLength&quot;: 500, &quot;description&quot;: &quot;Legacy free-text rationale&quot;},
+    &quot;rationale_category&quot;: {
+      &quot;type&quot;: [&quot;string&quot;, &quot;null&quot;],
+      &quot;enum&quot;: [&quot;MATCHUP_ANALYSIS&quot;, &quot;STATISTICAL_EDGE&quot;, &quot;LINE_VALUE&quot;, &quot;INJURY_IMPACT&quot;, &quot;SITUATIONAL&quot;, &quot;CONTRARIAN&quot;, &quot;OTHER&quot;, null]
+    },
+    &quot;notes&quot;: {&quot;type&quot;: [&quot;string&quot;, &quot;null&quot;], &quot;maxLength&quot;: 500, &quot;description&quot;: &quot;Structured free-text notes (Phase 2)&quot;},
+    &quot;status&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;enum&quot;: [&quot;PENDING&quot;, &quot;WON&quot;, &quot;LOST&quot;, &quot;PUSH&quot;]}
+  },
+  &quot;required&quot;: [&quot;id&quot;, &quot;account_id&quot;, &quot;game_id&quot;, &quot;market_id&quot;, &quot;selection&quot;, &quot;american_odds&quot;, &quot;stake_cents&quot;, &quot;bankroll_before_cents&quot;, &quot;status&quot;]
+}
+</code></pre>
+<h3 id="quality-expectations_6">Quality Expectations</h3>
+<ul>
+<li><strong>Atomicity:</strong> Creation and stake posting succeed or fail together; settlement and payout do likewise.</li>
+<li><strong>Snapshot integrity:</strong> Odds, line, stake, and placement bankroll never follow later market/account changes.</li>
+<li><strong>Allocation:</strong> Conviction is derived as <code>stake_cents / bankroll_before_cents</code>.</li>
+</ul>
+<h3 id="ownership_5">Ownership</h3>
+<ul>
+<li><strong>Owner:</strong> Edgebook wagering module (<code>src/edgebook/wagering/</code>)</li>
+</ul>
+<hr />
+<h2 id="cfb-market-quote">CFB Market Quote</h2>
+<h3 id="description_7">Description</h3>
+<p>A single manual American-odds quote for one selection within a market. A market opens once it
+has its required pair of quotes.</p>
+<h3 id="schema_5">Schema</h3>
+<pre><code class="language-json">{
+  &quot;type&quot;: &quot;object&quot;,
+  &quot;properties&quot;: {
+    &quot;id&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;format&quot;: &quot;uuid&quot;},
+    &quot;market_id&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;description&quot;: &quot;FK to cfb_markets&quot;},
+    &quot;selection&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;enum&quot;: [&quot;HOME&quot;, &quot;AWAY&quot;, &quot;OVER&quot;, &quot;UNDER&quot;]},
+    &quot;american_odds&quot;: {&quot;type&quot;: &quot;integer&quot;, &quot;description&quot;: &quot;Signed American odds&quot;},
+    &quot;created_at&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;format&quot;: &quot;date-time&quot;}
+  },
+  &quot;required&quot;: [&quot;id&quot;, &quot;market_id&quot;, &quot;selection&quot;, &quot;american_odds&quot;]
+}
+</code></pre>
+<h3 id="quality-expectations_7">Quality Expectations</h3>
+<ul>
+<li><strong>Uniqueness:</strong> One quote per <code>(market_id, selection)</code> pair.</li>
+<li><strong>Accuracy:</strong> <code>american_odds</code> is a non-zero signed integer.</li>
+</ul>
+<h3 id="ownership_6">Ownership</h3>
+<ul>
+<li><strong>Owner:</strong> Edgebook CFB module (<code>src/edgebook/cfb/</code>)</li>
+</ul>
+<hr />
+<h2 id="score-correction">Score Correction</h2>
+<h3 id="description_8">Description</h3>
+<p>An audit-trail record for a corrected final score. Each correction stores the original and
+corrected scores along with a required reason. The correction process reverses prior payout
+postings via offsetting ADJUSTMENT entries and re-settles all bets atomically.</p>
+<h3 id="schema_6">Schema</h3>
+<pre><code class="language-json">{
+  &quot;type&quot;: &quot;object&quot;,
+  &quot;properties&quot;: {
+    &quot;id&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;format&quot;: &quot;uuid&quot;},
+    &quot;game_id&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;description&quot;: &quot;FK to cfb_games&quot;},
+    &quot;original_home_score&quot;: {&quot;type&quot;: &quot;integer&quot;, &quot;minimum&quot;: 0},
+    &quot;original_away_score&quot;: {&quot;type&quot;: &quot;integer&quot;, &quot;minimum&quot;: 0},
+    &quot;corrected_home_score&quot;: {&quot;type&quot;: &quot;integer&quot;, &quot;minimum&quot;: 0},
+    &quot;corrected_away_score&quot;: {&quot;type&quot;: &quot;integer&quot;, &quot;minimum&quot;: 0},
+    &quot;reason&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;maxLength&quot;: 1000},
+    &quot;corrected_at&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;format&quot;: &quot;date-time&quot;}
+  },
+  &quot;required&quot;: [&quot;id&quot;, &quot;game_id&quot;, &quot;original_home_score&quot;, &quot;original_away_score&quot;, &quot;corrected_home_score&quot;, &quot;corrected_away_score&quot;, &quot;reason&quot;, &quot;corrected_at&quot;]
+}
+</code></pre>
+<h3 id="quality-expectations_8">Quality Expectations</h3>
+<ul>
+<li><strong>Integrity:</strong> <code>corrected_scores != original_scores</code>; game must be FINAL at correction time.</li>
+<li><strong>Audit trail:</strong> Offsetting ADJUSTMENT entries preserve the append-only ledger invariant.</li>
+<li><strong>Immutability:</strong> Correction records are never updated or deleted.</li>
+</ul>
+<h3 id="ownership_7">Ownership</h3>
+<ul>
+<li><strong>Owner:</strong> Edgebook CFB module (<code>src/edgebook/cfb/</code>)</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.sections", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "content.tabs.link", "content.code.annotation", "content.code.copy"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+    
+  </body>
+</html>

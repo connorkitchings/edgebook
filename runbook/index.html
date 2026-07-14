@@ -1,0 +1,1731 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A simulation-only college football paper-betting platform.">
+      
+      
+      
+      
+        <link rel="prev" href="../architecture/decisions/template/">
+      
+      
+        <link rel="next" href="../deployment/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.23">
+    
+    
+      
+        <title>Runbook - Edgebook</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.84d31ad4.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#runbook-edgebook" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Edgebook" class="md-header__button md-logo" aria-label="Edgebook" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Edgebook
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Runbook
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../product_manual/" class="md-tabs__link">
+          
+  
+  
+  Project Overview
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../development_guide/" class="md-tabs__link">
+          
+  
+  
+  Development
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../architecture/system_overview/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../data/contracts/" class="md-tabs__link">
+          
+  
+  
+  Data Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../architecture/adr/adr-0001-template/" class="md-tabs__link">
+          
+  
+  
+  Templates
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  Operations
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../api/" class="md-tabs__link">
+          
+  
+  
+  API
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Edgebook" class="md-nav__button md-logo" aria-label="Edgebook" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Edgebook
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Project Overview
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Project Overview
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../product_manual/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Product Manual
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../implementation_schedule/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Implementation Schedule
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Development
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Development
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/web_architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Web Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/ai_docs_organization_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AI Docs Organization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Architecture
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/system_overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    System Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/data_modeling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Modeling
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/investment_adaptability_review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Investment Adaptability
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/adr/adr-0001-initial-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Initial Architecture (ADR)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/adr/adr-0002-application-orchestration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Application Orchestration (ADR)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Data Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Data Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data/contracts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Contracts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data/dictionary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dictionary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Templates
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Templates
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/adr/adr-0001-template/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ADR Template
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/decisions/template/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Decision Template
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Operations
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Runbook
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Runbook
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#getting-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      Getting Started
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Getting Started">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Prerequisites
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-development-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Development Setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-apply-database-migrations" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Apply Database Migrations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-running-the-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Running the Server
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#service-verification-health-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Service Verification &amp; Health Checks
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Service Verification &amp; Health Checks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#check-api-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      Check API Status
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#backups" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backups
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Backups">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#back-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      Back up
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restore" class="md-nav__link">
+    <span class="md-ellipsis">
+      Restore
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scheduled-backups" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scheduled backups
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ingestion-scheduler-hooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ingestion Scheduler Hooks
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ingestion-alerting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ingestion Alerting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Ingestion Alerting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#in-app" class="md-nav__link">
+    <span class="md-ellipsis">
+      In-app
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#webhook-notifier" class="md-nav__link">
+    <span class="md-ellipsis">
+      Webhook notifier
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prometheus-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prometheus metrics
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#releases" class="md-nav__link">
+    <span class="md-ellipsis">
+      Releases
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#issue-pyo3-compilation-error-on-python-314" class="md-nav__link">
+    <span class="md-ellipsis">
+      Issue: PyO3 Compilation Error on Python 3.14+
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-database-connectivity-down" class="md-nav__link">
+    <span class="md-ellipsis">
+      Issue: Database connectivity down
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Security & Responsible Use
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../knowledge_base/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Knowledge Base
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="runbook-edgebook">Runbook: Edgebook</h1>
+<p>This runbook documents how to run, test, and troubleshoot the Edgebook college football paper-betting platform local environment.</p>
+<h2 id="getting-started">Getting Started</h2>
+<blockquote>
+<p><strong>Hosting:</strong> see <a href="../deployment/">Deployment</a> for the full Oracle Always-Free
+walkthrough (VM provisioning, secrets, cron ingestion, CI/CD, and the HTTPS
+upgrade path).</p>
+</blockquote>
+<h3 id="1-prerequisites">1. Prerequisites</h3>
+<ul>
+<li><strong>Python 3.11</strong>: Ensure you have Python 3.11 installed.</li>
+<li><strong>uv</strong>: Project package manager. Install via <code>pip install uv</code>.</li>
+</ul>
+<h3 id="2-development-setup">2. Development Setup</h3>
+<p>To prepare your environment, follow these steps:</p>
+<pre><code class="language-bash"># Clone the repository
+git clone &lt;repository-url&gt;
+cd edgebook
+
+# Force Python version pinning (created automatically)
+uv python pin 3.11
+
+# Install dependencies (including dev)
+uv sync
+
+# Run tests to verify setup
+uv run pytest
+</code></pre>
+<h3 id="3-apply-database-migrations">3. Apply Database Migrations</h3>
+<p>Edgebook manages its schema through Alembic; application startup never creates
+tables automatically. Apply the current revision before using account or CFB
+intake endpoints:</p>
+<pre><code class="language-bash">uv run alembic upgrade head
+</code></pre>
+<h3 id="3-running-the-server">3. Running the Server</h3>
+<p>To start the FastAPI development server:</p>
+<pre><code class="language-bash">uv run uvicorn edgebook.main:app --reload
+</code></pre>
+<p>The application will be running at <code>http://127.0.0.1:8000</code>.
+You can access the interactive API docs at <code>http://127.0.0.1:8000/docs</code>.</p>
+<hr />
+<h2 id="service-verification-health-checks">Service Verification &amp; Health Checks</h2>
+<h3 id="check-api-status">Check API Status</h3>
+<p>Run the following curl command:</p>
+<pre><code class="language-bash">curl http://127.0.0.1:8000/health
+</code></pre>
+<p><strong>Expected Response (SQLAlchemy connected to database):</strong></p>
+<pre><code class="language-json">{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;services&quot;: {
+    &quot;api&quot;: &quot;ok&quot;,
+    &quot;database&quot;: &quot;ok&quot;
+  }
+}
+</code></pre>
+<h2 id="backups">Backups</h2>
+<p>The production stack stores data in the <code>pgdata</code> Docker volume backing the
+Postgres service in <code>docker-compose.prod.yml</code>. <code>scripts/backup_db.sh</code> and
+<code>scripts/restore_db.sh</code> dump and restore that database through the running <code>db</code>
+service, so the stack must be up when either script is executed.</p>
+<h3 id="back-up">Back up</h3>
+<pre><code class="language-bash"># Default: dump via docker-compose.prod.yml into ./backups, keep the 7 newest.
+scripts/backup_db.sh
+
+# Override the compose target or retention:
+COMPOSE_FILE=docker-compose.yml RETENTION=14 scripts/backup_db.sh
+</code></pre>
+<p>Backups are written as compressed <code>pg_dump</code> custom-format files named
+<code>edgebook-&lt;UTC-timestamp&gt;.dump</code> under <code>./backups/</code> (git-ignored). Only the
+<code>RETENTION</code> most recent files are retained; older backups are pruned
+automatically.</p>
+<h3 id="restore">Restore</h3>
+<pre><code class="language-bash">scripts/restore_db.sh backups/edgebook-20260712T180000Z.dump
+</code></pre>
+<p>Restore drops and recreates the <code>public</code> schema, then loads the backup with
+<code>pg_restore --no-owner --no-acl</code>. To guard against accidental production
+overwrites, the script prompts you to type the target database name before
+proceeding.</p>
+<h3 id="scheduled-backups">Scheduled backups</h3>
+<p>On the production host, run a daily backup via cron shortly before any intake
+or maintenance jobs:</p>
+<pre><code class="language-cron">15 8 * * *  cd /opt/edgebook &amp;&amp; ./scripts/backup_db.sh &gt;&gt; logs/backup.log 2&gt;&amp;1
+</code></pre>
+<h2 id="ingestion-scheduler-hooks">Ingestion Scheduler Hooks</h2>
+<p>The ingestion worker is intentionally outside the FastAPI process. The Odds API is the supported
+credentialed provider for current and historical NCAAF featured markets; SportsDataIO and
+CollegeFootballData adapters are fixture-ready until their terms and credentials are approved.
+Configure secrets only through the environment, never a feed file or source control.</p>
+<pre><code class="language-bash">ODDS_API_KEY=... uv run python -m edgebook.ingestion.cli providers
+ODDS_API_KEY=... uv run python -m edgebook.ingestion.cli sync --provider the-odds-api
+ODDS_API_KEY=... uv run python -m edgebook.ingestion.cli backfill-odds \
+  --provider the-odds-api --from 2026-09-01 --to 2026-09-07
+ODDS_API_KEY=... uv run python scripts/odds_api_smoke.py
+# Requires historical-data entitlement:
+ODDS_API_KEY=... uv run python scripts/odds_api_smoke.py --historical-date 2025-09-01
+</code></pre>
+<p>Host cron runs <code>scripts/cron_ingest.sh</code> once daily at 08:00 America/New_York.
+The script starts a one-shot application container that requests DraftKings,
+FanDuel, BetMGM, and Caesars featured markets (<code>h2h</code>, <code>spreads</code>, and <code>totals</code>),
+then removes the container. Ingestion runs record the requested and provider
+snapshot times plus remaining provider quota.</p>
+<p>Historical backfills request one daily 12:00 UTC snapshot at a time. Each request receives a
+durable checkpoint keyed by provider, sport, markets, bookmaker set, and requested timestamp;
+rerunning the same range skips completed days and resumes failed ones. Start the full research
+load at the provider's supported date (<code>2020-06-06</code>) only after a small three-day smoke backfill.
+The worker stops future requests once the configured <code>INGESTION_MIN_QUOTA_REMAINING</code> reserve is
+reached.</p>
+<p>Fixture and settlement commands remain available:</p>
+<pre><code class="language-bash">uv run python -m edgebook.ingestion.cli sync --provider provider-a --feed provider-a.json
+uv run python -m edgebook.ingestion.cli settle-confirmed
+uv run python -m edgebook.ingestion.cli claim-reviews
+uv run python -m edgebook.ingestion.cli report
+</code></pre>
+<p>Score disagreements remain held in <code>CONFLICTED</code> state and must be resolved through the local
+score-resolution API before settlement.</p>
+<hr />
+<h2 id="ingestion-alerting">Ingestion Alerting</h2>
+<p>Operator visibility into ingestion health is surfaced in three layers.</p>
+<h3 id="in-app">In-app</h3>
+<p>The <code>/ingestion</code> page renders a run-health summary card (last 24h by default),
+per-provider quota, and a filterable run-history table. Failed runs show a red
+badge plus the error message inline; <code>status</code> and <code>provider</code> filters narrow the
+history. The <code>/ingestion/runs</code> and <code>/ingestion/runs/summary</code> JSON endpoints
+back the same data for automation.</p>
+<h3 id="webhook-notifier">Webhook notifier</h3>
+<p>Set <code>ALERT_WEBHOOK_URL</code> to <code>POST</code> a JSON alert whenever an ingestion run fails
+(best-effort, one-shot — there is no retry queue):</p>
+<pre><code class="language-json">{
+  &quot;event&quot;: &quot;ingestion.run_failed&quot;,
+  &quot;run_id&quot;: &quot;...&quot;,
+  &quot;provider&quot;: &quot;the-odds-api&quot;,
+  &quot;scope&quot;: &quot;games&quot;,
+  &quot;error&quot;: &quot;ValueError: ...&quot;,
+  &quot;started_at&quot;: &quot;2026-07-13T12:00:00+00:00&quot;,
+  &quot;quota_remaining&quot;: 123,
+  &quot;notified_at&quot;: &quot;2026-07-13T12:00:05+00:00&quot;
+}
+</code></pre>
+<p>Delivery uses a bounded timeout (<code>ALERT_WEBHOOK_TIMEOUT_SECONDS</code>, default 5) and
+swallows transport errors, so alerting can never break ingestion. Leave
+<code>ALERT_WEBHOOK_URL</code> empty to disable. The payload contains no credentials.</p>
+<h3 id="prometheus-metrics">Prometheus metrics</h3>
+<p>The <code>/metrics</code> endpoint (see Phase 8.3) exports ingestion signals suitable for
+alert rules:</p>
+<ul>
+<li><code>edgebook_ingestion_runs_total{provider,scope,status}</code> — counter; alert on a
+  non-zero failed-run rate, e.g.
+  <code>sum(increase(edgebook_ingestion_runs_total{status="FAILED"}[15m])) &gt; 0</code>.</li>
+<li><code>edgebook_ingestion_quota_remaining{provider}</code> — gauge; alert when a provider
+  nears its reserve, e.g.
+  <code>edgebook_ingestion_quota_remaining{provider="the-odds-api"} &lt; 100</code>.</li>
+</ul>
+<hr />
+<h2 id="releases">Releases</h2>
+<p>The canonical version lives in <code>pyproject.toml</code>; <code>edgebook.__version__</code> and the
+FastAPI app version read it at runtime via <code>importlib.metadata</code>, so bumping the
+<code>pyproject.toml</code> version updates everything. The full pre-release checklist
+lives in <code>.agent/workflows/release-checklist.md</code>; the routine cut-a-tag flow is:</p>
+<ol>
+<li>Update the version in <code>pyproject.toml</code>.</li>
+<li>Move <code>[Unreleased]</code> notes into a dated section in <code>CHANGELOG.md</code> and add a
+   new empty <code>[Unreleased]</code> heading.</li>
+<li><code>uv sync</code> (so the installed metadata reflects the new version), then run the
+   full quality gate: <code>uv run ruff format . &amp;&amp; uv run ruff check . &amp;&amp;
+   uv run pytest</code>.</li>
+<li>Commit, tag, and push:</li>
+</ol>
+<p><code>bash
+   git add pyproject.toml CHANGELOG.md
+   git commit -m "chore: release vX.Y.Z"
+   git tag -a vX.Y.Z -m "Release vX.Y.Z"
+   git push origin main --tags</code></p>
+<p>The production deploy workflow targets an Oracle Always-Free ARM VM and builds
+natively over SSH on pushes to <code>main</code>. It skips successfully until the four VM
+secrets are configured. Defer the <code>v0.2.0</code> tag until the first real VM deploy
+validates the stack; see <a href="../deployment/">Deployment</a> for provisioning details.</p>
+<hr />
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="issue-pyo3-compilation-error-on-python-314">Issue: PyO3 Compilation Error on Python 3.14+</h3>
+<p><strong>Symptoms:</strong>
+Installing dependencies via <code>uv sync</code> crashes during <code>pydantic-core</code> build with the message:
+<code>error: the configured Python interpreter version (3.14) is newer than PyO3's maximum supported version (3.13)</code></p>
+<p><strong>Resolution:</strong>
+Edgebook requires Python 3.11/3.12. Ensure you run:</p>
+<pre><code class="language-bash">uv python pin 3.11
+rm -rf .venv
+uv sync
+</code></pre>
+<p>This forces <code>uv</code> to use Python 3.11.</p>
+<h3 id="issue-database-connectivity-down">Issue: Database connectivity down</h3>
+<p><strong>Symptoms:</strong>
+<code>/health</code> response returns database as "down" or "unhealthy".</p>
+<p><strong>Resolution:</strong>
+1. Check that the file <code>edgebook.db</code> is present in the root directory (for SQLite).
+2. If <code>DATABASE_URL</code> is customized in <code>.env</code> to target a PostgreSQL database, verify that the database server is running and the credentials are correct.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.sections", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "content.tabs.link", "content.code.annotation", "content.code.copy"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+    
+  </body>
+</html>
